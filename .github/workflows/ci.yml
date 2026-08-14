@@ -16,6 +16,7 @@ jobs:
         with:
           python-version: "3.12"
           cache: pip
+          cache-dependency-path: requirements-analysis.lock.txt
       - name: Install analysis dependencies
         run: python -m pip install -r requirements-analysis.lock.txt
       - name: Run portable checks
