@@ -1,0 +1,39 @@
+{
+  "environment": {
+    "matplotlib": "3.11.1",
+    "numpy": "2.3.5",
+    "python": "3.12.13"
+  },
+  "primary_estimand": {
+    "bootstrap_95_ci": [
+      0.008627767529375446,
+      0.010535909718549853
+    ],
+    "median": 0.009381082059709894,
+    "name": "absolute_relative_error_empirical_kappa_vs_exact_kappa_alpha"
+  },
+  "record_counts": {
+    "approximation_defined": 400,
+    "error": 0,
+    "primary_relative_error_defined": 1920,
+    "success": 2000,
+    "total": 2000
+  },
+  "run_id": "route_a_grid_v1",
+  "schema_version": "1.0",
+  "secondary_estimand": {
+    "bootstrap_95_ci": [
+      0.24161261144850765,
+      0.3652173913043479
+    ],
+    "median_absolute_error": 0.29339700455828094,
+    "name": "signed_and_absolute_error_of_rho_squared_d_for_alpha_zero_only"
+  },
+  "uncertainty": {
+    "bootstrap_samples": 5000,
+    "bootstrap_seed": 20260808,
+    "method": "95_percentile_bootstrap",
+    "unit_of_replication": "configuration-seed record"
+  },
+  "zero_policy": "when abs(exact_kappa_alpha) <= 1e-12, relative error is null and absolute error is reported"
+}

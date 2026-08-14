@@ -1,0 +1,32 @@
+name: research-artifact-ci
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  lightweight-verification:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install analysis dependencies
+        run: python -m pip install -r requirements-analysis.lock.txt
+      - name: Run portable checks
+        run: |
+          python -m unittest \
+            tests.test_public_repository \
+            tests.test_route_a_claims \
+            tests.test_self_feature_mixing \
+            tests.test_discriminability_experiment \
+            tests.test_diagnostic_scoring \
+            tests.test_degree_preserving_shuffle \
+            tests.test_submission_safety -v
+      - name: Audit active manuscript claims
+        run: python scripts/audit_route_a_claims.py --root . --main main_neurocomputing.tex

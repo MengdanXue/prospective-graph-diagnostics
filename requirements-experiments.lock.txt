@@ -1,0 +1,28 @@
+# Frozen on CPython 3.13.5 / Windows x86_64. CUDA wheels resolve from this index.
+--extra-index-url https://download.pytorch.org/whl/cu126
+aiohttp==3.12.15
+aiosignal==1.4.0
+attrs==25.4.0
+filelock==3.13.1
+frozenlist==1.8.0
+fsspec==2024.6.1
+Jinja2==3.1.4
+joblib==1.5.1
+MarkupSafe==2.1.5
+multidict==6.7.0
+networkx==3.3
+numpy==2.2.6
+pandas==2.3.3
+propcache==0.4.1
+psutil==7.0.0
+pyparsing==3.2.3
+requests==2.32.4
+scikit-learn==1.7.1
+scipy==1.16.1
+sympy==1.13.3
+threadpoolctl==3.6.0
+torch==2.9.1+cu126
+torch-geometric==2.7.0
+tqdm==4.67.1
+typing_extensions==4.15.0
+yarl==1.22.0

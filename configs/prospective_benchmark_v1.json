@@ -1,0 +1,69 @@
+{
+  "schema_version": "1.0",
+  "run_id": "route_a_prospective_v1",
+  "created_before_outcomes": "2026-08-08",
+  "datasets": [
+    "Cora",
+    "CiteSeer",
+    "PubMed",
+    "Texas",
+    "Wisconsin",
+    "Cornell",
+    "Chameleon",
+    "Squirrel",
+    "Actor",
+    "Roman-empire",
+    "Amazon-ratings",
+    "Coauthor-CS"
+  ],
+  "seeds": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+  "models": ["MLP", "GCN", "GAT", "GraphSAGE", "H2GCN", "LINKX", "GPR-GNN"],
+  "split": {
+    "train": 0.6,
+    "validation": 0.2,
+    "test": 0.2
+  },
+  "training": {
+    "hidden_channels": 64,
+    "max_epochs": 500,
+    "patience": 100,
+    "weight_decay": 0.0005,
+    "trials": [
+      {"learning_rate": 0.01, "dropout": 0.5},
+      {"learning_rate": 0.01, "dropout": 0.7},
+      {"learning_rate": 0.005, "dropout": 0.5},
+      {"learning_rate": 0.005, "dropout": 0.7}
+    ],
+    "selection_order": ["validation_accuracy_desc", "validation_loss_asc", "trial_id_asc"],
+    "test_evaluations_after_selection": 1
+  },
+  "model_parameters": {
+    "GAT": {"heads": 4},
+    "H2GCN": {"propagation_layers": 2, "strict_two_hop": true},
+    "LINKX": {"num_layers": 2, "num_edge_layers": 1, "num_node_layers": 2},
+    "GPR-GNN": {"propagation_steps": 10, "alpha": 0.1, "initialization": "PPR"}
+  },
+  "diagnostics": {
+    "label_scope": "train_only",
+    "two_hop_walks": 50000,
+    "two_hop_estimand": "path_weighted_length_two_endpoint_agreement",
+    "exclude_identical_endpoints": true,
+    "uses_test_labels": false
+  },
+  "evaluator": {
+    "specification_version": "route_a_diagnostic_v1",
+    "practical_margin": 0.01,
+    "bootstrap": {"samples": 10000, "seed": 20260808},
+    "permutation": {"samples": 10000, "seed": 20260809}
+  },
+  "edge_intervention": {
+    "run_id": "route_a_degree_matched_v1",
+    "datasets": ["Cora", "CiteSeer", "PubMed"],
+    "seeds": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+    "model": "GCN",
+    "successful_swaps_per_edge": 5,
+    "randomization_seed_offset": 100000,
+    "bootstrap": {"samples": 10000, "seed": 20260810},
+    "permutation": {"samples": 10000, "seed": 20260811}
+  }
+}
