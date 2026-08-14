@@ -167,6 +167,12 @@ class PublicRepositoryTests(unittest.TestCase):
             workflow,
         )
 
+    def test_ci_runs_the_public_release_builder_tests(self):
+        workflow = (ROOT / ".github" / "workflows" / "ci.yml").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("tests.test_public_release_builder", workflow)
+
 
 if __name__ == "__main__":
     unittest.main()
