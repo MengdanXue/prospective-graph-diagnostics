@@ -1,0 +1,39 @@
+{
+  "filepath": "docs\\novelty_audit_core_references_2026-08-13.bib",
+  "total_entries": 9,
+  "valid_entries": 9,
+  "errors": [],
+  "warnings": [
+    {
+      "type": "missing_recommended_field",
+      "field": "pages",
+      "severity": "medium",
+      "message": "Entry luan2023whendo: Missing recommended field \"pages\"",
+      "entry": "luan2023whendo"
+    },
+    {
+      "type": "missing_recommended_field",
+      "field": "pages",
+      "severity": "medium",
+      "message": "Entry zheng2024trihom: Missing recommended field \"pages\"",
+      "entry": "zheng2024trihom"
+    },
+    {
+      "type": "missing_recommended_field",
+      "field": "pages",
+      "severity": "medium",
+      "message": "Entry park2023metagl: Missing recommended field \"pages\"",
+      "entry": "park2023metagl"
+    }
+  ],
+  "duplicates": [],
+  "venue_standard_checked": null,
+  "min_count_checked": null,
+  "manuscript_results": {
+    "checked": false,
+    "manuscript_filepath": null,
+    "cited_keys": [],
+    "missing_keys": [],
+    "unused_keys": []
+  }
+}

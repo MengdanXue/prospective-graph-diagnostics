@@ -1,0 +1,34 @@
+{
+  "schema_version": "1.0",
+  "run_id": "route_a_grid_v1",
+  "description": "Predeclared direct simulation of the exact self-neighbor discriminability ratio.",
+  "model": {
+    "dimension": 4,
+    "covariance": "identity",
+    "samples_per_class": 5000,
+    "simulation_method": "direct_binomial_label_sum_and_gaussian_noise"
+  },
+  "grid": {
+    "d": [2, 5, 10, 20],
+    "rho": [-0.8, -0.4, 0.0, 0.4, 0.8],
+    "s": [0.1, 0.5, 1.0, 4.0],
+    "alpha": [0.0, 0.25, 0.5, 0.75, 1.0]
+  },
+  "seeds": [202608080, 202608081, 202608082, 202608083, 202608084],
+  "estimands": {
+    "primary": "absolute_relative_error_empirical_kappa_vs_exact_kappa_alpha",
+    "primary_zero_policy": "when abs(exact_kappa_alpha) <= 1e-12, relative error is null and absolute error is reported",
+    "secondary": "signed_and_absolute_error_of_rho_squared_d_for_alpha_zero_only"
+  },
+  "summary": {
+    "estimator": "median",
+    "interval": "95_percentile_bootstrap",
+    "bootstrap_samples": 5000,
+    "bootstrap_seed": 20260808
+  },
+  "output": {
+    "root": "results/discriminability",
+    "record_layout": "<run_id>/<config_id>/seed_<seed>.json",
+    "overwrite": false
+  }
+}

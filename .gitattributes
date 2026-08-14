@@ -1,0 +1,18 @@
+# Keep public text artifacts stable across Windows and Linux checkouts.
+* text=auto
+.gitattributes text eol=lf
+*.bib text eol=lf
+*.cff text eol=lf
+*.csv text eol=lf
+*.json text eol=lf
+*.md text eol=lf
+*.py text eol=lf
+*.tex text eol=lf
+*.txt text eol=lf
+*.yml text eol=lf
+*.pdf binary
+*.png binary
+
+# Preserve the vendored official Elsevier style byte-for-byte.
+submission_assets/elsevier/elsarticle-num.bst -whitespace
+submission_assets/elsevier/elsarticle.cls -whitespace

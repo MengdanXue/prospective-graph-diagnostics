@@ -1,0 +1,23 @@
+cff-version: 1.2.0
+message: "If you use this research artifact, please cite the repository and the accompanying manuscript."
+title: "Prospective Graph Diagnostics"
+type: software
+authors:
+  - family-names: "Xue"
+    given-names: "Mengdan"
+    affiliation: "Faculty of Computational Mathematics and Cybernetics, Lomonosov Moscow State University"
+    email: "17326961775@163.com"
+repository-code: "https://github.com/MengdanXue/prospective-graph-diagnostics"
+url: "https://github.com/MengdanXue/prospective-graph-diagnostics"
+version: "0.1.0"
+date-released: "2026-08-14"
+abstract: >-
+  Frozen prospective evaluation of train-only diagnostics for graph-vs-MLP
+  model selection, with a degree-preserving edge intervention and compact
+  deterministic audit summaries.
+keywords:
+  - graph neural networks
+  - model selection
+  - graph diagnostics
+  - heterophily
+  - negative results

@@ -1,0 +1,24 @@
+\section{Discussion}
+\label{sec:discussion}
+
+\subsection{What the Negative Result Establishes}
+
+The prospective benchmark evaluates diagnostics as actions rather than as post-hoc correlates. Under the frozen 11-dataset protocol, the combined rule and the four structure-based variants do not provide stable incremental value over an always-graph policy. This conclusion is bounded to the evaluated statistics, thresholds, model portfolio, accuracy target, and one-percentage-point margin. It does not imply that every possible graph diagnostic must fail or that cross-dataset learned selectors are impossible.
+
+The comparison also shows why trivial policies belong in diagnostic studies. Graph is the target in 89 of 110 units, making always-graph a strong reference before any structural statistic is consulted. A diagnostic that predicts the majority action on many units can appear accurate while still adding no decision value. Oracle-family regret exposes the cost of the remaining errors, and coverage prevents abstention from receiving favorable treatment. These quantities should accompany correlation whenever a graph statistic is proposed for operational selection.
+
+\subsection{Graph Utility Is Not a Scalar Property}
+
+The degree-preserving intervention changes the interpretation of the negative result. Large paired losses after randomization show that useful edge organization is present in Cora, CiteSeer, and PubMed even though homophily, degree, and the two-hop statistic do not yield a reliable general selector. The apparent tension is resolved if graph utility depends on interactions that low-dimensional summaries discard: class-specific mixing, feature alignment, motifs, long-range paths, architecture, and optimization can affect performance jointly. The fixed-degree analysis in Section~\ref{sec:snr} illustrates one such interaction in a controlled surrogate, but it is not a model-selection theorem.
+
+Validation selection has the lowest descriptive regret in the benchmark, although its advantage over the combined rule does not remain significant after the predeclared Holm correction. Unlike a cheap structural rule, validation selection requires training both model families. It therefore serves as a performance reference rather than a cost-free diagnostic. A useful future selector must be evaluated against both extremes: the trivial family policy that is strong under the observed target distribution and the validation policy that spends the full training budget.
+
+\subsection{Limitations and External Validity}
+
+The study covers 11 public node-classification datasets, ten seeds, one stratified split design, seven architectures, four trials per architecture, and test accuracy as the outcome. The thresholds are intentionally simple and frozen; they are not optimized for each dataset. These choices make the negative result auditable but limit generalization to inductive deployment, graph-level tasks, dynamic or heterogeneous graphs, different model portfolios, and cost-sensitive objectives. The eligibility amendment also excludes Texas because its singleton class cannot support the fixed three-way split, so the benchmark does not characterize that small-data regime.
+
+The intervention adds a different limitation. It evaluates GCN on three citation networks, leaving only three independent dataset clusters for inference. Degree preservation does not preserve connected components, homophily, motifs, spectral structure, or path statistics. The intervention therefore establishes sensitivity to non-degree edge organization, not a causal effect of any one structural attribute.
+
+\subsection{Implications for Future Work}
+
+The next step is not another hand-tuned threshold over the same summaries. More promising directions include learned representations of structural utility, uncertainty-aware abstention, explicit training-cost objectives, and selectors evaluated with leave-dataset-out or external prospective data. Such work should retain the safeguards used here: decision-time provenance, matched model portfolios, test-once accounting, trivial policies, regret and coverage, dataset-level inference, and immutable per-unit records.

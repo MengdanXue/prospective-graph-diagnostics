@@ -1,0 +1,39 @@
+% ============================================================
+% Section 2: Related Work
+% Negative diagnostic study: closest-work positioning
+% ============================================================
+
+\section{Related Work}
+\label{sec:related}
+
+The study sits at the intersection of graph-characterization metrics, heterophilous node classification, graph learning model selection, and tests of whether graph structure is necessary. Its contribution is a frozen decision evaluation of simple diagnostics, not a new homophily measure, graph architecture, or general model-selection benchmark.
+
+\subsection{Graph Characteristics and Relative Model Performance}
+
+Early homophily measures summarize whether adjacent nodes share labels, but a single global fraction omits class imbalance, feature geometry, neighborhood distributions, and local variation~\cite{mcpherson2001homophily,zhu2020beyond,ma2021homophily}. Subsequent work introduced post-aggregation similarity, adjusted homophily, label informativeness, and local or class-conditional characterizations to better describe when message passing helps~\cite{luan2022linkx,platonov2023characterizing,loveland2024local}. Accordingly, our contribution is not the established observation that homophily is insufficient.
+
+The closest diagnostic work goes further. Luan et al.~\cite{luan2023whendo} analyze node distinguishability and propose feature-based hypothesis-testing metrics with thresholds intended to reveal the advantage of graph-aware models. Zheng et al.~\cite{zheng2024trihom} disentangle label, structural, and feature homophily; their 31-dataset study compares Tri-Hom with 17 metrics, including correlations with GCN-, GraphSAGE-, and GAT-versus-MLP performance gaps. Under a heterophilous stochastic block model, Wang et al.~\cite{pmlr-v235-wang24u} relate separability gain to neighborhood-distribution distance and degree rather than to global homophily alone. These studies motivate richer diagnostics but primarily evaluate theoretical quantities or performance association. We instead freeze specified statistics as graph/MLP/abstain policies and evaluate the cost of their actions through regret and coverage.
+
+Benchmark design also narrows the novelty claim. Repeated-split evaluation and standardized graph collections expose conclusions that depend on data splits, tuning, or dataset choice~\cite{shchur2018pitfalls,hu2020ogb}. Platonov et al.~\cite{platonov2023heterophilous} reassess whether reported progress on heterophilous benchmarks survives stronger protocols, while Luan et al.~\cite{luan2024reevaluating} quantitatively re-evaluate both models and homophily metrics. Comparisons across datasets further require treating datasets, rather than pooled seeds, as the inferential units~\cite{demsar2006statistical}. We therefore do not claim the first negative evaluation of homophily-related diagnostics. Our narrower question is whether transparent train-only rules retain incremental decision value over matched trivial policies on real dataset--seed units when negative outcomes are preserved without threshold redesign.
+
+\subsection{Heterophily-Aware Architectures}
+
+Heterophily-aware models change which signals are propagated or how they are combined. H2GCN separates ego and neighbor representations and uses two-hop neighborhoods~\cite{zhu2020beyond}; LINKX separates structural and feature processing~\cite{luan2022linkx}; MixHop and GPR-GNN combine multiple propagation depths~\cite{abu2019mixhop,chien2021gprgnn}; FAGCN, GloGNN, and ACM-GCN adapt filters or communication patterns~\cite{fagcn2021,li2022glognn,acmgcn2024}. Geom-GCN constructs geometric neighborhoods, while high-frequency and flexible spectral designs broaden the signals a graph model can retain~\cite{pei2020geomgcn,bo2021beyond,he2022bernnet,wang2022jacobi}. The wider node-classification design space also includes simplified propagation, deeper residual propagation, revised attention, and graph-augmented MLPs~\cite{wu2019sgc,chen2020gcnii,brody2022gatv2,zhang2021gamlp}. These architectures demonstrate that low one-hop homophily need not make graph structure useless. They also make architecture-specific prediction difficult: a statistic that describes one-hop mixing need not identify which model family wins after tuning. Our benchmark therefore includes GCN, GAT, GraphSAGE, H2GCN, LINKX, and GPR-GNN within the graph family and evaluates a family action rather than presenting a new heterophily architecture.
+
+Depth introduces a separate limitation: repeated propagation can erase discriminative variation or contract node representations~\cite{oono2020exponential,chen2020measuring}. DropEdge and PairNorm address this behavior through edge sampling and representation normalization~\cite{rong2020dropedge,zhao2020pairnorm}. These results reinforce the distinction between describing a graph and forecasting the outcome of a tuned portfolio: realized graph utility depends jointly on data, architecture, optimization, and regularization.
+
+\subsection{Graph Learning Model Selection}
+
+Graph model selection has been studied directly. Auto-GNN searches neural architectures for a given graph task~\cite{zhou2020autognn}. MetaGL learns to select graph-learning models on a new graph from meta-graph features and historical performance~\cite{park2023metagl}. GLEMOS scales this problem to 366 models and 457 graphs and benchmarks multiple instantaneous selection algorithms~\cite{park2023glemos}. Consequently, the present 11-dataset experiment is neither the first nor the largest graph-model-selection benchmark.
+
+Our estimand differs from ranking many individual models across a large meta-dataset. We ask whether predeclared, interpretable statistics can support a binary graph-family-versus-MLP-family action without using test labels. Each family receives the same four-trial validation budget, the final test outcome is evaluated once, and the diagnostic rules are compared with always-graph, always-MLP, random, and direct validation-selection policies on the same 110 units. This design treats diagnostics as deployable decisions and makes oracle-family regret and abstention coverage explicit.
+
+\subsection{When Is the Graph Necessary?}
+
+Strong feature-only baselines are essential because some graph benchmarks can be solved largely from node features. Prior studies have documented competitive MLPs, evaluation instability, and feature leakage of graph information~\cite{huang2021mlp,shchur2018pitfalls,katsman2026necessary}. Other controls compare predictions with and without meaningful edges, showing that models can exploit graph structure when it hurts generalization~\cite{bechler2024graphs}. These findings motivate the graph-versus-MLP action but do not supply a cheap rule for making it.
+
+Our degree-preserving randomization complements these controls by holding every node's degree fixed while changing edge organization. It does not isolate homophily: class mixing, paths, components, clustering, and other higher-order properties can change together. We use the intervention only to reject the interpretation that diagnostic failure demonstrates graph irrelevance. The main contribution remains the decision audit: graph signal may matter strongly even when the evaluated statistics cannot identify its utility reliably.
+
+\subsection{Scoped Mechanistic Context}
+
+The fixed-degree Gaussian calculation in Section~\ref{sec:snr} is included to explain why correlation, degree, and feature strength can interact under a prescribed linear average. It is adjacent to contextual stochastic-block-model recovery theory and finite-depth embedding analyses~\cite{lu2023contextual,pmlr-v269-dalle25a}, but it is not a new recovery threshold, Bayes-error result, or trained-GNN guarantee. The negative benchmark does not depend on that calculation being a universal theory; it evaluates the diagnostics directly under the frozen empirical protocol.

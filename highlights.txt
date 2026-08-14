@@ -1,0 +1,4 @@
+- Frozen evaluation covers 11 datasets, 10 seeds, and seven model families.
+- Simple graph diagnostics show no stable gain over an always-graph policy.
+- Validation selection yields 0.22 points of regret across 110 evaluation units.
+- Degree-preserving randomization shows edge value on three citation graphs.

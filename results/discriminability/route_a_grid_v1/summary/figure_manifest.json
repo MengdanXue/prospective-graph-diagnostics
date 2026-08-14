@@ -1,0 +1,23 @@
+{
+  "alt_text": "Two-panel validation figure. Panel a compares exact and empirical discriminability ratios against an equality line for each center-feature weight. Panel b shows the signed overstatement of rho squared d relative to the exact neighbor-only ratio as feature strength increases.",
+  "background": "opaque white",
+  "figure_size_mm": [
+    178,
+    70
+  ],
+  "formats": [
+    "pdf",
+    "png"
+  ],
+  "missing_data": "Exact-zero relative errors are omitted and counted.",
+  "palette": "Okabe-Ito-on-white subset with marker redundancy",
+  "png_dpi": 300,
+  "schema_version": "1.0",
+  "source_data": "records.csv generated from immutable per-seed JSON records",
+  "transformations": [
+    "No record exclusions other than status != success for plotted estimates.",
+    "Relative errors with exact value at zero are omitted under the frozen zero policy.",
+    "Panel b includes rho squared d only for alpha equal to zero."
+  ],
+  "uncertainty": "95% percentile bootstrap CI of the median; 5000 resamples; seed 20260808; configuration-seed record is the replication unit."
+}

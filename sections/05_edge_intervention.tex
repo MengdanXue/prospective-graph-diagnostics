@@ -1,0 +1,30 @@
+\section{Degree-Preserving Edge Intervention}
+\label{sec:edge_intervention}
+
+\subsection{Paired Intervention Design}
+
+Diagnostic failure could arise either because graph structure carries little predictive information or because the evaluated statistics do not capture its useful organization. We distinguish these explanations with a separate intervention on Cora, CiteSeer, and PubMed. For each dataset and seed, verified double-edge swaps randomize the graph while preserving the complete node set, edge count, and degree of every node. The runner stores both edge lists and recomputes the simple-graph, self-loop, duplicate-edge, per-node-degree, connectivity, and homophily checks before training.
+
+The original and randomized conditions use the same node features, labels, split, GCN architecture, and four-trial hyperparameter grid. They select hyperparameters independently by validation accuracy and evaluate the selected test state once. The paired estimand is randomized minus original test accuracy for the same dataset, split, and seed. This design isolates sensitivity to edge organization beyond the degree sequence, but it does not isolate a single changed property: swaps jointly alter class mixing, connectivity patterns, motifs, and higher-order neighborhoods.
+
+\subsection{Results}
+
+\begin{table}[t]
+\centering
+\caption{Degree-Preserving Edge-Randomization Results. Differences and confidence intervals are percentage points.}
+\label{tab:degree_intervention}
+\small
+\begin{tabular}{@{}lcccc@{}}
+\toprule
+Dataset & Original (\%) & Randomized (\%) & Difference & 95\% CI \\
+\midrule
+Cora & 88.0 & 42.4 & $-45.5$ & $[-47.2,-44.1]$ \\
+CiteSeer & 77.2 & 47.4 & $-29.9$ & $[-30.6,-29.1]$ \\
+PubMed & 87.3 & 69.9 & $-17.3$ & $[-17.8,-16.9]$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+All 30 paired seed differences are negative. The seed-level two-sided sign-flip tests yield Holm-adjusted $p=0.005859$ for each dataset. The equal-weight mean across the three dataset effects is $-30.9$ points, with a descriptive dataset-bootstrap interval of $[-45.5,-17.3]$. However, three dataset clusters provide only eight possible sign patterns; the exact dataset-cluster sign-flip test gives $p=0.25$.
+
+These results rule out a simple graph-irrelevance interpretation on the three evaluated citation networks: changing edge organization while holding every node degree fixed materially changes GCN accuracy. They do not show that homophily alone causes the change, establish the same effect outside these datasets, or validate any diagnostic threshold. Together with Section~\ref{sec:prospective}, the intervention supports a mechanism--decision separation: edge organization can matter greatly even when simple graph summaries fail to indicate when a graph model should be used.

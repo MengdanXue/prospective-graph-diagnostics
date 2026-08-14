@@ -1,0 +1,28 @@
+*.log
+*.aux
+*.out
+*.spl
+__pycache__/
+*.py[cod]
+.venv-analysis/
+.venv-experiments/
+.venv*/
+.smoke-*/
+.tmp-*/
+.tmp-*.zip
+main_neurocomputing.pdf
+main_neurocomputing.bbl
+main_neurocomputing.blg
+main_neurocomputing.xdv
+output/
+tmp/
+data/
+
+# Formal diagnostic runs: keep immutable unit-level artifacts outside ordinary Git.
+# Version compact deterministic audit/summary JSON files under the analysis/summary
+# directories; publish the complete raw archive through a release repository.
+results/diagnostic/route_a_prospective_v1/
+results/diagnostic/route_a_prospective_v2/records/
+results/diagnostic/route_a_prospective_v2/diagnostics/
+results/diagnostic/route_a_prospective_v2/analysis/assembled_*.json
+results/diagnostic/route_a_degree_matched_v1/records/

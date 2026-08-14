@@ -1,0 +1,72 @@
+% Neurocomputing submission entry point.
+\documentclass[preprint,12pt]{elsarticle}
+
+\usepackage{amsmath,amssymb,amsfonts,amsthm}
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{multirow}
+\usepackage{textcomp}
+\usepackage{xcolor}
+\usepackage{url}
+\usepackage[hidelinks]{hyperref}
+
+\graphicspath{{code/figures/}{figures/}}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{proposition}{Proposition}
+\newtheorem{definition}{Definition}
+\newtheorem{remark}{Remark}
+\newtheorem{corollary}{Corollary}
+\newtheorem{lemma}{Lemma}
+\newtheorem{assumption}{Assumption}
+
+\journal{Neurocomputing}
+
+\begin{document}
+
+\begin{frontmatter}
+
+\title{A Prospective Evaluation of Graph Diagnostics for Graph-vs-MLP Model Selection}
+
+\author{Anonymous Author(s)}
+\affiliation{organization={Anonymous institution},
+             city={Anonymous},
+             country={Anonymous}}
+
+\begin{abstract}
+Choosing whether to use graph structure is an operational decision, yet graph statistics are usually evaluated as correlates of performance rather than as decision rules. We test whether transparent diagnostics whose graph statistics use training labels only can select between tuned graph and feature-only multilayer perceptron (MLP) families for node classification. Before comparative outcomes, we freeze the candidate datasets, splits, seeds, seven models, four-trial tuning budget, practical margin, diagnostic label scope, abstention policy, and analysis. An outcome-independent eligibility amendment excludes one dataset whose singleton class cannot support the frozen three-way split; all scientific settings remain unchanged. The final benchmark contains 11 datasets, 110 dataset--seed units, 770 model records, and 110 diagnostic records without failed units. The combined diagnostic attains 55.5\% selection accuracy, 68.2\% coverage, and 7.46 percentage points of full-set regret. Always-graph attains 80.9\% accuracy and 0.26 points of regret; validation selection attains 91.8\% and 0.22 points. Dataset-level paired comparisons establish no advantage for the combined diagnostic after Holm correction. A separate degree-preserving randomization on Cora, CiteSeer, and PubMed reduces GCN accuracy by 45.5, 29.9, and 17.3 points, respectively. Diagnostic failure therefore should not be read as evidence that edge organization is uninformative, although the intervention does not isolate homophily or another single mechanism. Under the evaluated protocol, simple graph diagnostics do not reliably characterize when graph models add predictive value.
+\end{abstract}
+
+\begin{highlights}
+\item Frozen evaluation covers 11 datasets, 10 seeds, and seven model families.
+\item Simple graph diagnostics show no stable gain over an always-graph policy.
+\item Validation selection yields 0.22 points of regret across 110 evaluation units.
+\item Degree-preserving randomization shows edge value on three citation graphs.
+\end{highlights}
+
+\begin{keyword}
+graph neural networks \sep model selection \sep graph diagnostics \sep heterophily \sep negative results
+\end{keyword}
+
+\end{frontmatter}
+
+\input{sections/01_introduction}
+\input{sections/02_related_work}
+\input{sections/03_decision_protocol}
+\input{sections/04_prospective_results}
+\input{sections/05_edge_intervention}
+\input{sections/06_fixed_degree_analysis}
+\input{sections/07_discussion}
+\input{sections/08_conclusion}
+
+\section*{Data and code availability}
+The submission will provide an anonymized repository containing the frozen configurations, experiment code, compact deterministic audits, and a persistent archive of the immutable unit-level records. Historical exploratory outputs are separated from the confirmatory artifacts.
+
+\section*{Declaration of generative AI and AI-assisted technologies in the writing process}
+During the preparation of this work, the author used OpenAI Codex to assist with software review, test development, reproducibility checks, and language and structural editing. The author independently verified all code, experimental artifacts, statistical results, references, and manuscript content and takes full responsibility for the work.
+
+\bibliographystyle{elsarticle-num}
+\bibliography{references}
+
+\end{document}

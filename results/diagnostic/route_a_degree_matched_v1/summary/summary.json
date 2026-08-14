@@ -1,0 +1,345 @@
+{
+  "dataset_clustered_overall": {
+    "bootstrap_95_ci": [
+      -0.4552919626235961,
+      -0.17316270470619202
+    ],
+    "dataset_count": 3,
+    "estimand": "equal_weight_mean_of_dataset_level_mean_paired_differences",
+    "mean_paired_difference": -0.30908747216065724,
+    "median_dataset_mean_difference": -0.29880774915218355,
+    "sign_flip_p_value": 0.25
+  },
+  "datasets": {
+    "CiteSeer": {
+      "bootstrap_95_ci": [
+        -0.3062593162804842,
+        -0.29135618805885316
+      ],
+      "holm_adjusted_p_value": 0.005859375,
+      "mean_original_test_accuracy": 0.7724292159080506,
+      "mean_paired_difference": -0.29880774915218355,
+      "mean_randomized_test_accuracy": 0.473621466755867,
+      "median_paired_difference": -0.29731743037700653,
+      "pair_count": 10,
+      "paired_seed_records": [
+        {
+          "original_test_accuracy": 0.7347242832183838,
+          "paired_difference": -0.2786885201931,
+          "randomization_seed": 100000,
+          "randomized_test_accuracy": 0.4560357630252838,
+          "requested_swaps": 22760,
+          "seed": 0,
+          "split_id": "14200162e2c83e78506a88e305d465bab9c544d0b65f3e29ce2c082443c5c65f"
+        },
+        {
+          "original_test_accuracy": 0.7794336676597595,
+          "paired_difference": -0.2965722680091858,
+          "randomization_seed": 100001,
+          "randomized_test_accuracy": 0.48286139965057373,
+          "requested_swaps": 22760,
+          "seed": 1,
+          "split_id": "886126961b1df7c0fee7adbc0031bc58c11cb0ac0fc137f51cb8b141ef9cf807"
+        },
+        {
+          "original_test_accuracy": 0.7660208940505981,
+          "paired_difference": -0.286140114068985,
+          "randomization_seed": 100002,
+          "randomized_test_accuracy": 0.47988077998161316,
+          "requested_swaps": 22760,
+          "seed": 2,
+          "split_id": "22374be2c3c4fb5023b664074c512b3a59bba8edf0434547c1d33103804dc9af"
+        },
+        {
+          "original_test_accuracy": 0.7585693001747131,
+          "paired_difference": -0.29061102867126465,
+          "randomization_seed": 100003,
+          "randomized_test_accuracy": 0.4679582715034485,
+          "requested_swaps": 22760,
+          "seed": 3,
+          "split_id": "f580b002345e57cad4550a0c35d5884f63cff7c96eceae90c267566321712252"
+        },
+        {
+          "original_test_accuracy": 0.7883755564689636,
+          "paired_difference": -0.3055141568183899,
+          "randomization_seed": 100004,
+          "randomized_test_accuracy": 0.48286139965057373,
+          "requested_swaps": 22760,
+          "seed": 4,
+          "split_id": "ae4c8d26a500568a3f186e240ceacfe9b1fbc11031879f2116ec8e2b3f073cc4"
+        },
+        {
+          "original_test_accuracy": 0.7809240221977234,
+          "paired_difference": -0.3159463703632355,
+          "randomization_seed": 100005,
+          "randomized_test_accuracy": 0.4649776518344879,
+          "requested_swaps": 22760,
+          "seed": 5,
+          "split_id": "017f62725806c857b669a11853ac17c9c42b3ea5040cb83afc976282517d3265"
+        },
+        {
+          "original_test_accuracy": 0.7824143171310425,
+          "paired_difference": -0.29806259274482727,
+          "randomization_seed": 100006,
+          "randomized_test_accuracy": 0.4843517243862152,
+          "requested_swaps": 22760,
+          "seed": 6,
+          "split_id": "86f4aff31f287c7109d58b8a64b58104240ba6bc93a8fa924351906e5cb6ddcf"
+        },
+        {
+          "original_test_accuracy": 0.7883755564689636,
+          "paired_difference": -0.3144560158252716,
+          "randomization_seed": 100007,
+          "randomized_test_accuracy": 0.473919540643692,
+          "requested_swaps": 22760,
+          "seed": 7,
+          "split_id": "61409f8c5bb387adec144caf972b40b9bfc819cf24727cd44c98a9f5493eb6f8"
+        },
+        {
+          "original_test_accuracy": 0.7600595951080322,
+          "paired_difference": -0.29061099886894226,
+          "randomization_seed": 100008,
+          "randomized_test_accuracy": 0.46944859623908997,
+          "requested_swaps": 22760,
+          "seed": 8,
+          "split_id": "af2de0e65a38cae18f042559fdd9df1539f439f8b6a783c091cf7a63a6841c92"
+        },
+        {
+          "original_test_accuracy": 0.7853949666023254,
+          "paired_difference": -0.3114754259586334,
+          "randomization_seed": 100009,
+          "randomized_test_accuracy": 0.473919540643692,
+          "requested_swaps": 22760,
+          "seed": 9,
+          "split_id": "4363cc1ed6b744aa9bb1102d4bfcd77894b095e14ab7672c9c2568cb0588ef26"
+        }
+      ],
+      "sample_standard_deviation": 0.012689560252933123,
+      "sign_flip_p_value": 0.001953125
+    },
+    "Cora": {
+      "bootstrap_95_ci": [
+        -0.47153283067047597,
+        -0.4410583883523941
+      ],
+      "holm_adjusted_p_value": 0.005859375,
+      "mean_original_test_accuracy": 0.8797445118427276,
+      "mean_paired_difference": -0.45529196262359617,
+      "mean_randomized_test_accuracy": 0.42445254921913145,
+      "median_paired_difference": -0.4507299065589905,
+      "pair_count": 10,
+      "paired_seed_records": [
+        {
+          "original_test_accuracy": 0.8832116723060608,
+          "paired_difference": -0.5072992742061615,
+          "randomization_seed": 100000,
+          "randomized_test_accuracy": 0.3759123980998993,
+          "requested_swaps": 26390,
+          "seed": 0,
+          "split_id": "0cc72761871f81b01809a46478cc406e7b260ba6406bdeeda6af6b4c74b46a81"
+        },
+        {
+          "original_test_accuracy": 0.8649634718894958,
+          "paired_difference": -0.4361313581466675,
+          "randomization_seed": 100001,
+          "randomized_test_accuracy": 0.42883211374282837,
+          "requested_swaps": 26390,
+          "seed": 1,
+          "split_id": "74a1ff4c9ba40aa5fad9eefad225d117dd9e96ed72e71213db8352796604298d"
+        },
+        {
+          "original_test_accuracy": 0.8813868761062622,
+          "paired_difference": -0.43065693974494934,
+          "randomization_seed": 100002,
+          "randomized_test_accuracy": 0.45072993636131287,
+          "requested_swaps": 26390,
+          "seed": 2,
+          "split_id": "ec550e00c27921ef0bf2c32af60cf25a000f2ace1114957535847d1380b19a9b"
+        },
+        {
+          "original_test_accuracy": 0.8941605687141418,
+          "paired_difference": -0.458029180765152,
+          "randomization_seed": 100003,
+          "randomized_test_accuracy": 0.43613138794898987,
+          "requested_swaps": 26390,
+          "seed": 3,
+          "split_id": "0765887d4309bdb0cde57659bc041e1c8bf5ca1c8bde48818b72af11ce57ebfd"
+        },
+        {
+          "original_test_accuracy": 0.8795620203018188,
+          "paired_difference": -0.470802903175354,
+          "randomization_seed": 100004,
+          "randomized_test_accuracy": 0.40875911712646484,
+          "requested_swaps": 26390,
+          "seed": 4,
+          "split_id": "d514cd8a179e7c67954eafeb1f36660ba4c4f8d36ce87c5a94de5df4a7b7211a"
+        },
+        {
+          "original_test_accuracy": 0.8667883276939392,
+          "paired_difference": -0.43065693974494934,
+          "randomization_seed": 100005,
+          "randomized_test_accuracy": 0.43613138794898987,
+          "requested_swaps": 26390,
+          "seed": 5,
+          "split_id": "e6cec11d77c5395d25b2524d061d1dc8780f339a69d93724ca8b256ff6e93615"
+        },
+        {
+          "original_test_accuracy": 0.8795620203018188,
+          "paired_difference": -0.472627729177475,
+          "randomization_seed": 100006,
+          "randomized_test_accuracy": 0.40693429112434387,
+          "requested_swaps": 26390,
+          "seed": 6,
+          "split_id": "3c975ad957525a0b9539cbd0d74fff53a3c4093b72fd0b25c2ce08f4123f9dae"
+        },
+        {
+          "original_test_accuracy": 0.8959853649139404,
+          "paired_difference": -0.47445252537727356,
+          "randomization_seed": 100007,
+          "randomized_test_accuracy": 0.42153283953666687,
+          "requested_swaps": 26390,
+          "seed": 7,
+          "split_id": "98d06effb1198c721753cdc70ffd91e5db6e8b2b233cd67a97d636ef4295b2b0"
+        },
+        {
+          "original_test_accuracy": 0.8649634718894958,
+          "paired_difference": -0.443430632352829,
+          "randomization_seed": 100008,
+          "randomized_test_accuracy": 0.42153283953666687,
+          "requested_swaps": 26390,
+          "seed": 8,
+          "split_id": "49742fa61f7ebd9c828b19e0231572bd8cf2bd49d30226d1e35db88b647c040f"
+        },
+        {
+          "original_test_accuracy": 0.8868613243103027,
+          "paired_difference": -0.42883214354515076,
+          "randomization_seed": 100009,
+          "randomized_test_accuracy": 0.458029180765152,
+          "requested_swaps": 26390,
+          "seed": 9,
+          "split_id": "1cfc8b367b9e1849dad1e3befded8268ac10cb31c1863a3e3f7ba757a5690ec6"
+        }
+      ],
+      "sample_standard_deviation": 0.025910548505899935,
+      "sign_flip_p_value": 0.001953125
+    },
+    "PubMed": {
+      "bootstrap_95_ci": [
+        -0.17812975645065307,
+        -0.16893056631088257
+      ],
+      "holm_adjusted_p_value": 0.005859375,
+      "mean_original_test_accuracy": 0.8725038409233093,
+      "mean_paired_difference": -0.17316270470619202,
+      "mean_randomized_test_accuracy": 0.6993411362171174,
+      "median_paired_difference": -0.17118600010871887,
+      "pair_count": 10,
+      "paired_seed_records": [
+        {
+          "original_test_accuracy": 0.8661936521530151,
+          "paired_difference": -0.17029905319213867,
+          "randomization_seed": 100000,
+          "randomized_test_accuracy": 0.6958945989608765,
+          "requested_swaps": 221620,
+          "seed": 0,
+          "split_id": "564aa2c26bfab141d95fa145e882bf085616e4ec857a83fb4acd454be5787db3"
+        },
+        {
+          "original_test_accuracy": 0.8743031024932861,
+          "paired_difference": -0.16725796461105347,
+          "randomization_seed": 100001,
+          "randomized_test_accuracy": 0.7070451378822327,
+          "requested_swaps": 221620,
+          "seed": 1,
+          "split_id": "28f60c68bd869165a32f43efc504209de2fe100d2515243339a96e2c391cd164"
+        },
+        {
+          "original_test_accuracy": 0.8677141666412354,
+          "paired_difference": -0.17131268978118896,
+          "randomization_seed": 100002,
+          "randomized_test_accuracy": 0.6964014768600464,
+          "requested_swaps": 221620,
+          "seed": 2,
+          "split_id": "38c89d5beccc8f1b839638656ad9d5e6b9cd6363c834408c571f613bf6ed252d"
+        },
+        {
+          "original_test_accuracy": 0.8755702376365662,
+          "paired_difference": -0.1637101173400879,
+          "randomization_seed": 100003,
+          "randomized_test_accuracy": 0.7118601202964783,
+          "requested_swaps": 221620,
+          "seed": 3,
+          "split_id": "7e10fc7f5032c0e5a716a31c4d63482fddafcc4b6df4d90a56df5866268a9bf9"
+        },
+        {
+          "original_test_accuracy": 0.8732894659042358,
+          "paired_difference": -0.1811961531639099,
+          "randomization_seed": 100004,
+          "randomized_test_accuracy": 0.6920933127403259,
+          "requested_swaps": 221620,
+          "seed": 4,
+          "split_id": "c8697f450b7ab7685e68f31ef6f3e571421a2172f78e0823655b607ab7723b9d"
+        },
+        {
+          "original_test_accuracy": 0.873796284198761,
+          "paired_difference": -0.19031929969787598,
+          "randomization_seed": 100005,
+          "randomized_test_accuracy": 0.683476984500885,
+          "requested_swaps": 221620,
+          "seed": 5,
+          "split_id": "973d1391e22213f848fd78df5598d7e4774159b74addba329f0d2104298df042"
+        },
+        {
+          "original_test_accuracy": 0.875063419342041,
+          "paired_difference": -0.17536747455596924,
+          "randomization_seed": 100006,
+          "randomized_test_accuracy": 0.6996959447860718,
+          "requested_swaps": 221620,
+          "seed": 6,
+          "split_id": "805cf74781f3bac63c23bf0bc36d0760c379531d9c3750b51ec0288ffe03566d"
+        },
+        {
+          "original_test_accuracy": 0.8715155124664307,
+          "paired_difference": -0.1748606562614441,
+          "randomization_seed": 100007,
+          "randomized_test_accuracy": 0.6966548562049866,
+          "requested_swaps": 221620,
+          "seed": 7,
+          "split_id": "fa371a328a5aeae9e453fcc8f39ce6511413e07d0abfc3ecc48f9aaf567bded5"
+        },
+        {
+          "original_test_accuracy": 0.8755702376365662,
+          "paired_difference": -0.17105931043624878,
+          "randomization_seed": 100008,
+          "randomized_test_accuracy": 0.7045109272003174,
+          "requested_swaps": 221620,
+          "seed": 8,
+          "split_id": "9d6b860d6c48c560db13df461b3ebfc97b8809e5e9c785b19a45a5f7e7a7267d"
+        },
+        {
+          "original_test_accuracy": 0.8720223307609558,
+          "paired_difference": -0.16624432802200317,
+          "randomization_seed": 100009,
+          "randomized_test_accuracy": 0.7057780027389526,
+          "requested_swaps": 221620,
+          "seed": 9,
+          "split_id": "72bbc642b983215d2cd1afbfbf990531e568c3ecbbdc15fad305d256c9588f31"
+        }
+      ],
+      "sample_standard_deviation": 0.007851098419448177,
+      "sign_flip_p_value": 0.001953125
+    }
+  },
+  "difference_definition": "randomized_test_accuracy_minus_original_test_accuracy",
+  "inference": {
+    "bootstrap_samples": 10000,
+    "bootstrap_seed": 20260810,
+    "multiple_testing": "Holm across dataset-level sign-flip tests",
+    "permutation_samples": 10000,
+    "permutation_seed": 20260811
+  },
+  "record_count": 30,
+  "run_id": "route_a_degree_matched_v1",
+  "schema_version": "1.0",
+  "status": "success"
+}
