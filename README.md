@@ -28,7 +28,7 @@ A separate degree-preserving intervention changes GCN accuracy by -45.5, -29.9, 
 - `docs/`: preregistration, outcome-independent amendments, environment notes, evidence map, and provenance boundaries.
 - `tests/`: protocol, provenance, statistics, manuscript-safety, and public-release checks.
 
-The large raw unit-level artifact set is intentionally not stored in ordinary Git history. It is distributed through the repository's [Releases](https://github.com/MengdanXue/prospective-graph-diagnostics/releases); compact summaries needed to check manuscript values remain versioned here.
+The large raw unit-level artifact set is intentionally not stored in ordinary Git history. It is distributed through the repository's [Releases](https://github.com/MengdanXue/prospective-graph-diagnostics/releases); compact summaries needed to check manuscript values remain versioned here. Release archives replace only machine-local `processed_files[].root` values with `data/<dataset>/processed`. Their manifest records both the immutable source SHA-256 and the path-redacted public SHA-256 for every JSON file; no outcome, configuration, data checksum, split, edge list, or selection field is changed.
 
 ## Environment
 
