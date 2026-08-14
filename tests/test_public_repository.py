@@ -158,6 +158,15 @@ class PublicRepositoryTests(unittest.TestCase):
                 hits.append(path.name)
         self.assertEqual(hits, [])
 
+    def test_ci_cache_tracks_the_published_lockfile(self):
+        workflow = (ROOT / ".github" / "workflows" / "ci.yml").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn(
+            "cache-dependency-path: requirements-analysis.lock.txt",
+            workflow,
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
