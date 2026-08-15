@@ -1,0 +1,20 @@
+{
+  "schema_version": "1.0",
+  "execution_source_commit": "6d134b74da10c3ce808e660eb858d0bb47a3ab12",
+  "public_release_commit": "b97ae0ea5e6a5f8a53e853142cc50d1be9152c12",
+  "scope": "content_identity_attestation_for_frozen_execution_files",
+  "files": {
+    "configs/discriminability_grid.json": {"git_blob_sha1": "cd308fd8289f28e0249eb689a2dea412ae933a83"},
+    "configs/prospective_benchmark_v1.json": {"git_blob_sha1": "365eca3107ca6b57090eec8b304e569f7a869422"},
+    "configs/prospective_benchmark_v2.json": {"git_blob_sha1": "3a666f4b626951d31f19b91d44edfd81c123fe52"},
+    "experiments/degree_preserving_edge_randomization.py": {"git_blob_sha1": "b002f594dcff66745f78e23096c6ddcb1d47ddd9"},
+    "experiments/evaluate_diagnostics.py": {"git_blob_sha1": "683688ed68aa7bf4e56686fd5e30f37f33e49c97"},
+    "experiments/prospective_data.py": {"git_blob_sha1": "a06e0f2679f3d26cd449ef88c59203ee57ffb813"},
+    "experiments/prospective_models.py": {"git_blob_sha1": "c83900e4fff0c5287f9708428194f802af65a35a"},
+    "experiments/run_degree_matched_benchmark.py": {"git_blob_sha1": "960fc015225b642006aa5fbe02f08fbaf045f99b"},
+    "experiments/run_prospective_benchmark.py": {"git_blob_sha1": "345e8aacd1d5c3ebb47efe072e28c3e1613979d6"},
+    "experiments/validate_discriminability_formula.py": {"git_blob_sha1": "d65ed13e04a9e2803a3e2396e676529e3bd59c89"},
+    "scripts/assemble_prospective_diagnostics.py": {"git_blob_sha1": "6612d6a2b1d57822b31dc4158ebf1097f882c8e2"},
+    "scripts/summarize_degree_matched_benchmark.py": {"git_blob_sha1": "7162d39296121654b3e3a0ecaeb2479b1008155d"}
+  }
+}

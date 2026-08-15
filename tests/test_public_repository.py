@@ -1,3 +1,4 @@
+import hashlib
 import json
 import re
 import unittest
@@ -147,6 +148,30 @@ class PublicRepositoryTests(unittest.TestCase):
         self.assertIn("python -m unittest discover -s tests -v", readme)
         self.assertIn("raw unit-level", readme.lower())
 
+    def test_readme_installs_into_the_created_virtual_environment(self):
+        readme = (ROOT / "README.md").read_text(encoding="utf-8")
+        self.assertIn(
+            r".\.venv-analysis\Scripts\python.exe -m pip install -r requirements-analysis.lock.txt",
+            readme,
+        )
+        self.assertIn(
+            ".venv-analysis/bin/python -m pip install -r requirements-analysis.lock.txt",
+            readme,
+        )
+
+    def test_readme_documents_release_to_summary_reconstruction(self):
+        readme = (ROOT / "README.md").read_text(encoding="utf-8")
+        required = (
+            "scripts/assemble_prospective_diagnostics.py",
+            "experiments/evaluate_diagnostics.py",
+            "scripts/summarize_degree_matched_benchmark.py",
+            "configs/prospective_benchmark_v2.json",
+            "prospective/records",
+            "degree_matched/records",
+        )
+        for text in required:
+            self.assertIn(text, readme)
+
     def test_tests_do_not_hardcode_a_windows_virtualenv(self):
         hits = []
         this_file = Path(__file__).resolve()
@@ -172,6 +197,35 @@ class PublicRepositoryTests(unittest.TestCase):
             encoding="utf-8"
         )
         self.assertIn("tests.test_public_release_builder", workflow)
+
+    def test_ci_runs_the_full_protocol_suite_on_cpu(self):
+        workflow = (ROOT / ".github" / "workflows" / "ci.yml").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("full-protocol-verification:", workflow)
+        self.assertIn("requirements-ci.lock.txt", workflow)
+        self.assertIn("python -m unittest discover -s tests -v", workflow)
+
+    def test_execution_source_mapping_matches_public_files(self):
+        mapping_path = ROOT / "docs" / "execution_source_mapping.json"
+        self.assertTrue(mapping_path.is_file())
+        mapping = json.loads(mapping_path.read_text(encoding="utf-8"))
+        self.assertEqual(
+            mapping["execution_source_commit"],
+            "6d134b74da10c3ce808e660eb858d0bb47a3ab12",
+        )
+        self.assertEqual(
+            mapping["public_release_commit"],
+            "b97ae0ea5e6a5f8a53e853142cc50d1be9152c12",
+        )
+        self.assertEqual(len(mapping["files"]), 12)
+        for relative, expected in mapping["files"].items():
+            data = (ROOT / relative).read_bytes().replace(b"\r\n", b"\n")
+            blob = hashlib.sha1(
+                f"blob {len(data)}\0".encode("ascii") + data,
+                usedforsecurity=False,
+            ).hexdigest()
+            self.assertEqual(blob, expected["git_blob_sha1"], relative)
 
 
 if __name__ == "__main__":
