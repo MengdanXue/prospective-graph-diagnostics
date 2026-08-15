@@ -136,4 +136,4 @@ The frozen outcomes are empirical results for the named dataset/model portfolio,
 
 Citation metadata is provided in `CITATION.cff`. The manuscript is a working research draft targeting Neurocomputing; this repository does not imply acceptance or publication.
 
-No software license has yet been granted. Until a license is added, normal copyright restrictions apply.
+The original research code in this repository is released under the MIT License; see `LICENSE`. The unmodified Elsevier class and bibliography-style files under `submission_assets/elsevier/` remain subject to the terms of their upstream distribution and are not relicensed by this repository.
