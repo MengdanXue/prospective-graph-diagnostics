@@ -31,6 +31,17 @@ class PublicRepositoryTests(unittest.TestCase):
     def test_public_entry_documents_exist(self):
         self.assertTrue((ROOT / "README.md").is_file())
         self.assertTrue((ROOT / "CITATION.cff").is_file())
+        self.assertTrue((ROOT / "LICENSE").is_file())
+
+    def test_public_license_is_explicit_and_preserves_third_party_terms(self):
+        license_text = (ROOT / "LICENSE").read_text(encoding="utf-8")
+        readme = (ROOT / "README.md").read_text(encoding="utf-8")
+        citation = (ROOT / "CITATION.cff").read_text(encoding="utf-8")
+        self.assertIn("MIT License", license_text)
+        self.assertIn("Copyright (c) 2026 Mengdan Xue", license_text)
+        self.assertIn("released under the MIT License", readme)
+        self.assertIn("not relicensed by this repository", readme)
+        self.assertIn("license: MIT", citation)
 
     def test_internal_and_legacy_surfaces_are_absent(self):
         forbidden = (
@@ -96,6 +107,17 @@ class PublicRepositoryTests(unittest.TestCase):
         bibliography = (ROOT / "references.bib").read_text(encoding="utf-8")
         published = set(re.findall(r"@\w+\s*\{\s*([^,\s]+)", bibliography))
         self.assertEqual(published, cited)
+
+    def test_bibliography_has_no_duplicate_titles(self):
+        bibliography = (ROOT / "references.bib").read_text(encoding="utf-8")
+        titles = [
+            re.sub(r"[{}\s-]+", "", title).lower()
+            for title in re.findall(
+                r"^\s*title\s*=\s*\{([^}]*)\}", bibliography, re.MULTILINE
+            )
+        ]
+        duplicates = sorted({title for title in titles if titles.count(title) > 1})
+        self.assertEqual(duplicates, [])
 
     def test_manuscript_uses_neutral_ordered_section_names(self):
         manuscript = (ROOT / "main_neurocomputing.tex").read_text(encoding="utf-8")
