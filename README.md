@@ -28,16 +28,30 @@ A separate degree-preserving intervention changes GCN accuracy by -45.5, -29.9, 
 - `docs/`: preregistration, outcome-independent amendments, environment notes, evidence map, and provenance boundaries.
 - `tests/`: protocol, provenance, statistics, manuscript-safety, and public-release checks.
 
-The large raw unit-level artifact set is intentionally not stored in ordinary Git history. It is distributed through the repository's [Releases](https://github.com/MengdanXue/prospective-graph-diagnostics/releases); compact summaries needed to check manuscript values remain versioned here. Release archives replace only machine-local `processed_files[].root` values with `data/<dataset>/processed`. Their manifest records both the immutable source SHA-256 and the path-redacted public SHA-256 for every JSON file; no outcome, configuration, data checksum, split, edge list, or selection field is changed.
+The large raw unit-level artifact set is intentionally not stored in ordinary Git history. It is distributed in the versioned [v0.1.0 release](https://github.com/MengdanXue/prospective-graph-diagnostics/releases/tag/v0.1.0); compact summaries needed to check manuscript values remain versioned here. Release archives replace only machine-local `processed_files[].root` values with `data/<dataset>/processed`. Their manifest records both the immutable source SHA-256 and the path-redacted public SHA-256 for every JSON file; no outcome, configuration, data checksum, split, edge list, or selection field is changed.
 
 ## Environment
 
 The exact experiment environment was frozen on CPython 3.13.5, Windows x86-64, PyTorch 2.9.1 with CUDA 12.6, and PyTorch Geometric 2.7.0. See `requirements-experiments.lock.txt`. The lightweight analysis environment uses Python 3.12 with NumPy 2.3.5 and Matplotlib 3.11.1.
 
-```bash
+Windows PowerShell:
+
+```powershell
 python -m venv .venv-analysis
-python -m pip install -r requirements-analysis.lock.txt
+.\.venv-analysis\Scripts\python.exe -m pip install -r requirements-analysis.lock.txt
+.\.venv-analysis\Scripts\Activate.ps1
 ```
+
+POSIX shells:
+
+```bash
+python3.12 -m venv .venv-analysis
+.venv-analysis/bin/python -m pip install -r requirements-analysis.lock.txt
+source .venv-analysis/bin/activate
+```
+
+The commands below assume the environment is active. If activation is unavailable,
+replace `python` with the explicit environment interpreter shown above.
 
 The experiment lock points to CUDA 12.6 wheels. CPU-only users should install a platform-appropriate PyTorch build before installing the remaining experiment dependencies.
 
@@ -77,9 +91,46 @@ python experiments/run_degree_matched_benchmark.py --help
 
 Both formal runners require a complete local PyG dataset cache and refuse to download or mutate it during a run. They also refuse stale, mixed-provenance, overwritten, or silently retried artifacts.
 
+## Rebuild the published summaries
+
+Download and unpack the three custom assets from the
+[v0.1.0 release](https://github.com/MengdanXue/prospective-graph-diagnostics/releases/tag/v0.1.0).
+Verify the ZIP and standalone manifest against `SHA256SUMS.txt`, then extract the
+ZIP as `tmp/artifacts/formal-v0.1.0`. The extracted tree must contain
+`prospective/records`, `prospective/diagnostics`, and `degree_matched/records`.
+
+With the full experiment environment installed, regenerate both manuscript-facing
+summaries without writing into the checked-in `results/` tree:
+
+```bash
+python scripts/assemble_prospective_diagnostics.py \
+  --records-root tmp/artifacts/formal-v0.1.0/prospective \
+  --config configs/prospective_benchmark_v2.json \
+  --output tmp/rebuild/assembled_v2.json
+
+python experiments/evaluate_diagnostics.py \
+  --input tmp/rebuild/assembled_v2.json \
+  --output tmp/rebuild/diagnostic_audit.json
+
+python scripts/summarize_degree_matched_benchmark.py \
+  --config configs/prospective_benchmark_v2.json \
+  --input-root tmp/artifacts/formal-v0.1.0/degree_matched \
+  --output tmp/rebuild/degree_summary.json
+```
+
+The regenerated files are deterministic Git blobs. These pairs must match:
+
+```bash
+git hash-object tmp/rebuild/diagnostic_audit.json
+git rev-parse HEAD:results/diagnostic/route_a_prospective_v2/analysis/diagnostic_audit.json
+
+git hash-object tmp/rebuild/degree_summary.json
+git rev-parse HEAD:results/diagnostic/route_a_degree_matched_v1/summary/summary.json
+```
+
 ## Reproducibility boundary
 
-The frozen outcomes are empirical results for the named dataset/model portfolio, not a universal model-selection theorem. The fixed-degree Gaussian analysis is a scoped mechanistic calculation and not a new Kesten-Stigum threshold. Protocol amendments and the fresh-history source mapping are documented in `docs/`.
+The frozen outcomes are empirical results for the named dataset/model portfolio, not a universal model-selection theorem. The fixed-degree Gaussian analysis is a scoped mechanistic calculation and not a new Kesten-Stigum threshold. Protocol amendments and the fresh-history source mapping are documented in `docs/`; `docs/execution_source_mapping.json` gives machine-readable Git blob identifiers for every frozen execution file published here.
 
 ## Citation and manuscript status
 

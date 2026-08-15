@@ -5,6 +5,15 @@ commit `6d134b7` in the full research workspace. Unit-level records retain that
 commit identifier, the canonical frozen-configuration digest, processed-data
 checksums, split identifiers, environment provenance, and test-once accounting.
 
+The execution commit is a provenance identifier from the full workspace and is
+not an object in this repository's deliberately fresh public history. The exact
+12 configuration, experiment, assembly, and intervention-summary files used by
+that commit are published in this repository. A path-by-path comparison found
+their Git blobs identical. `execution_source_mapping.json` records the full
+execution identifier, the public release commit, and the shared Git blob ID for
+each file. This mapping makes the published snapshot machine-checkable while
+remaining explicit that the predecessor history itself is not public.
+
 This public repository intentionally starts from a fresh Git history so that
 legacy manuscript drafts, exploratory code, damaged intermediate JSON, and raw
 grid outputs are not published as active research artifacts. Before export, a
