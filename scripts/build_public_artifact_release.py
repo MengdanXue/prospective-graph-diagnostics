@@ -111,7 +111,7 @@ def archive_readme(release_commit: str, total: int) -> bytes:
 This archive contains {total} JSON records from the frozen confirmatory runs:
 
 - 770 prospective model records;
-- 110 train-only diagnostic records;
+- 110 diagnostic records whose label-dependent graph statistics use training labels only;
 - 30 degree-matched paired intervention records.
 
 Privacy transformation: each machine-local value under a `processed_files[].root`

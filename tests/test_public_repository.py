@@ -171,6 +171,21 @@ class PublicRepositoryTests(unittest.TestCase):
         self.assertIn("91.8%", readme)
         self.assertIn("python -m unittest discover -s tests -v", readme)
         self.assertIn("raw unit-level", readme.lower())
+        self.assertIn(
+            "diagnostic records whose label-dependent graph statistics use training labels only",
+            readme,
+        )
+        self.assertNotIn("train-only diagnostic records", readme)
+
+    def test_supporting_docs_use_the_precise_diagnostic_label_scope(self):
+        for relative in (
+            "docs/novelty_audit_negative_diagnostic_study_2026-08-13.md",
+            "docs/protocol_amendment_prospective_v2.md",
+        ):
+            text = (ROOT / relative).read_text(encoding="utf-8")
+            self.assertNotIn("train-only diagnostics", text)
+            self.assertNotIn("train-only heuristics", text)
+            self.assertNotIn("train-only inputs", text)
 
     def test_readme_installs_into_the_created_virtual_environment(self):
         readme = (ROOT / "README.md").read_text(encoding="utf-8")

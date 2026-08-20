@@ -84,17 +84,9 @@ class SubmissionSafetyTests(unittest.TestCase):
         self.assertLessEqual(len(highlights), 5)
         self.assertTrue(all(len(line) <= 85 for line in highlights))
 
-    def test_embedded_and_standalone_highlights_match(self):
-        standalone = [
-            line[2:].strip()
-            for line in (ROOT / "highlights.txt").read_text(encoding="utf-8").splitlines()
-            if line.startswith("- ")
-        ]
-        block = re.search(
-            r"\\begin\{highlights\}(.*?)\\end\{highlights\}", MAIN, re.DOTALL
-        ).group(1)
-        embedded = [item.strip() for item in re.findall(r"\\item\s+([^\n]+)", block)]
-        self.assertEqual(standalone, embedded)
+    def test_highlights_are_supplied_only_as_a_separate_file(self):
+        self.assertNotIn("\\begin{highlights}", MAIN)
+        self.assertNotIn("\\end{highlights}", MAIN)
 
     def test_title_and_abstract_match_the_scoped_contribution(self):
         self.assertNotIn("SNR Dynamics", MAIN)
@@ -129,8 +121,19 @@ class SubmissionSafetyTests(unittest.TestCase):
 
     def test_introduction_reports_prospective_evaluation_as_completed(self):
         self.assertIn("770 model records", INTRODUCTION)
-        self.assertIn("110 train-only diagnostic records", INTRODUCTION)
+        self.assertIn(
+            "110 diagnostic records whose label-dependent graph statistics use training labels only",
+            INTRODUCTION,
+        )
+        self.assertNotIn("train-only diagnostic records", INTRODUCTION)
         self.assertNotIn("prospective diagnostic benchmark has not yet been executed", INTRODUCTION)
+
+    def test_related_work_uses_the_precise_label_scope(self):
+        self.assertIn(
+            "transparent rules whose label-dependent graph statistics use training labels only",
+            RELATED,
+        )
+        self.assertNotIn("transparent train-only rules", RELATED)
 
     def test_protocol_defines_the_decision_boundary_and_forbids_test_labels(self):
         self.assertIn("\\delta=0.01", PROTOCOL)
@@ -203,6 +206,52 @@ class SubmissionSafetyTests(unittest.TestCase):
         )
         self.assertIn("unadjusted 95\\% bootstrap interval", PROSPECTIVE_RESULTS)
         self.assertIn("with an unadjusted interval", PROSPECTIVE_RESULTS)
+
+    def test_regret_coverage_confidence_scores_are_reproducible_from_the_text(self):
+        self.assertIn(
+            "We denote the resulting one-hop and path-weighted length-two endpoint agreement rates by $h_1$ and $h_2$",
+            PROTOCOL,
+        )
+        self.assertIn(
+            "are the validation accuracies of the selected graph and MLP portfolios",
+            PROTOCOL,
+        )
+        self.assertIn("c(v;s)=\\min\\{1,|v|/s\\}", PROTOCOL)
+        self.assertIn(
+            "a_{\\mathrm{val}}^{\\mathrm{G}}-a_{\\mathrm{val}}^{\\mathrm{M}}-\\delta",
+            PROTOCOL,
+        )
+        for phrase in ("s=0.25", "h_1-0.55", "s=0.45", "s=0.60"):
+            self.assertIn(phrase, PROTOCOL)
+        self.assertIn(
+            "\\max\\{0.55-h_1,a_{\\mathrm{val}}^{\\mathrm{M}}-0.40\\}",
+            PROTOCOL,
+        )
+        self.assertIn("Abstentions receive no confidence score", PROTOCOL)
+
+    def test_statistical_claims_do_not_overstate_non_significance(self):
+        self.assertIn(
+            "paired comparisons do not establish an advantage for the combined diagnostic",
+            MAIN,
+        )
+        self.assertNotIn("paired comparisons establish no advantage", MAIN)
+        self.assertIn("does not demonstrate incremental value", PROSPECTIVE_RESULTS)
+        self.assertIn("does not reduce regret relative to always-graph", PROSPECTIVE_RESULTS)
+        self.assertNotIn("predeclared incremental-value criterion", PROSPECTIVE_RESULTS)
+
+    def test_data_availability_prints_the_repository_and_release_urls(self):
+        self.assertRegex(
+            MAIN,
+            r"\\section\*\{Data and code availability\}\s*\\begin\{sloppypar\}",
+        )
+        self.assertIn(
+            "\\url{https://github.com/MengdanXue/prospective-graph-diagnostics}",
+            MAIN,
+        )
+        self.assertIn(
+            "\\url{https://github.com/MengdanXue/prospective-graph-diagnostics/releases/tag/v0.1.0}",
+            MAIN,
+        )
 
     def test_constant_confidence_policies_plot_only_the_full_set_endpoint(self):
         self.assertTrue(hasattr(regret_coverage_plot, "_display_curve"))
