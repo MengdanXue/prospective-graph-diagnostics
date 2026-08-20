@@ -82,7 +82,7 @@ The related-work section should have four explicit subsections:
 1. **Graph characteristics and GNN performance:** adjusted homophily, label informativeness, node distinguishability/PBE, Tri-Hom, HSBM, local homophily.
 2. **Graph learning model selection:** MetaGL and GLEMOS; distinguish learned cross-dataset selection from a transparent diagnostic stress test.
 3. **When graph structure is necessary:** tuned MLP baselines, empty-graph controls, and graph-necessity benchmark work.
-4. **Evaluation methodology:** frozen protocols, equal trial budgets, validation selection, trivial policies, regret, and abstention/coverage.
+4. **Evaluation methodology:** frozen protocols, equal per-architecture trial grids with explicitly asymmetric portfolio totals, validation selection, trivial policies, regret, and abstention/coverage.
 
 The introduction must lead with the decision-evaluation gap, not with Information Budget, a new threshold, or the general claim that homophily is unreliable.
 

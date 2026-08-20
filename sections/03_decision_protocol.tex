@@ -3,9 +3,9 @@
 
 \subsection{Graph-vs-MLP Decision}
 
-The unit of evaluation is a dataset--seed pair $u$. Within each unit, validation performance selects one feature-only MLP and one graph model from GCN, GAT, GraphSAGE, H2GCN, LINKX, and GPR-GNN. Every architecture receives the same four-trial tuning budget, and exact validation ties are broken by model identifier. Let $a_u^{\mathrm{M}}$ and $a_u^{\mathrm{G}}$ denote the held-out test accuracies of the selected MLP and graph model. The evaluator reads each selected test result once; no diagnostic can affect training or hyperparameter selection.
+The unit of evaluation is a dataset--seed pair $u$. Within each unit, validation performance selects one feature-only MLP and one graph model from GCN, GAT, GraphSAGE, H2GCN, LINKX, and GPR-GNN. Every architecture receives the same four-trial tuning budget, and exact validation ties are broken by model identifier. Let $a_u^{\mathrm{M}}$ and $a_u^{\mathrm{G}}$ denote the held-out test accuracies of the selected MLP and graph model. The evaluator reads each selected test result once; no diagnostic can affect training or hyperparameter selection. The resulting actions are portfolios: graph is the validation-selected member of six architectures, whereas MLP is the validation-selected configuration of one architecture.
 
-We ask whether the graph family provides a practically material gain rather than whether it wins by an arbitrarily small amount. With the frozen margin $\delta=0.01$, the target action is
+We ask whether the graph portfolio provides a practically material gain rather than whether it wins by an arbitrarily small amount. With the frozen margin $\delta=0.01$, the target action is
 \begin{equation}
 y_u =
 \begin{cases}
@@ -16,13 +16,13 @@ y_u =
 \end{equation}
 The same tie policy applies to every evaluated rule. This formulation makes the decision asymmetric by design: a graph model must exceed the MLP by more than one percentage point to justify the graph action.
 
-\subsection{Matched Training and Selection}
+\subsection{Frozen Per-Architecture Training and Selection}
 
-Table~\ref{tab:frozen_training} records the common training budget from the frozen machine-readable specification. The implementation uses PyTorch~\cite{paszke2019pytorch}, and each trial minimizes cross-entropy with Adam. Early stopping retains the checkpoint with the highest validation accuracy, then the lowest validation loss and earliest epoch; training stops after 100 stale epochs or 500 epochs in total. The four trial configurations are selected independently within every architecture, and the chosen checkpoint then receives one held-out test evaluation. Thus no model family obtains a larger search budget or repeated access to the test split.
+Table~\ref{tab:frozen_training} records the frozen per-architecture training grid. The implementation uses PyTorch~\cite{paszke2019pytorch}, and each trial minimizes cross-entropy with Adam. Early stopping retains the checkpoint with the highest validation accuracy, then the lowest validation loss and earliest epoch; training stops after 100 stale epochs or 500 epochs in total. The four trial configurations are selected independently within every architecture, and the chosen checkpoint then receives one held-out test evaluation. Consequently, the graph portfolio searches 24 trial configurations (six architectures times four), whereas the MLP portfolio searches four trial configurations. The estimand therefore compares these fixed asymmetric portfolios rather than equal-total-compute model families. No individual architecture receives a larger per-architecture search grid, and neither portfolio receives repeated access to the test split.
 
 \begin{table}[t]
 \centering
-\caption{Frozen Matched Training Configuration}
+\caption{Frozen Per-Architecture Training Configuration}
 \label{tab:frozen_training}
 \small
 \begin{tabular}{@{}lp{0.64\linewidth}@{}}
@@ -33,6 +33,7 @@ Representation width & 64 hidden channels for every architecture. \\
 Optimization & Adam, cross-entropy loss, weight decay $5\times 10^{-4}$. \\
 Training horizon & At most 500 epochs; patience 100 under the validation checkpoint rule. \\
 Four-trial grid & Learning rate in $\{0.01,0.005\}$ crossed with dropout in $\{0.5,0.7\}$. \\
+Portfolio search & Graph: six architectures and 24 trials in total; feature-only: one MLP architecture and four trials in total. \\
 Model-specific constants & GAT: 4 heads; H2GCN: 2 propagation layers with strict two-hop edges; LINKX: 2 outer, 1 edge, and 2 node layers; GPR-GNN: 10 propagation steps, $\alpha=0.1$, PPR initialization. \\
 Selection and test & Validation accuracy descending, validation loss ascending, trial identifier ascending; one held-out test evaluation. \\
 \bottomrule
@@ -73,12 +74,12 @@ Validation selection & Select graph when its validation advantage exceeds $\delt
 
 \subsection{Outcomes and Inference}
 
-Selection accuracy measures agreement with Eq.~\eqref{eq:decision_target} after the common fallback, and coverage is the fraction of non-abstaining decisions. Because an incorrect action can have negligible or substantial cost, the primary loss is oracle-family regret,
+Selection accuracy measures agreement with Eq.~\eqref{eq:decision_target} after the common fallback, and coverage is the fraction of non-abstaining decisions. Because an incorrect action can have negligible or substantial cost, the primary loss is oracle-portfolio regret,
 \begin{equation}
 r_u(\widehat{y})=\max\{a_u^{\mathrm{G}},a_u^{\mathrm{M}}\}-a_u^{\widehat{y}},
 \label{eq:oracle_regret}
 \end{equation}
-where $a_u^{\widehat{y}}$ is the test accuracy of the chosen family after fallback. We report mean full-set regret for all units and covered-set regret for non-abstaining units. Risk--coverage curves order decisions by each policy's frozen confidence score.
+where $a_u^{\widehat{y}}$ is the test accuracy of the chosen portfolio after fallback. Selection accuracy and regret intentionally measure different objectives. Selection accuracy evaluates consistency with the one-point practical-margin action in Eq.~\eqref{eq:decision_target}, whereas regret measures raw predictive-accuracy opportunity loss relative to the better selected portfolio. Consequently, choosing MLP for a sub-margin graph gain is target-consistent but incurs a small positive raw-accuracy regret. We report mean full-set regret for all units and covered-set regret for non-abstaining units. The descriptive regret--coverage curves order eligible decisions by each policy's frozen confidence score and plot covered-set raw-accuracy regret; they do not redefine the frozen target or primary full-set analysis.
 
 Seeds remain paired within a dataset. We first average regret over seeds for each dataset, then use the dataset means for percentile-bootstrap intervals and two-sided sign-flip tests. Holm correction controls the family-wise error rate across the eight predeclared comparisons with the combined policy. Non-significance is not interpreted as equivalence.
 

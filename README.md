@@ -1,12 +1,12 @@
 # Prospective Graph Diagnostics
 
-This repository accompanies the manuscript **A Prospective Evaluation of Graph Diagnostics for Graph-vs-MLP Model Selection**. It tests a practical question: can inexpensive, train-only graph diagnostics reliably decide whether node classification should use a tuned graph-model family or a tuned feature-only MLP?
+This repository accompanies the manuscript **A Prospective Evaluation of Graph Diagnostics for Graph-vs-MLP Model Selection**. It tests a practical question: can inexpensive, train-only graph diagnostics reliably decide whether node classification should use a tuned graph-model portfolio or a tuned feature-only MLP?
 
 The answer under the frozen protocol is negative. Graph structure can be highly predictive, but the evaluated low-dimensional diagnostics do not reliably characterize when it is useful.
 
 ## Main results
 
-The prospective benchmark contains 11 datasets, 10 seeds, seven model families, 770 selected-model records, and 110 train-only diagnostic records. The target requires the selected graph family to beat the selected MLP by more than one percentage point.
+The prospective benchmark contains 11 datasets, 10 seeds, seven architectures, 770 selected-model records, and 110 train-only diagnostic records. Every architecture receives the same four-trial grid, but the total portfolio budgets are asymmetric: the graph action selects among six architectures (24 trials), whereas the feature-only action contains one MLP architecture (four trials). The target requires the selected graph model to beat the selected MLP by more than one percentage point. The estimand therefore concerns these fixed operational portfolios, not an equal-total-compute family comparison.
 
 | Policy | Selection accuracy | Coverage | Full-set regret |
 |---|---:|---:|---:|
@@ -23,8 +23,8 @@ A separate degree-preserving intervention changes GCN accuracy by -45.5, -29.9, 
 - `main_neurocomputing.tex`, `sections/`: active manuscript source.
 - `configs/`: frozen machine-readable benchmark specifications.
 - `experiments/`: prospective runner, models, diagnostics, evaluator, and degree-preserving intervention.
-- `scripts/`: immutable-record assembly, statistical summaries, and claim audits.
-- `results/`: compact deterministic summaries and the manuscript validation figure.
+- `scripts/`: immutable-record assembly, statistical summaries, claim audits, and deterministic manuscript-figure generation.
+- `results/`: compact deterministic summaries and manuscript figures generated from those audits.
 - `docs/`: preregistration, outcome-independent amendments, environment notes, evidence map, and provenance boundaries.
 - `tests/`: protocol, provenance, statistics, manuscript-safety, and public-release checks.
 
