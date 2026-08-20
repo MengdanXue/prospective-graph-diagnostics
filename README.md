@@ -1,6 +1,6 @@
 # Prospective Graph Diagnostics
 
-This repository accompanies the manuscript **A Prospective Evaluation of Graph Diagnostics for Graph-vs-MLP Model Selection**. It tests a practical question: can inexpensive diagnostics whose label-dependent graph statistics use training labels only reliably decide whether node classification should use a tuned graph-model portfolio or a tuned feature-only MLP?
+This repository accompanies the manuscript **A Prospective Evaluation of Simple Graph Diagnostics for Graph-vs-MLP Model Selection**. It tests a practical question: can inexpensive diagnostics whose label-dependent graph statistics use training labels only reliably decide whether node classification should use a tuned graph-model portfolio or a tuned feature-only MLP?
 
 The answer under the frozen protocol is negative. Graph structure can be highly predictive, but the evaluated low-dimensional diagnostics do not reliably characterize when it is useful.
 
@@ -116,7 +116,16 @@ python scripts/summarize_degree_matched_benchmark.py \
   --config configs/prospective_benchmark_v2.json \
   --input-root tmp/artifacts/formal-v0.1.0/degree_matched \
   --output tmp/rebuild/degree_summary.json
+
+python scripts/summarize_reviewer_appendix.py \
+  --audit tmp/rebuild/diagnostic_audit.json \
+  --data-root /path/to/read-only/pyg-cache \
+  --output tmp/rebuild/reviewer_appendix_summary.json
 ```
+
+The last command reads dataset shapes from the same read-only PyG cache and derives
+the appendix's dataset-level action counts, regrets, and post-hoc fallback sensitivity.
+It does not train models or alter the frozen evaluator output.
 
 The regenerated files are deterministic Git blobs. These pairs must match:
 
