@@ -1,12 +1,12 @@
 # Prospective Graph Diagnostics
 
-This repository accompanies the manuscript **A Prospective Evaluation of Graph Diagnostics for Graph-vs-MLP Model Selection**. It tests a practical question: can inexpensive, train-only graph diagnostics reliably decide whether node classification should use a tuned graph-model portfolio or a tuned feature-only MLP?
+This repository accompanies the manuscript **A Prospective Evaluation of Graph Diagnostics for Graph-vs-MLP Model Selection**. It tests a practical question: can inexpensive diagnostics whose label-dependent graph statistics use training labels only reliably decide whether node classification should use a tuned graph-model portfolio or a tuned feature-only MLP?
 
 The answer under the frozen protocol is negative. Graph structure can be highly predictive, but the evaluated low-dimensional diagnostics do not reliably characterize when it is useful.
 
 ## Main results
 
-The prospective benchmark contains 11 datasets, 10 seeds, seven architectures, 770 selected-model records, and 110 train-only diagnostic records. Every architecture receives the same four-trial grid, but the total portfolio budgets are asymmetric: the graph action selects among six architectures (24 trials), whereas the feature-only action contains one MLP architecture (four trials). The target requires the selected graph model to beat the selected MLP by more than one percentage point. The estimand therefore concerns these fixed operational portfolios, not an equal-total-compute family comparison.
+The prospective benchmark contains 11 datasets, 10 seeds, seven architectures, 770 selected-model records, and 110 diagnostic records whose label-dependent graph statistics use training labels only. Every architecture receives the same four-trial grid, but the total portfolio budgets are asymmetric: the graph action selects among six architectures (24 trials), whereas the feature-only action contains one MLP architecture (four trials). The target requires the selected graph model to beat the selected MLP by more than one percentage point. The estimand therefore concerns these fixed operational portfolios, not an equal-total-compute family comparison.
 
 | Policy | Selection accuracy | Coverage | Full-set regret |
 |---|---:|---:|---:|

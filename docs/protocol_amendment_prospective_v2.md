@@ -25,7 +25,7 @@ A dataset is eligible only when every class contains at least three nodes.
 Applying this rule to labels before any v2 model outcome excludes Texas and no
 other candidate. The v2 benchmark therefore contains eleven datasets. All
 remaining scientific settings are byte-equivalent to v1: ten seeds, seven
-models, four equal-budget trials, early stopping, train-only diagnostics,
+models, four equal-budget trials, early stopping, diagnostic label scope,
 selection rules, evaluator thresholds, bootstrap/permutation settings, and the
 degree-matched intervention protocol.
 
