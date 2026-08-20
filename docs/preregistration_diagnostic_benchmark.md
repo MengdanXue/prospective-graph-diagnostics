@@ -55,6 +55,15 @@ benchmark. The evaluator rejects a record marked as using test labels.
 All thresholds below are fixed sanity baselines, not values estimated from the
 new benchmark outcomes.
 
+The exact `0.55` homophily and `0.40` MLP-validation pair used by
+`historical_combined` first appeared in this specification and its scorer on
+2026-08-08 (private predecessor commit `dca835a`). The pair was fixed after
+legacy aggregate outputs had been inspected but before any confirmatory
+unit-level record was generated. It was not inherited verbatim from an earlier
+committed rule, selected by a prospective threshold sweep, or adjusted using
+the final 110 units. Accordingly, “historical” denotes an exploratory-origin
+heuristic, not whole-project preregistration or data independence.
+
 1. `always_mlp`: always choose the validation-selected MLP.
 2. `always_graph`: always choose the validation-selected graph model.
 3. `random_50_50`: report the analytic expectation of choosing each action
