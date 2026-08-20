@@ -9,6 +9,8 @@ ROOT = Path(__file__).resolve().parents[1]
 ALLOWED_RESULTS = {
     "results/diagnostic/route_a_degree_matched_v1/summary/summary.json",
     "results/diagnostic/route_a_prospective_v2/analysis/diagnostic_audit.json",
+    "results/diagnostic/route_a_prospective_v2/analysis/prospective_regret_coverage.pdf",
+    "results/diagnostic/route_a_prospective_v2/analysis/prospective_regret_coverage.png",
     "results/discriminability/route_a_grid_v1/summary/figure_manifest.json",
     "results/discriminability/route_a_grid_v1/summary/records.csv",
     "results/discriminability/route_a_grid_v1/summary/summary.json",

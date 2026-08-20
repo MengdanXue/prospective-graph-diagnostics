@@ -3,9 +3,11 @@
 
 \subsection{Scope and Audit Trail}
 
-The final benchmark contains 11 datasets. Cora, CiteSeer, PubMed, and Coauthor-CS represent citation and co-authorship graphs; Chameleon, Squirrel, Actor, Wisconsin, Cornell, Roman-empire, and Amazon-ratings broaden the structural regimes. Each dataset uses ten fixed seeds, with 60\% of nodes for training, 20\% for validation, and 20\% for testing. The run yields 770 selected-model records and 110 diagnostic records: every unit contains the MLP and six graph architectures, four tuning trials per architecture, explicit split and environment provenance, and one test evaluation after validation selection. No final-run unit fails.
+The final benchmark contains 11 datasets. Cora, CiteSeer, PubMed, and Coauthor-CS represent citation and co-authorship graphs; Chameleon, Squirrel, Actor, Wisconsin, Cornell, Roman-empire, and Amazon-ratings broaden the structural regimes. Each dataset uses ten fixed seeds, with 60\% of nodes for training, 20\% for validation, and 20\% for testing. The run yields 770 selected-model records and 110 diagnostic records: every unit contains the MLP and six graph architectures, four tuning trials per architecture, explicit split and environment provenance, and one test evaluation after validation selection. The graph and MLP actions therefore search 24 and four trial configurations, respectively; this is a frozen asymmetric-portfolio comparison, not an equal-total-compute comparison. No final-run unit fails.
 
 The execution history contains two documented amendments. First, the v1 feasibility run stops before model training on Texas because one class contains a single node and cannot populate the frozen three-way split. Before comparative assembly or evaluation, an outcome-independent eligibility amendment excludes Texas, assigns a new run identifier, and restarts all remaining datasets from zero without changing models, splits, seeds, thresholds, metrics, or inference. Second, after a blinded wall-clock timeout on Squirrel, an execution-only amendment increases the per-dataset limit from 30 to 90 minutes. No comparative outcome is inspected, and all scientific settings remain unchanged. The completed v2 artifacts retain the amendments and exclude the aborted v1 records from analysis.
+
+Here ``prospective'' refers specifically to newly generated confirmatory records produced after the specification and scoring implementation were frozen. Legacy aggregate results inspected during exploratory work are not part of this analysis because they lack consistent paired outcomes and decision-time provenance. The public release provides the frozen snapshot, file digests, and mappings to execution provenance, but it does not expose the private predecessor history; the auditable claim is therefore about the released confirmatory run rather than the entire earlier research timeline.
 
 \subsection{Primary Policy Outcomes}
 
@@ -33,7 +35,16 @@ Validation selection & 91.8 & 100.0 & 0.22 \\
 \end{tabular}
 \end{table}
 
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.82\linewidth]{results/diagnostic/route_a_prospective_v2/analysis/prospective_regret_coverage.pdf}
+\caption{Descriptive regret--coverage display from the frozen confidence scores. For Combined and validation selection, coverage increases as lower-confidence eligible decisions enter. Always-graph and always-MLP have constant confidence and therefore appear only as full-set endpoints. The ordinate is covered-set mean raw-accuracy regret, not selection error under the one-point target margin. The Combined curve ends at 68.2\% because 35 units abstain and fallback decisions are not added to this display. The primary confirmatory analysis remains full-set regret with dataset-level inference.}
+\label{fig:regret_coverage}
+\end{figure}
+
 Always-graph attains 80.9\% selection accuracy and 0.26 points of regret. Direct validation selection attains 91.8\% and 0.22 points, respectively. Homophily-only has the same full-set accuracy and regret as the combined policy after fallback, while degree-only, homophily-plus-degree, and two-hop-only also fail to improve on always-graph. The result is therefore not that a different fixed threshold rescues the original idea; under this portfolio and target, the evaluated low-dimensional rules provide no stable incremental decision value.
+
+Figure~\ref{fig:regret_coverage} shows the precomputed descriptive curves for Combined and validation selection, together with the two constant policies at their identifiable full-set endpoints. Raising confidence within the Combined rule does not reveal a low-regret region: its final covered-set regret is 2.64 points at 68.2\% coverage, compared with full-set regrets of 0.26 for always-graph and 0.22 for validation selection. This display is a sensitivity summary only and does not replace the predeclared full-set comparison.
 
 \subsection{Paired Inference and Interpretation}
 

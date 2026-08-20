@@ -4,12 +4,14 @@ import unittest
 from pathlib import Path
 
 from scripts.audit_route_a_claims import resolve_active_sources, strip_latex_comment
+import scripts.plot_prospective_regret_coverage as regret_coverage_plot
 
 
 ROOT = Path(__file__).resolve().parents[1]
 ACTIVE_MAIN = ROOT / "main_neurocomputing.tex"
 MAIN = ACTIVE_MAIN.read_text(encoding="utf-8")
 INTRODUCTION = (ROOT / "sections" / "01_introduction.tex").read_text(encoding="utf-8")
+RELATED = (ROOT / "sections" / "02_related_work.tex").read_text(encoding="utf-8")
 PROTOCOL = (ROOT / "sections" / "03_decision_protocol.tex").read_text(encoding="utf-8")
 PROSPECTIVE_RESULTS = (ROOT / "sections" / "04_prospective_results.tex").read_text(encoding="utf-8")
 EDGE_INTERVENTION = (ROOT / "sections" / "05_edge_intervention.tex").read_text(encoding="utf-8")
@@ -109,7 +111,7 @@ class SubmissionSafetyTests(unittest.TestCase):
     def test_protocol_defines_the_decision_boundary_and_forbids_test_labels(self):
         self.assertIn("\\delta=0.01", PROTOCOL)
         self.assertIn("Test labels, test accuracy", PROTOCOL)
-        self.assertIn("oracle-family regret", PROTOCOL)
+        self.assertIn("oracle-portfolio regret", PROTOCOL)
         self.assertIn("Holm correction", PROTOCOL)
         self.assertNotIn("Information Budget", PROTOCOL)
 
@@ -128,6 +130,55 @@ class SubmissionSafetyTests(unittest.TestCase):
             "one held-out test evaluation",
         ):
             self.assertIn(phrase, PROTOCOL)
+
+    def test_active_text_discloses_asymmetric_family_search_budget(self):
+        self.assertIn("four-trial tuning budget", PROTOCOL)
+        self.assertIn("24 trial configurations", PROTOCOL)
+        self.assertIn("four trial configurations", PROTOCOL)
+        self.assertIn("asymmetric portfolios", PROTOCOL)
+        self.assertNotIn("Each family receives the same four-trial", RELATED)
+        self.assertNotIn("no model family obtains a larger search budget", PROTOCOL)
+
+    def test_target_accuracy_and_regret_objectives_are_distinguished(self):
+        self.assertIn("intentionally measure different objectives", PROTOCOL)
+        self.assertIn("sub-margin graph gain", PROTOCOL)
+        self.assertIn("raw predictive-accuracy opportunity loss", PROTOCOL)
+
+    def test_scope_does_not_claim_graph_acquisition_savings(self):
+        self.assertNotIn("acquisition is costly", INTRODUCTION)
+        self.assertIn("training and tuning the graph-model portfolio", INTRODUCTION)
+
+    def test_prospective_claim_is_limited_to_new_confirmatory_records(self):
+        self.assertIn("newly generated confirmatory records", INTRODUCTION)
+        prospective_lower = PROSPECTIVE_RESULTS.lower()
+        self.assertIn("legacy aggregate results", prospective_lower)
+        self.assertIn("private predecessor history", prospective_lower)
+
+    def test_regret_coverage_display_is_defined_and_included(self):
+        self.assertIn("covered-set raw-accuracy regret", PROTOCOL)
+        self.assertIn("fig:regret_coverage", PROSPECTIVE_RESULTS)
+        self.assertTrue(
+            (
+                ROOT
+                / "results"
+                / "diagnostic"
+                / "route_a_prospective_v2"
+                / "analysis"
+                / "prospective_regret_coverage.pdf"
+            ).exists()
+        )
+
+    def test_constant_confidence_policies_plot_only_the_full_set_endpoint(self):
+        self.assertTrue(hasattr(regret_coverage_plot, "_display_curve"))
+        for method in ("always_graph", "always_mlp"):
+            coverage, regret = regret_coverage_plot._display_curve(PROSPECTIVE, method)
+            self.assertEqual([100.0], coverage)
+            self.assertEqual(1, len(regret))
+
+        for method in ("historical_combined", "validation_selection"):
+            coverage, regret = regret_coverage_plot._display_curve(PROSPECTIVE, method)
+            self.assertGreater(len(coverage), 1)
+            self.assertEqual(len(coverage), len(regret))
 
     def test_discussion_and_conclusion_retain_theory_and_experiment_limits(self):
         self.assertIn("does not imply that every possible graph diagnostic must fail", DISCUSSION)
