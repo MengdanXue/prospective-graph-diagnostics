@@ -14,6 +14,7 @@ INTRODUCTION = (ROOT / "sections" / "01_introduction.tex").read_text(encoding="u
 RELATED = (ROOT / "sections" / "02_related_work.tex").read_text(encoding="utf-8")
 PROTOCOL = (ROOT / "sections" / "03_decision_protocol.tex").read_text(encoding="utf-8")
 PROSPECTIVE_RESULTS = (ROOT / "sections" / "04_prospective_results.tex").read_text(encoding="utf-8")
+THEORY = (ROOT / "sections" / "06_fixed_degree_analysis.tex").read_text(encoding="utf-8")
 EDGE_INTERVENTION = (ROOT / "sections" / "05_edge_intervention.tex").read_text(encoding="utf-8")
 DISCUSSION = (ROOT / "sections" / "07_discussion.tex").read_text(encoding="utf-8")
 CONCLUSION = (ROOT / "sections" / "08_conclusion.tex").read_text(encoding="utf-8")
@@ -102,6 +103,29 @@ class SubmissionSafetyTests(unittest.TestCase):
         self.assertIn("7.46", MAIN)
         self.assertIn("80.9\\%", MAIN)
         self.assertIn("91.8\\%", MAIN)
+        self.assertIn(
+            "diagnostics whose label-dependent graph statistics use training labels only",
+            MAIN,
+        )
+
+    def test_neighbor_only_approximation_uses_the_exact_closed_form(self):
+        self.assertIn(
+            "\\kappa=\\frac{\\rho^2d}{1+\\eta}\\leq\\rho^2d",
+            THEORY.replace(" ", "").replace("\n", ""),
+        )
+        self.assertNotIn(
+            "\\frac{\\rho^2d}{1+\\eta}\\leq\\kappa",
+            THEORY.replace(" ", "").replace("\n", ""),
+        )
+        self.assertIn("For $\\rho\\neq 0$", THEORY)
+
+    def test_combined_threshold_provenance_is_explicit(self):
+        self.assertIn("predecessor commit \\texttt{dca835a}", PROTOCOL)
+        self.assertIn("after inspection of legacy aggregate outputs", PROTOCOL)
+        self.assertIn("before any confirmatory unit-level record was generated", PROTOCOL)
+        self.assertIn("not derived through a prospective threshold sweep", PROTOCOL)
+        self.assertIn("not adjusted using the final 110 units", PROTOCOL)
+        self.assertIn("rather than claim whole-project preregistration", PROTOCOL)
 
     def test_introduction_reports_prospective_evaluation_as_completed(self):
         self.assertIn("770 model records", INTRODUCTION)
@@ -167,6 +191,18 @@ class SubmissionSafetyTests(unittest.TestCase):
                 / "prospective_regret_coverage.pdf"
             ).exists()
         )
+        self.assertIn("sustained regret region comparable", PROSPECTIVE_RESULTS)
+        self.assertNotIn("a different fixed threshold rescues", PROSPECTIVE_RESULTS)
+        self.assertIn(
+            "degree-only and homophily-plus-degree reduce descriptive full-set regret",
+            PROSPECTIVE_RESULTS,
+        )
+        self.assertIn(
+            "none of the evaluated low-dimensional rules improves on always-graph",
+            PROSPECTIVE_RESULTS,
+        )
+        self.assertIn("unadjusted 95\\% bootstrap interval", PROSPECTIVE_RESULTS)
+        self.assertIn("with an unadjusted interval", PROSPECTIVE_RESULTS)
 
     def test_constant_confidence_policies_plot_only_the_full_set_endpoint(self):
         self.assertTrue(hasattr(regret_coverage_plot, "_display_curve"))
