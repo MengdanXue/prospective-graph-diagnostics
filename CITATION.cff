@@ -13,9 +13,9 @@ version: "0.1.0"
 date-released: "2026-08-14"
 license: MIT
 abstract: >-
-  Frozen prospective evaluation of train-only diagnostics for graph-vs-MLP
-  model selection, with a degree-preserving edge intervention and compact
-  deterministic audit summaries.
+  Frozen prospective evaluation of diagnostics whose label-dependent graph
+  statistics use training labels only for graph-vs-MLP model selection, with a
+  degree-preserving edge intervention and compact deterministic audit summaries.
 keywords:
   - graph neural networks
   - model selection

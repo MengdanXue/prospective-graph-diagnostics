@@ -11,6 +11,7 @@ ALLOWED_RESULTS = {
     "results/diagnostic/route_a_prospective_v2/analysis/diagnostic_audit.json",
     "results/diagnostic/route_a_prospective_v2/analysis/prospective_regret_coverage.pdf",
     "results/diagnostic/route_a_prospective_v2/analysis/prospective_regret_coverage.png",
+    "results/diagnostic/route_a_prospective_v2/analysis/reviewer_appendix_summary.json",
     "results/discriminability/route_a_grid_v1/summary/figure_manifest.json",
     "results/discriminability/route_a_grid_v1/summary/records.csv",
     "results/discriminability/route_a_grid_v1/summary/summary.json",
@@ -26,6 +27,7 @@ ACTIVE_SECTIONS = [
     "06_fixed_degree_analysis",
     "07_discussion",
     "08_conclusion",
+    "09_reproducibility_appendix",
 ]
 
 
@@ -186,6 +188,9 @@ class PublicRepositoryTests(unittest.TestCase):
             self.assertNotIn("train-only diagnostics", text)
             self.assertNotIn("train-only heuristics", text)
             self.assertNotIn("train-only inputs", text)
+        citation = (ROOT / "CITATION.cff").read_text(encoding="utf-8")
+        self.assertNotIn("train-only diagnostics", citation)
+        self.assertIn("label-dependent graph", citation)
 
     def test_readme_installs_into_the_created_virtual_environment(self):
         readme = (ROOT / "README.md").read_text(encoding="utf-8")
@@ -204,6 +209,7 @@ class PublicRepositoryTests(unittest.TestCase):
             "scripts/assemble_prospective_diagnostics.py",
             "experiments/evaluate_diagnostics.py",
             "scripts/summarize_degree_matched_benchmark.py",
+            "scripts/summarize_reviewer_appendix.py",
             "configs/prospective_benchmark_v2.json",
             "prospective/records",
             "degree_matched/records",

@@ -29,6 +29,16 @@ PROSPECTIVE = json.loads(
         encoding="utf-8"
     )
 )
+REVIEWER_APPENDIX_SUMMARY = json.loads(
+    (
+        ROOT
+        / "results"
+        / "diagnostic"
+        / "route_a_prospective_v2"
+        / "analysis"
+        / "reviewer_appendix_summary.json"
+    ).read_text(encoding="utf-8")
+)
 DEGREE_MATCHED = json.loads(
     (ROOT / "results" / "diagnostic" / "route_a_degree_matched_v1" / "summary" / "summary.json").read_text(
         encoding="utf-8"
@@ -69,6 +79,7 @@ class SubmissionSafetyTests(unittest.TestCase):
             "sections/06_fixed_degree_analysis",
             "sections/07_discussion",
             "sections/08_conclusion",
+            "sections/09_reproducibility_appendix",
         ]
         positions = [MAIN.index(f"\\input{{{path}}}") for path in expected_inputs]
         self.assertEqual(positions, sorted(positions))
@@ -83,6 +94,14 @@ class SubmissionSafetyTests(unittest.TestCase):
         self.assertGreaterEqual(len(highlights), 3)
         self.assertLessEqual(len(highlights), 5)
         self.assertTrue(all(len(line) <= 85 for line in highlights))
+        self.assertTrue(
+            any(
+                "Degree-preserving randomization" in line
+                and "three citation graphs" in line
+                for line in highlights
+            )
+        )
+        self.assertFalse(any(line.startswith("Validation selection yields") for line in highlights))
 
     def test_highlights_are_supplied_only_as_a_separate_file(self):
         self.assertNotIn("\\begin{highlights}", MAIN)
@@ -90,7 +109,7 @@ class SubmissionSafetyTests(unittest.TestCase):
 
     def test_title_and_abstract_match_the_scoped_contribution(self):
         self.assertNotIn("SNR Dynamics", MAIN)
-        self.assertIn("A Prospective Evaluation of Graph Diagnostics", MAIN)
+        self.assertIn("A Prospective Evaluation of Simple Graph Diagnostics", MAIN)
         self.assertIn("55.5\\%", MAIN)
         self.assertIn("7.46", MAIN)
         self.assertIn("80.9\\%", MAIN)
@@ -165,6 +184,42 @@ class SubmissionSafetyTests(unittest.TestCase):
         self.assertIn("asymmetric portfolios", PROTOCOL)
         self.assertNotIn("Each family receives the same four-trial", RELATED)
         self.assertNotIn("no model family obtains a larger search budget", PROTOCOL)
+
+    def test_active_claims_remain_scoped_to_the_evaluated_portfolios(self):
+        self.assertNotIn("when graph models add predictive value", ACTIVE_TEXT)
+        self.assertNotIn("when a graph model should be used", ACTIVE_TEXT)
+        self.assertIn("evaluated graph portfolio", ACTIVE_TEXT)
+        self.assertIn("graph-versus-MLP portfolio action", ACTIVE_TEXT)
+
+    def test_appendix_and_fallback_sensitivity_match_the_derived_artifact(self):
+        appendix = (ROOT / "sections" / "09_reproducibility_appendix.tex").read_text(
+            encoding="utf-8"
+        )
+        for dataset in REVIEWER_APPENDIX_SUMMARY["datasets"]:
+            self.assertIn(dataset, appendix)
+        for phrase in (
+            "PyTorch Geometric 2.7.0",
+            "NormalizeFeatures",
+            "Combined G/M/A",
+            "Exact architecture and propagation details",
+        ):
+            self.assertIn(phrase, appendix)
+        sensitivity = REVIEWER_APPENDIX_SUMMARY["fallback_sensitivity"]
+        self.assertEqual(30, sensitivity["graph_targets_among_abstentions"])
+        self.assertEqual(32, sensitivity["graph_raw_wins_among_abstentions"])
+        self.assertAlmostEqual(78.2, sensitivity["graph_fallback_selection_accuracy_pct"], places=1)
+        self.assertAlmostEqual(1.82, sensitivity["graph_fallback_mean_regret_pp"], places=2)
+        for phrase in (
+            "its 110 effective actions exactly match those from the homophily rule",
+            "post-hoc descriptive graph-fallback sensitivity",
+            "does not replace the frozen MLP-fallback primary result",
+        ):
+            self.assertIn(phrase, PROSPECTIVE_RESULTS)
+        self.assertIn(
+            "\\hyperref[app:reproducibility]{reproducibility appendix}",
+            PROSPECTIVE_RESULTS,
+        )
+        self.assertNotIn("Appendix~\\ref{app:reproducibility}", PROSPECTIVE_RESULTS)
 
     def test_target_accuracy_and_regret_objectives_are_distinguished(self):
         self.assertIn("intentionally measure different objectives", PROTOCOL)

@@ -27,7 +27,7 @@
 
 \begin{frontmatter}
 
-\title{A Prospective Evaluation of Graph Diagnostics for Graph-vs-MLP Model Selection}
+\title{A Prospective Evaluation of Simple Graph Diagnostics for Graph-vs-MLP Model Selection}
 
 \author{Anonymous Author(s)}
 \affiliation{organization={Anonymous institution},
@@ -35,7 +35,7 @@
              country={Anonymous}}
 
 \begin{abstract}
-Choosing whether to use graph structure is an operational decision, yet graph statistics are usually evaluated as correlates of performance rather than as decision rules. We test whether transparent diagnostics whose label-dependent graph statistics use training labels only can select between tuned graph and feature-only multilayer perceptron (MLP) portfolios for node classification. Before generating these confirmatory records, we freeze datasets, splits, seeds, seven architectures, four-trial grids, the practical margin, label scope, abstention, and analysis. The comparison uses asymmetric portfolios: six graph architectures receive 24 trials, whereas one MLP architecture receives four. An outcome-independent eligibility amendment excludes one dataset whose singleton class cannot support the frozen three-way split; all scientific settings remain unchanged. The final benchmark contains 11 datasets, 110 dataset--seed units, 770 model records, and 110 diagnostic records without failed units. The combined diagnostic attains 55.5\% selection accuracy, 68.2\% coverage, and 7.46 percentage points of full-set regret. Always-graph attains 80.9\% accuracy and 0.26 points of regret; validation selection attains 91.8\% and 0.22 points. Dataset-level paired comparisons do not establish an advantage for the combined diagnostic after Holm correction. A separate degree-preserving randomization on Cora, CiteSeer, and PubMed reduces GCN accuracy by 45.5, 29.9, and 17.3 points, respectively. Diagnostic failure therefore should not be read as evidence that edge organization is uninformative, although the intervention does not isolate homophily or another single mechanism. Under the evaluated protocol, simple graph diagnostics do not reliably characterize when graph models add predictive value.
+Choosing whether to use graph structure is an operational decision, yet graph statistics are usually evaluated as correlates of performance rather than as decision rules. We test whether transparent diagnostics whose label-dependent graph statistics use training labels only can select between tuned graph and feature-only multilayer perceptron (MLP) portfolios for node classification. Before generating these confirmatory records, we freeze datasets, splits, seeds, seven architectures, four-trial grids, the practical margin, label scope, abstention, and analysis. The comparison uses asymmetric portfolios: six graph architectures receive 24 trials, whereas one MLP architecture receives four. An outcome-independent eligibility amendment excludes one dataset whose singleton class cannot support the frozen three-way split; all scientific settings remain unchanged. The final benchmark contains 11 datasets, 110 dataset--seed units, 770 model records, and 110 diagnostic records without failed units. The combined diagnostic attains 55.5\% selection accuracy, 68.2\% coverage, and 7.46 percentage points of full-set regret. Always-graph attains 80.9\% accuracy and 0.26 points of regret; validation selection attains 91.8\% and 0.22 points. Dataset-level paired comparisons do not establish an advantage for the combined diagnostic after Holm correction. A separate degree-preserving randomization on Cora, CiteSeer, and PubMed reduces GCN accuracy by 45.5, 29.9, and 17.3 points, respectively. Diagnostic failure therefore should not be read as evidence that edge organization is uninformative, although the intervention does not isolate homophily or another single mechanism. Under this protocol, simple diagnostics do not reliably choose between the evaluated graph and MLP portfolios.
 \end{abstract}
 
 \begin{keyword}
@@ -52,6 +52,9 @@ graph neural networks \sep model selection \sep graph diagnostics \sep heterophi
 \input{sections/06_fixed_degree_analysis}
 \input{sections/07_discussion}
 \input{sections/08_conclusion}
+\appendix
+\setcounter{table}{0}
+\input{sections/09_reproducibility_appendix}
 
 \section*{Data and code availability}
 \begin{sloppypar}

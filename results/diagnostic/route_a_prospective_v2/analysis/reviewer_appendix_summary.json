@@ -1,0 +1,246 @@
+{
+  "datasets": {
+    "Actor": {
+      "always_graph_mean_regret_pp": 0.24310141801834106,
+      "class_count": 5,
+      "combined_action_counts": {
+        "abstain": 5,
+        "graph": 0,
+        "mlp": 5
+      },
+      "combined_mean_regret_pp": 0.3416556119918823,
+      "edge_count": 26659,
+      "feature_count": 932,
+      "graph_target_count": 0,
+      "mean_degree": 7.015526315789474,
+      "mean_graph_minus_mlp_test_gap_pp": 0.09855419397354127,
+      "mean_train_edge_homophily": 0.21889847323409234,
+      "mean_two_hop_difference": -0.008778473234092362,
+      "node_count": 7600,
+      "validation_selection_mean_regret_pp": 0.3416556119918823
+    },
+    "Amazon-ratings": {
+      "always_graph_mean_regret_pp": 0.0,
+      "class_count": 5,
+      "combined_action_counts": {
+        "abstain": 10,
+        "graph": 0,
+        "mlp": 0
+      },
+      "combined_mean_regret_pp": 16.44838809967041,
+      "edge_count": 93050,
+      "feature_count": 300,
+      "graph_target_count": 10,
+      "mean_degree": 7.598399477380369,
+      "mean_graph_minus_mlp_test_gap_pp": 16.44838809967041,
+      "mean_train_edge_homophily": 0.3803281202805683,
+      "mean_two_hop_difference": 0.03761787971943169,
+      "node_count": 24492,
+      "validation_selection_mean_regret_pp": 0.0
+    },
+    "Chameleon": {
+      "always_graph_mean_regret_pp": 0.0,
+      "class_count": 5,
+      "combined_action_counts": {
+        "abstain": 0,
+        "graph": 0,
+        "mlp": 10
+      },
+      "combined_mean_regret_pp": 15.882352888584137,
+      "edge_count": 31371,
+      "feature_count": 2325,
+      "graph_target_count": 10,
+      "mean_degree": 27.554677206851117,
+      "mean_graph_minus_mlp_test_gap_pp": 15.882352888584137,
+      "mean_train_edge_homophily": 0.23623992333078406,
+      "mean_two_hop_difference": 0.05970207666921593,
+      "node_count": 2277,
+      "validation_selection_mean_regret_pp": 0.0
+    },
+    "CiteSeer": {
+      "always_graph_mean_regret_pp": 0.0,
+      "class_count": 6,
+      "combined_action_counts": {
+        "abstain": 0,
+        "graph": 10,
+        "mlp": 0
+      },
+      "combined_mean_regret_pp": 0.0,
+      "edge_count": 4552,
+      "feature_count": 3703,
+      "graph_target_count": 10,
+      "mean_degree": 2.7363991584009617,
+      "mean_graph_minus_mlp_test_gap_pp": 5.1564836502075195,
+      "mean_train_edge_homophily": 0.7318424745154234,
+      "mean_two_hop_difference": 0.03896752548457662,
+      "node_count": 3327,
+      "validation_selection_mean_regret_pp": 0.0
+    },
+    "Coauthor-CS": {
+      "always_graph_mean_regret_pp": 0.0,
+      "class_count": 15,
+      "combined_action_counts": {
+        "abstain": 0,
+        "graph": 10,
+        "mlp": 0
+      },
+      "combined_mean_regret_pp": 0.0,
+      "edge_count": 81894,
+      "feature_count": 6805,
+      "graph_target_count": 10,
+      "mean_degree": 8.93405334642448,
+      "mean_graph_minus_mlp_test_gap_pp": 4.749999046325684,
+      "mean_train_edge_homophily": 0.8097914023816364,
+      "mean_two_hop_difference": -0.12545740238163638,
+      "node_count": 18333,
+      "validation_selection_mean_regret_pp": 0.0
+    },
+    "Cora": {
+      "always_graph_mean_regret_pp": 0.0,
+      "class_count": 7,
+      "combined_action_counts": {
+        "abstain": 0,
+        "graph": 10,
+        "mlp": 0
+      },
+      "combined_mean_regret_pp": 0.0,
+      "edge_count": 5278,
+      "feature_count": 1433,
+      "graph_target_count": 10,
+      "mean_degree": 3.8980797636632203,
+      "mean_graph_minus_mlp_test_gap_pp": 12.59124159812927,
+      "mean_train_edge_homophily": 0.8075487003241288,
+      "mean_two_hop_difference": -0.06938070032412892,
+      "node_count": 2708,
+      "validation_selection_mean_regret_pp": 0.0
+    },
+    "Cornell": {
+      "always_graph_mean_regret_pp": 1.2500011920928955,
+      "class_count": 5,
+      "combined_action_counts": {
+        "abstain": 0,
+        "graph": 0,
+        "mlp": 10
+      },
+      "combined_mean_regret_pp": 1.7500007152557375,
+      "edge_count": 277,
+      "feature_count": 1703,
+      "graph_target_count": 4,
+      "mean_degree": 3.0273224043715845,
+      "mean_graph_minus_mlp_test_gap_pp": 0.4999995231628418,
+      "mean_train_edge_homophily": 0.11429837692359135,
+      "mean_two_hop_difference": 0.30437562307640864,
+      "node_count": 183,
+      "validation_selection_mean_regret_pp": 1.5000009536743164
+    },
+    "PubMed": {
+      "always_graph_mean_regret_pp": 0.0,
+      "class_count": 3,
+      "combined_action_counts": {
+        "abstain": 0,
+        "graph": 10,
+        "mlp": 0
+      },
+      "combined_mean_regret_pp": 0.0,
+      "edge_count": 44324,
+      "feature_count": 500,
+      "graph_target_count": 10,
+      "mean_degree": 4.496018664096972,
+      "mean_graph_minus_mlp_test_gap_pp": 2.014697790145874,
+      "mean_train_edge_homophily": 0.8037338113707561,
+      "mean_two_hop_difference": -0.02351181137075601,
+      "node_count": 19717,
+      "validation_selection_mean_regret_pp": 0.0
+    },
+    "Roman-empire": {
+      "always_graph_mean_regret_pp": 0.0,
+      "class_count": 18,
+      "combined_action_counts": {
+        "abstain": 10,
+        "graph": 0,
+        "mlp": 0
+      },
+      "combined_mean_regret_pp": 23.656552135944366,
+      "edge_count": 32927,
+      "feature_count": 300,
+      "graph_target_count": 10,
+      "mean_degree": 2.905921807430942,
+      "mean_graph_minus_mlp_test_gap_pp": 23.656552135944366,
+      "mean_train_edge_homophily": 0.04650968814063734,
+      "mean_two_hop_difference": 0.023992311859362653,
+      "node_count": 22662,
+      "validation_selection_mean_regret_pp": 0.0
+    },
+    "Squirrel": {
+      "always_graph_mean_regret_pp": 0.0,
+      "class_count": 5,
+      "combined_action_counts": {
+        "abstain": 10,
+        "graph": 0,
+        "mlp": 0
+      },
+      "combined_mean_regret_pp": 22.063339352607727,
+      "edge_count": 198353,
+      "feature_count": 2089,
+      "graph_target_count": 10,
+      "mean_degree": 76.27494712555279,
+      "mean_graph_minus_mlp_test_gap_pp": 22.063339352607727,
+      "mean_train_edge_homophily": 0.2214767562313067,
+      "mean_two_hop_difference": 0.013895243768693308,
+      "node_count": 5201,
+      "validation_selection_mean_regret_pp": 0.0
+    },
+    "Wisconsin": {
+      "always_graph_mean_regret_pp": 1.3207554817199707,
+      "class_count": 5,
+      "combined_action_counts": {
+        "abstain": 0,
+        "graph": 0,
+        "mlp": 10
+      },
+      "combined_mean_regret_pp": 1.886792778968811,
+      "edge_count": 450,
+      "feature_count": 1703,
+      "graph_target_count": 5,
+      "mean_degree": 3.5856573705179278,
+      "mean_graph_minus_mlp_test_gap_pp": 0.5660372972488403,
+      "mean_train_edge_homophily": 0.17188601869669742,
+      "mean_two_hop_difference": 0.2571139813033026,
+      "node_count": 251,
+      "validation_selection_mean_regret_pp": 0.5660378932952881
+    }
+  },
+  "fallback_sensitivity": {
+    "abstention_count": 35,
+    "alternative_fallback": "graph",
+    "analysis_scope": "post_hoc_descriptive_only",
+    "graph_fallback_mean_regret_pp": 1.8150842731649224,
+    "graph_fallback_selection_accuracy_pct": 78.18181818181819,
+    "graph_raw_wins_among_abstentions": 32,
+    "graph_targets_among_abstentions": 30,
+    "primary_fallback": "mlp"
+  },
+  "overall": {
+    "combined_action_counts": {
+      "abstain": 35,
+      "graph": 40,
+      "mlp": 35
+    },
+    "combined_mlp_fallback_mean_regret_pp": 7.457189234820278,
+    "combined_mlp_fallback_selection_accuracy_pct": 55.45454545454545,
+    "combined_vs_homophily_primary_action_differences": 0
+  },
+  "provenance": {
+    "dataset_metadata_source": "read_only_pyg_cache",
+    "primary_evaluator_unchanged": true,
+    "source_audit": "diagnostic_audit.json",
+    "source_audit_sha256": "4bf33130bad67d2a6330abb1e3efb2ebf51b6fc6e50984b8c67d73610df0c131"
+  },
+  "record_counts": {
+    "datasets": 11,
+    "evaluation_units": 110,
+    "seeds_per_dataset": 10
+  },
+  "schema_version": "1.0",
+  "status": "derived_from_frozen_audit"
+}

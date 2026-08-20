@@ -1,0 +1,88 @@
+\section{Dataset-Level Results and Reproducibility Details}
+\label{app:reproducibility}
+
+This appendix reports descriptive heterogeneity and implementation details requested for textual reproducibility. All outcome summaries are deterministic transformations of the frozen audit; no model was retrained, no action was changed, and the primary dataset-level inference remains that in Section~\ref{sec:prospective}.
+
+\subsection{Dataset Properties and Decision Heterogeneity}
+
+Table~\ref{tab:dataset_properties} reports graph properties after the common canonicalization step. Here, $|E|$ counts unique undirected non-loop edges, $h_1$ is the training-label edge-homophily statistic averaged over the ten splits, and $\Delta h=h_2-h_1$ uses the path-weighted two-hop statistic defined in Section~\ref{sec:protocol}.
+
+\begin{table}[ht]
+\centering
+\caption{Dataset properties and mean train-label graph diagnostics.}
+\label{tab:dataset_properties}
+\scriptsize
+\setlength{\tabcolsep}{3.2pt}
+\begin{tabular}{@{}lrrrrrrr@{}}
+\toprule
+Dataset & $|V|$ & $|E|$ & Classes & Features & Mean degree & $h_1$ & $\Delta h$ \\
+\midrule
+Actor & 7,600 & 26,659 & 5 & 932 & 7.02 & 0.219 & $-0.009$ \\
+Amazon-ratings & 24,492 & 93,050 & 5 & 300 & 7.60 & 0.380 & 0.038 \\
+Chameleon & 2,277 & 31,371 & 5 & 2,325 & 27.55 & 0.236 & 0.060 \\
+CiteSeer & 3,327 & 4,552 & 6 & 3,703 & 2.74 & 0.732 & 0.039 \\
+Coauthor-CS & 18,333 & 81,894 & 15 & 6,805 & 8.93 & 0.810 & $-0.125$ \\
+Cora & 2,708 & 5,278 & 7 & 1,433 & 3.90 & 0.808 & $-0.069$ \\
+Cornell & 183 & 277 & 5 & 1,703 & 3.03 & 0.114 & 0.304 \\
+PubMed & 19,717 & 44,324 & 3 & 500 & 4.50 & 0.804 & $-0.024$ \\
+Roman-empire & 22,662 & 32,927 & 18 & 300 & 2.91 & 0.047 & 0.024 \\
+Squirrel & 5,201 & 198,353 & 5 & 2,089 & 76.27 & 0.221 & 0.014 \\
+Wisconsin & 251 & 450 & 5 & 1,703 & 3.59 & 0.172 & 0.257 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Table~\ref{tab:dataset_decisions} shows that the negative result is heterogeneous but not driven by a single dataset. The largest Combined losses occur on Amazon-ratings, Chameleon, Roman-empire, and Squirrel. Three of those datasets contribute 30 of the 35 abstentions, whereas Chameleon receives ten explicit MLP actions. The column ``Combined G/M/A'' gives action counts before fallback; all regrets use the frozen MLP fallback and are averaged over ten seeds.
+
+\begin{table}[ht]
+\centering
+\caption{Dataset-level targets, decisions, and mean oracle-portfolio regret. G/M/A denotes graph/MLP/abstain counts before fallback; gaps and regrets are percentage points.}
+\label{tab:dataset_decisions}
+\scriptsize
+\setlength{\tabcolsep}{3.0pt}
+\begin{tabular}{@{}lrrrrrr@{}}
+\toprule
+Dataset & Graph targets & Mean gap & Combined G/M/A & Combined & Always-G & Validation \\
+\midrule
+Actor & 0/10 & 0.10 & 0/5/5 & 0.34 & 0.24 & 0.34 \\
+Amazon-ratings & 10/10 & 16.45 & 0/0/10 & 16.45 & 0.00 & 0.00 \\
+Chameleon & 10/10 & 15.88 & 0/10/0 & 15.88 & 0.00 & 0.00 \\
+CiteSeer & 10/10 & 5.16 & 10/0/0 & 0.00 & 0.00 & 0.00 \\
+Coauthor-CS & 10/10 & 4.75 & 10/0/0 & 0.00 & 0.00 & 0.00 \\
+Cora & 10/10 & 12.59 & 10/0/0 & 0.00 & 0.00 & 0.00 \\
+Cornell & 4/10 & 0.50 & 0/10/0 & 1.75 & 1.25 & 1.50 \\
+PubMed & 10/10 & 2.01 & 10/0/0 & 0.00 & 0.00 & 0.00 \\
+Roman-empire & 10/10 & 23.66 & 0/0/10 & 23.66 & 0.00 & 0.00 \\
+Squirrel & 10/10 & 22.06 & 0/0/10 & 22.06 & 0.00 & 0.00 \\
+Wisconsin & 5/10 & 0.57 & 0/10/0 & 1.89 & 1.32 & 0.57 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Architecture and Preprocessing Specification}
+
+All runs use PyTorch 2.9.1 and PyTorch Geometric 2.7.0. Planetoid loads Cora, CiteSeer, and PubMed; WebKB loads Wisconsin and Cornell. WikipediaNetwork with geometric preprocessing loads Chameleon and Squirrel. Actor uses the Actor loader. Roman-empire and Amazon-ratings use PyG's Heterophilous Graph Dataset loader; Coauthor-CS uses Coauthor. The PyG \texttt{NormalizeFeatures} transform is applied on load. We then remove self-loops, collapse duplicate and reverse edges to a unique undirected edge set, and emit both directions for message passing; isolated nodes are retained. These canonical edges are also the input to the diagnostics.
+
+Table~\ref{tab:architecture_details} completes the common training grid in Table~\ref{tab:frozen_training}. Unless stated otherwise, hidden width is 64, outputs are unnormalized logits, and dropout is the selected trial value. No architecture other than the PyG LINKX implementation uses BatchNorm.
+
+\begin{table}[ht]
+\centering
+\caption{Exact architecture and propagation details used in the frozen benchmark.}
+\label{tab:architecture_details}
+\small
+\begin{tabular}{@{}lp{0.76\linewidth}@{}}
+\toprule
+Model & Frozen implementation \\
+\midrule
+MLP & Author implementation with two affine layers, ReLU after the hidden layer, and hidden dropout; graph edges are ignored. \\
+GCN & Two \texttt{GCNConv} layers, ReLU, then hidden dropout. PyG's default symmetric normalization and added self-loops are used. \\
+GAT & Two \texttt{GATConv} layers: four concatenated attention heads in the first layer, ELU, hidden dropout, and one non-concatenated output head. The selected dropout is also applied to attention coefficients; PyG adds self-loops. \\
+GraphSAGE & Two mean-aggregating \texttt{SAGEConv} layers with root transforms, ReLU, and hidden dropout. No explicit self-loop edges or output normalization are added. \\
+H2GCN & Author implementation with a linear ReLU embedding and two propagation rounds over separately symmetrically normalized one-hop and strict two-hop adjacencies. All layer representations are concatenated, followed by dropout and a linear classifier; these fixed adjacencies contain no self-loops. \\
+LINKX & PyG \texttt{LINKX} with one sparse edge layer, two node-MLP layers, and two outer layers. The PyG MLP blocks use ReLU and BatchNorm on hidden transitions; selected dropout is applied in the final MLP. \\
+GPR-GNN & Author implementation with input dropout, linear--ReLU--dropout--linear prediction, and ten trainable PPR-initialized propagation coefficients ($\alpha=0.1$). Propagation uses GCN normalization with self-loops. \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The implementation uses full-batch training for every architecture. Cross-entropy is computed only on training indices; validation accuracy and loss select the stored checkpoint and trial as described in Section~\ref{sec:protocol}. There is no batch normalization outside LINKX, no feature augmentation beyond \texttt{NormalizeFeatures}, and no dataset-specific hyperparameter or preprocessing exception in the final v2 run.
