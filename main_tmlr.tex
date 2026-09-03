@@ -1,0 +1,90 @@
+% ============================================================
+% Repositioned entry point (venue-neutral draft).
+%
+% This file is NOT the Neurocomputing submission. The submitted manuscript
+% remains main_neurocomputing.tex and its sections/ sources, which are left
+% untouched while that submission is under review.
+%
+% Format note: this draft uses the standard article class so that the class
+% swap to a target venue's style file is a one-line change. For a TMLR
+% submission, replace the documentclass and package block below with the
+% official tmlr.sty template (https://jmlr.org/tmlr/), which supplies its own
+% title block, abstract environment, and bibliography style.
+%
+% Content differences from main_neurocomputing.tex:
+%   - new title and abstract leading with the structural-mismatch finding;
+%   - rewritten introduction and contribution list (sections_tmlr/01);
+%   - added attainable-resolution disclosure in the results (sections_tmlr/04);
+%   - new Section 6.1 on the diagnostic/portfolio mismatch (sections_tmlr/07);
+%   - rewritten conclusion ending on the delivered protocol (sections_tmlr/08);
+%   - new winning-architecture table (sections_tmlr/09);
+%   - the fixed-degree analysis is moved from the body to the appendix.
+% Unchanged sections are shared with the submitted version.
+% ============================================================
+
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsfonts,amsthm}
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{multirow}
+\usepackage{textcomp}
+\usepackage{xcolor}
+\usepackage{url}
+\usepackage[round,numbers]{natbib}
+\usepackage[hidelinks]{hyperref}
+
+\graphicspath{{code/figures/}{figures/}}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{proposition}{Proposition}
+\newtheorem{definition}{Definition}
+\newtheorem{remark}{Remark}
+\newtheorem{corollary}{Corollary}
+\newtheorem{lemma}{Lemma}
+\newtheorem{assumption}{Assumption}
+
+\newenvironment{sloppypar*}{\begin{sloppypar}}{\end{sloppypar}}
+
+\title{Why Homophily Statistics Cannot Select Graph Models:\\
+A Frozen Decision Benchmark}
+
+\author{Author list withheld pending venue anonymity policy}
+
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+Choosing whether to use graph structure is an operational decision, yet graph statistics are usually evaluated as correlates of performance rather than as decision rules. We test whether transparent diagnostics whose label-dependent graph statistics use training labels only can select between tuned graph and feature-only multilayer perceptron (MLP) portfolios for node classification, and we explain why they cannot. Before generating confirmatory records, we freeze datasets, splits, seeds, seven architectures, four-trial grids, the practical margin, label scope, abstention, and analysis; the final benchmark contains 11 datasets, 110 dataset--seed units, and 770 model records with no failed units. The combined diagnostic attains 55.5\% selection accuracy, 68.2\% coverage, and 7.46 percentage points of full-set regret, against 80.9\% and 0.26 points for always-graph and 91.8\% and 0.22 points for validation selection. The failure is structural rather than a matter of threshold tuning: the statistic and the decision target are anti-correlated over the regime that dominates the loss. Heterophily-aware architectures win 95 of the 110 units, including every unit on the two most homophilous datasets, so the graph action is not a proxy for GCN-style message passing; meanwhile the four datasets carrying 95.1\% of the combined rule's regret all fall below the frozen homophily threshold, where the rule declines the graph action on all 40 units and 35 of them are won by a heterophily-aware architecture. No threshold on a scalar one-hop summary repairs this, and the diagnosis extends to any such rule paired with a heterophily-aware portfolio. A separate degree-preserving randomization reduces GCN accuracy by 45.5, 29.9, and 17.3 points on Cora, CiteSeer, and PubMed, so the failure is not evidence that edge organization is uninformative. Alongside these findings we deliver the evaluation protocol itself---frozen decision-time information boundaries, matched trivial and validation-based policies, abstention and coverage, oracle-portfolio regret, test-once accounting, dataset-level inference, immutable per-unit provenance, and a deterministic audit binding every reported value to the frozen artifacts---so that richer or learned selectors can be tested on the same terms.
+\end{abstract}
+
+\input{sections_tmlr/01_introduction}
+\input{sections/02_related_work}
+\input{sections/03_decision_protocol}
+\input{sections_tmlr/04_prospective_results}
+\input{sections/05_edge_intervention}
+\input{sections_tmlr/07_discussion}
+\input{sections_tmlr/08_conclusion}
+
+\appendix
+\setcounter{table}{0}
+\input{sections_tmlr/09_reproducibility_appendix}
+\input{sections/06_fixed_degree_analysis}
+
+\section*{Data and code availability}
+\begin{sloppypar}
+The current experiment code, frozen configurations, compact deterministic audits, and figure-generation scripts are available at \url{https://github.com/MengdanXue/prospective-graph-diagnostics}. A path-redacted archive of the immutable unit-level records is preserved in the versioned v0.1.0 release at \url{https://github.com/MengdanXue/prospective-graph-diagnostics/releases/tag/v0.1.0}. Historical exploratory outputs are separated from the confirmatory artifacts. The public repository is a fresh publication snapshot with file digests and execution-provenance mappings; it does not expose the complete history of the private predecessor repository.
+\end{sloppypar}
+
+\section*{Declaration of generative AI and AI-assisted technologies in the writing process}
+During the preparation of this work, the author used OpenAI Codex to assist with software review, test development, reproducibility checks, and language and structural editing. The author independently verified all code, experimental artifacts, statistical results, references, and manuscript content and takes full responsibility for the work.
+
+\bibliographystyle{plainnat}
+\bibliography{references}
+
+\end{document}

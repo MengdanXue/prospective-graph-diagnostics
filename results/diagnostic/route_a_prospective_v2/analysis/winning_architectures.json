@@ -1,0 +1,174 @@
+{
+  "datasets": {
+    "Actor": {
+      "combined_selects_graph": 0,
+      "heterophily_aware_wins": 9,
+      "mean_always_graph_regret": 0.0024310141801834107,
+      "mean_combined_regret": 0.0034165561199188234,
+      "mean_train_label_homophily": 0.21889847323409234,
+      "share_of_combined_regret": 0.004165054702533597,
+      "units": 10,
+      "winning_graph_architectures": {
+        "GraphSAGE": 1,
+        "H2GCN": 9
+      }
+    },
+    "Amazon-ratings": {
+      "combined_selects_graph": 0,
+      "heterophily_aware_wins": 10,
+      "mean_always_graph_regret": 0.0,
+      "mean_combined_regret": 0.1644838809967041,
+      "mean_train_label_homophily": 0.38032812028056834,
+      "share_of_combined_regret": 0.20051898402669188,
+      "units": 10,
+      "winning_graph_architectures": {
+        "LINKX": 10
+      }
+    },
+    "Chameleon": {
+      "combined_selects_graph": 0,
+      "heterophily_aware_wins": 5,
+      "mean_always_graph_regret": 0.0,
+      "mean_combined_regret": 0.15882352888584136,
+      "mean_train_label_homophily": 0.23623992333078409,
+      "share_of_combined_regret": 0.19361856285699514,
+      "units": 10,
+      "winning_graph_architectures": {
+        "GAT": 4,
+        "GraphSAGE": 1,
+        "LINKX": 5
+      }
+    },
+    "CiteSeer": {
+      "combined_selects_graph": 10,
+      "heterophily_aware_wins": 5,
+      "mean_always_graph_regret": 0.0,
+      "mean_combined_regret": 0.0,
+      "mean_train_label_homophily": 0.7318424745154233,
+      "share_of_combined_regret": 0.0,
+      "units": 10,
+      "winning_graph_architectures": {
+        "GCN": 3,
+        "GraphSAGE": 2,
+        "H2GCN": 5
+      }
+    },
+    "Coauthor-CS": {
+      "combined_selects_graph": 10,
+      "heterophily_aware_wins": 10,
+      "mean_always_graph_regret": 0.0,
+      "mean_combined_regret": 0.0,
+      "mean_train_label_homophily": 0.8097914023816364,
+      "share_of_combined_regret": 0.0,
+      "units": 10,
+      "winning_graph_architectures": {
+        "GPR-GNN": 10
+      }
+    },
+    "Cora": {
+      "combined_selects_graph": 10,
+      "heterophily_aware_wins": 9,
+      "mean_always_graph_regret": 0.0,
+      "mean_combined_regret": 0.0,
+      "mean_train_label_homophily": 0.8075487003241288,
+      "share_of_combined_regret": 0.0,
+      "units": 10,
+      "winning_graph_architectures": {
+        "GAT": 1,
+        "GPR-GNN": 8,
+        "H2GCN": 1
+      }
+    },
+    "Cornell": {
+      "combined_selects_graph": 0,
+      "heterophily_aware_wins": 8,
+      "mean_always_graph_regret": 0.012500011920928955,
+      "mean_combined_regret": 0.017500007152557374,
+      "mean_train_label_homophily": 0.11429837692359132,
+      "share_of_combined_regret": 0.021333905993870368,
+      "units": 10,
+      "winning_graph_architectures": {
+        "GPR-GNN": 4,
+        "GraphSAGE": 2,
+        "H2GCN": 4
+      }
+    },
+    "PubMed": {
+      "combined_selects_graph": 10,
+      "heterophily_aware_wins": 10,
+      "mean_always_graph_regret": 0.0,
+      "mean_combined_regret": 0.0,
+      "mean_train_label_homophily": 0.803733811370756,
+      "share_of_combined_regret": 0.0,
+      "units": 10,
+      "winning_graph_architectures": {
+        "H2GCN": 10
+      }
+    },
+    "Roman-empire": {
+      "combined_selects_graph": 0,
+      "heterophily_aware_wins": 10,
+      "mean_always_graph_regret": 0.0,
+      "mean_combined_regret": 0.23656552135944367,
+      "mean_train_label_homophily": 0.04650968814063734,
+      "share_of_combined_regret": 0.2883922589332072,
+      "units": 10,
+      "winning_graph_architectures": {
+        "H2GCN": 1,
+        "LINKX": 9
+      }
+    },
+    "Squirrel": {
+      "combined_selects_graph": 0,
+      "heterophily_aware_wins": 10,
+      "mean_always_graph_regret": 0.0,
+      "mean_combined_regret": 0.22063339352607728,
+      "mean_train_label_homophily": 0.2214767562313067,
+      "share_of_combined_regret": 0.2689697230155751,
+      "units": 10,
+      "winning_graph_architectures": {
+        "LINKX": 10
+      }
+    },
+    "Wisconsin": {
+      "combined_selects_graph": 0,
+      "heterophily_aware_wins": 9,
+      "mean_always_graph_regret": 0.013207554817199707,
+      "mean_combined_regret": 0.01886792778968811,
+      "mean_train_label_homophily": 0.17188601869669737,
+      "share_of_combined_regret": 0.023001510471126693,
+      "units": 10,
+      "winning_graph_architectures": {
+        "GPR-GNN": 7,
+        "GraphSAGE": 1,
+        "H2GCN": 1,
+        "LINKX": 1
+      }
+    }
+  },
+  "heterophily_aware_architectures": [
+    "GPR-GNN",
+    "H2GCN",
+    "LINKX"
+  ],
+  "regret_concentration": {
+    "top_four_combined_graph_actions": 0,
+    "top_four_datasets": [
+      "Roman-empire",
+      "Squirrel",
+      "Amazon-ratings",
+      "Chameleon"
+    ],
+    "top_four_heterophily_aware_wins": 35,
+    "top_four_max_homophily": 0.38032812028056834,
+    "top_four_share_of_combined_regret": 0.9514995288324692,
+    "top_four_units": 40
+  },
+  "schema_version": "1.0",
+  "source_benchmark_id": "route_a_diagnostic_v1",
+  "totals": {
+    "heterophily_aware_win_share": 0.8636363636363636,
+    "heterophily_aware_wins": 95,
+    "units": 110
+  }
+}
