@@ -1,0 +1,587 @@
+{
+  "equal_budget_single_architecture": {
+    "GAT": {
+      "combined_vs_always_graph": {
+        "dataset_losses": 2,
+        "dataset_ties": 5,
+        "dataset_wins": 4,
+        "nonzero_datasets": 6,
+        "sign_flip_p_floor": 0.03125
+      },
+      "datasets": {
+        "Actor": {
+          "always_graph": 7.35873818397522,
+          "combined": 0.0,
+          "validation": 0.0
+        },
+        "Amazon-ratings": {
+          "always_graph": 0.0,
+          "combined": 0.0,
+          "validation": 0.0
+        },
+        "Chameleon": {
+          "always_graph": 0.0,
+          "combined": 15.076251924037933,
+          "validation": 0.0
+        },
+        "CiteSeer": {
+          "always_graph": 0.0,
+          "combined": 0.0,
+          "validation": 0.0
+        },
+        "Coauthor-CS": {
+          "always_graph": 0.913042426109314,
+          "combined": 0.913042426109314,
+          "validation": 0.0
+        },
+        "Cora": {
+          "always_graph": 0.0,
+          "combined": 0.0,
+          "validation": 0.0
+        },
+        "Cornell": {
+          "always_graph": 29.500000774860382,
+          "combined": 0.0,
+          "validation": 0.0
+        },
+        "PubMed": {
+          "always_graph": 1.3608723878860474,
+          "combined": 1.3608723878860474,
+          "validation": 0.0
+        },
+        "Roman-empire": {
+          "always_graph": 3.3135442435741425,
+          "combined": 0.8267372846603394,
+          "validation": 0.03737926483154297
+        },
+        "Squirrel": {
+          "always_graph": 0.0,
+          "combined": 4.740883111953735,
+          "validation": 0.03838777542114258
+        },
+        "Wisconsin": {
+          "always_graph": 27.35849142074585,
+          "combined": 0.0,
+          "validation": 0.0
+        }
+      },
+      "graph_targets": 41,
+      "mean_regret_pp": {
+        "always_graph": 6.345880857922814,
+        "combined": 2.083435194058852,
+        "validation": 0.006887912750244141
+      },
+      "portfolio": [
+        "GAT"
+      ],
+      "selection_accuracy": {
+        "always_graph": 0.37272727272727274,
+        "combined": 0.6090909090909091,
+        "validation": 0.990909090909091
+      },
+      "total_trials": 4,
+      "units": 110
+    },
+    "GCN": {
+      "combined_vs_always_graph": {
+        "dataset_losses": 3,
+        "dataset_ties": 5,
+        "dataset_wins": 3,
+        "nonzero_datasets": 6,
+        "sign_flip_p_floor": 0.03125
+      },
+      "datasets": {
+        "Actor": {
+          "always_graph": 7.417871654033661,
+          "combined": 0.0,
+          "validation": 0.0
+        },
+        "Amazon-ratings": {
+          "always_graph": 0.0,
+          "combined": 0.0,
+          "validation": 0.0
+        },
+        "Chameleon": {
+          "always_graph": 0.0,
+          "combined": 10.501088798046112,
+          "validation": 0.0
+        },
+        "CiteSeer": {
+          "always_graph": 0.0,
+          "combined": 0.0,
+          "validation": 0.0
+        },
+        "Coauthor-CS": {
+          "always_graph": 0.9374988079071045,
+          "combined": 0.9374988079071045,
+          "validation": 0.0
+        },
+        "Cora": {
+          "always_graph": 0.0,
+          "combined": 0.0,
+          "validation": 0.0
+        },
+        "Cornell": {
+          "always_graph": 22.750000655651093,
+          "combined": 0.0,
+          "validation": 0.0
+        },
+        "PubMed": {
+          "always_graph": 0.42321324348449707,
+          "combined": 0.42321324348449707,
+          "validation": 0.05575299263000488
+        },
+        "Roman-empire": {
+          "always_graph": 2.1591904759407043,
+          "combined": 3.8896219432353973,
+          "validation": 0.0
+        },
+        "Squirrel": {
+          "always_graph": 0.0,
+          "combined": 3.435700535774231,
+          "validation": 0.0
+        },
+        "Wisconsin": {
+          "always_graph": 24.528302550315857,
+          "combined": 0.0,
+          "validation": 0.0
+        }
+      },
+      "graph_targets": 46,
+      "mean_regret_pp": {
+        "always_graph": 5.2923706715757195,
+        "combined": 1.7442839389497584,
+        "validation": 0.005068453875454989
+      },
+      "portfolio": [
+        "GCN"
+      ],
+      "selection_accuracy": {
+        "always_graph": 0.41818181818181815,
+        "combined": 0.5818181818181818,
+        "validation": 1.0
+      },
+      "total_trials": 4,
+      "units": 110
+    },
+    "GPR-GNN": {
+      "combined_vs_always_graph": {
+        "dataset_losses": 2,
+        "dataset_ties": 6,
+        "dataset_wins": 3,
+        "nonzero_datasets": 5,
+        "sign_flip_p_floor": 0.0625
+      },
+      "datasets": {
+        "Actor": {
+          "always_graph": 2.417871654033661,
+          "combined": 0.0,
+          "validation": 0.0
+        },
+        "Amazon-ratings": {
+          "always_graph": 0.0,
+          "combined": 0.0,
+          "validation": 0.0
+        },
+        "Chameleon": {
+          "always_graph": 0.0,
+          "combined": 12.418300211429596,
+          "validation": 0.0
+        },
+        "CiteSeer": {
+          "always_graph": 0.0,
+          "combined": 0.0,
+          "validation": 0.0
+        },
+        "Coauthor-CS": {
+          "always_graph": 0.0,
+          "combined": 0.0,
+          "validation": 0.0
+        },
+        "Cora": {
+          "always_graph": 0.0,
+          "combined": 0.0,
+          "validation": 0.0
+        },
+        "Cornell": {
+          "always_graph": 1.7500007152557373,
+          "combined": 1.499999761581421,
+          "validation": 1.25
+        },
+        "PubMed": {
+          "always_graph": 0.0,
+          "combined": 0.0,
+          "validation": 0.21034002304077148
+        },
+        "Roman-empire": {
+          "always_graph": 3.6917325854301453,
+          "combined": 0.06816193461418152,
+          "validation": 0.06816193461418152
+        },
+        "Squirrel": {
+          "always_graph": 0.41266798973083496,
+          "combined": 0.9692895412445068,
+          "validation": 0.5374279618263245
+        },
+        "Wisconsin": {
+          "always_graph": 1.5094345808029175,
+          "combined": 1.5094345808029175,
+          "validation": 1.320754885673523
+        }
+      },
+      "graph_targets": 60,
+      "mean_regret_pp": {
+        "always_graph": 0.8892461386593905,
+        "combined": 1.4968350936066022,
+        "validation": 0.3078804368322546
+      },
+      "portfolio": [
+        "GPR-GNN"
+      ],
+      "selection_accuracy": {
+        "always_graph": 0.5454545454545454,
+        "combined": 0.7636363636363637,
+        "validation": 0.8363636363636363
+      },
+      "total_trials": 4,
+      "units": 110
+    },
+    "GraphSAGE": {
+      "combined_vs_always_graph": {
+        "dataset_losses": 4,
+        "dataset_ties": 4,
+        "dataset_wins": 3,
+        "nonzero_datasets": 7,
+        "sign_flip_p_floor": 0.015625
+      },
+      "datasets": {
+        "Actor": {
+          "always_graph": 0.8804211020469666,
+          "combined": 0.13797670602798462,
+          "validation": 0.13797670602798462
+        },
+        "Amazon-ratings": {
+          "always_graph": 0.002039968967437744,
+          "combined": 0.0,
+          "validation": 0.0
+        },
+        "Chameleon": {
+          "always_graph": 0.0,
+          "combined": 14.379085004329681,
+          "validation": 0.0
+        },
+        "CiteSeer": {
+          "always_graph": 0.0,
+          "combined": 0.0,
+          "validation": 0.0
+        },
+        "Coauthor-CS": {
+          "always_graph": 0.0,
+          "combined": 0.0,
+          "validation": 0.0
+        },
+        "Cora": {
+          "always_graph": 0.0,
+          "combined": 0.0,
+          "validation": 0.0
+        },
+        "Cornell": {
+          "always_graph": 0.9999996423721313,
+          "combined": 0.2499997615814209,
+          "validation": 0.4999995231628418
+        },
+        "PubMed": {
+          "always_graph": 0.0,
+          "combined": 0.0,
+          "validation": 0.0
+        },
+        "Roman-empire": {
+          "always_graph": 0.9366752207279205,
+          "combined": 5.844327509403229,
+          "validation": 0.11873364448547363
+        },
+        "Squirrel": {
+          "always_graph": 0.0,
+          "combined": 9.021113216876984,
+          "validation": 0.0
+        },
+        "Wisconsin": {
+          "always_graph": 1.3207554817199707,
+          "combined": 1.6981136798858643,
+          "validation": 0.5660378932952881
+        }
+      },
+      "graph_targets": 72,
+      "mean_regret_pp": {
+        "always_graph": 0.376353765075857,
+        "combined": 2.8482378071004693,
+        "validation": 0.1202497969974171
+      },
+      "portfolio": [
+        "GraphSAGE"
+      ],
+      "selection_accuracy": {
+        "always_graph": 0.6545454545454545,
+        "combined": 0.6909090909090909,
+        "validation": 0.9272727272727272
+      },
+      "total_trials": 4,
+      "units": 110
+    },
+    "H2GCN": {
+      "combined_vs_always_graph": {
+        "dataset_losses": 6,
+        "dataset_ties": 4,
+        "dataset_wins": 1,
+        "nonzero_datasets": 7,
+        "sign_flip_p_floor": 0.015625
+      },
+      "datasets": {
+        "Actor": {
+          "always_graph": 0.24310141801834106,
+          "combined": 0.308803915977478,
+          "validation": 0.308803915977478
+        },
+        "Amazon-ratings": {
+          "always_graph": 0.036719441413879395,
+          "combined": 0.016319751739501953,
+          "validation": 0.016319751739501953
+        },
+        "Chameleon": {
+          "always_graph": 0.0,
+          "combined": 8.366012275218964,
+          "validation": 0.0
+        },
+        "CiteSeer": {
+          "always_graph": 0.0,
+          "combined": 0.0,
+          "validation": 0.0
+        },
+        "Coauthor-CS": {
+          "always_graph": 0.0,
+          "combined": 0.0,
+          "validation": 0.0
+        },
+        "Cora": {
+          "always_graph": 0.0,
+          "combined": 0.0,
+          "validation": 0.0
+        },
+        "Cornell": {
+          "always_graph": 1.0000008344650269,
+          "combined": 3.0000001192092896,
+          "validation": 2.000000476837158
+        },
+        "PubMed": {
+          "always_graph": 0.0,
+          "combined": 0.0,
+          "validation": 0.0
+        },
+        "Roman-empire": {
+          "always_graph": 0.0,
+          "combined": 10.083553194999695,
+          "validation": 0.0
+        },
+        "Squirrel": {
+          "always_graph": 0.0,
+          "combined": 3.0326291918754578,
+          "validation": 0.0
+        },
+        "Wisconsin": {
+          "always_graph": 0.18867969512939453,
+          "combined": 1.1320757865905762,
+          "validation": 0.18867909908294678
+        }
+      },
+      "graph_targets": 78,
+      "mean_regret_pp": {
+        "always_graph": 0.13350012627514926,
+        "combined": 2.3581267486919057,
+        "validation": 0.22852756760337137
+      },
+      "portfolio": [
+        "H2GCN"
+      ],
+      "selection_accuracy": {
+        "always_graph": 0.7090909090909091,
+        "combined": 0.6545454545454545,
+        "validation": 0.9
+      },
+      "total_trials": 4,
+      "units": 110
+    },
+    "LINKX": {
+      "combined_vs_always_graph": {
+        "dataset_losses": 4,
+        "dataset_ties": 4,
+        "dataset_wins": 3,
+        "nonzero_datasets": 7,
+        "sign_flip_p_floor": 0.015625
+      },
+      "datasets": {
+        "Actor": {
+          "always_graph": 5.1379770040512085,
+          "combined": 0.0,
+          "validation": 0.0
+        },
+        "Amazon-ratings": {
+          "always_graph": 0.0,
+          "combined": 16.44838809967041,
+          "validation": 0.0
+        },
+        "Chameleon": {
+          "always_graph": 0.0,
+          "combined": 16.775598227977753,
+          "validation": 0.0
+        },
+        "CiteSeer": {
+          "always_graph": 6.199701428413391,
+          "combined": 6.199701428413391,
+          "validation": 0.0
+        },
+        "Coauthor-CS": {
+          "always_graph": 0.0,
+          "combined": 0.0,
+          "validation": 0.0
+        },
+        "Cora": {
+          "always_graph": 2.043796181678772,
+          "combined": 2.043796181678772,
+          "validation": 0.7116782665252686
+        },
+        "Cornell": {
+          "always_graph": 5.000000596046448,
+          "combined": 0.5000001192092896,
+          "validation": 1.7499995231628418
+        },
+        "PubMed": {
+          "always_graph": 0.5347192287445068,
+          "combined": 0.5347192287445068,
+          "validation": 0.06335556507110596
+        },
+        "Roman-empire": {
+          "always_graph": 0.017590075731277466,
+          "combined": 22.207563668489456,
+          "validation": 0.0
+        },
+        "Squirrel": {
+          "always_graph": 0.0,
+          "combined": 22.063339352607727,
+          "validation": 0.0
+        },
+        "Wisconsin": {
+          "always_graph": 4.528302550315857,
+          "combined": 1.1320751905441284,
+          "validation": 0.9433960914611816
+        }
+      },
+      "graph_targets": 56,
+      "mean_regret_pp": {
+        "always_graph": 2.1329170059074056,
+        "combined": 7.991380136121403,
+        "validation": 0.315311767838218
+      },
+      "portfolio": [
+        "LINKX"
+      ],
+      "selection_accuracy": {
+        "always_graph": 0.509090909090909,
+        "combined": 0.36363636363636365,
+        "validation": 0.9363636363636364
+      },
+      "total_trials": 4,
+      "units": 110
+    }
+  },
+  "full_portfolio": {
+    "combined_vs_always_graph": {
+      "dataset_losses": 7,
+      "dataset_ties": 4,
+      "dataset_wins": 0,
+      "nonzero_datasets": 7,
+      "sign_flip_p_floor": 0.015625
+    },
+    "datasets": {
+      "Actor": {
+        "always_graph": 0.24310141801834106,
+        "combined": 0.3416556119918823,
+        "validation": 0.3416556119918823
+      },
+      "Amazon-ratings": {
+        "always_graph": 0.0,
+        "combined": 16.44838809967041,
+        "validation": 0.0
+      },
+      "Chameleon": {
+        "always_graph": 0.0,
+        "combined": 15.882352888584137,
+        "validation": 0.0
+      },
+      "CiteSeer": {
+        "always_graph": 0.0,
+        "combined": 0.0,
+        "validation": 0.0
+      },
+      "Coauthor-CS": {
+        "always_graph": 0.0,
+        "combined": 0.0,
+        "validation": 0.0
+      },
+      "Cora": {
+        "always_graph": 0.0,
+        "combined": 0.0,
+        "validation": 0.0
+      },
+      "Cornell": {
+        "always_graph": 1.2500011920928955,
+        "combined": 1.7500007152557373,
+        "validation": 1.5000009536743164
+      },
+      "PubMed": {
+        "always_graph": 0.0,
+        "combined": 0.0,
+        "validation": 0.0
+      },
+      "Roman-empire": {
+        "always_graph": 0.0,
+        "combined": 23.656552135944366,
+        "validation": 0.0
+      },
+      "Squirrel": {
+        "always_graph": 0.0,
+        "combined": 22.063339352607727,
+        "validation": 0.0
+      },
+      "Wisconsin": {
+        "always_graph": 1.3207554817199707,
+        "combined": 1.886792778968811,
+        "validation": 0.5660378932952881
+      }
+    },
+    "graph_targets": 89,
+    "mean_regret_pp": {
+      "always_graph": 0.2558052810755643,
+      "combined": 7.457189234820279,
+      "validation": 0.21888131445104425
+    },
+    "portfolio": [
+      "GAT",
+      "GCN",
+      "GPR-GNN",
+      "GraphSAGE",
+      "H2GCN",
+      "LINKX"
+    ],
+    "selection_accuracy": {
+      "always_graph": 0.8090909090909091,
+      "combined": 0.5545454545454546,
+      "validation": 0.9181818181818182
+    },
+    "total_trials": 24,
+    "units": 110
+  },
+  "practical_margin": 0.01,
+  "reproduction_check": "full portfolio reproduces the published values",
+  "schema_version": "1.0",
+  "source_benchmark_id": "route_a_diagnostic_v1"
+}
