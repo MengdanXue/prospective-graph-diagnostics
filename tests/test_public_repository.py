@@ -12,6 +12,7 @@ ALLOWED_RESULTS = {
     "results/diagnostic/route_a_prospective_v2/analysis/prospective_regret_coverage.pdf",
     "results/diagnostic/route_a_prospective_v2/analysis/prospective_regret_coverage.png",
     "results/diagnostic/route_a_prospective_v2/analysis/reviewer_appendix_summary.json",
+    "results/diagnostic/route_a_prospective_v2/analysis/winning_architectures.json",
     "results/discriminability/route_a_grid_v1/summary/figure_manifest.json",
     "results/discriminability/route_a_grid_v1/summary/records.csv",
     "results/discriminability/route_a_grid_v1/summary/summary.json",
