@@ -1,0 +1,47 @@
+\section{Equal-Total-Compute Sensitivity}
+\label{sec:equal_budget}
+
+\subsection{Why the Asymmetry Matters}
+
+The frozen estimand compares operational portfolios rather than equal-compute families: the graph action selects among six architectures with 24 trials in total, while the feature-only action contains one MLP with four. Because a wider search can only improve the selected graph model, the asymmetry inflates both the rate at which graph is the target action and the strength of the always-graph reference. Any conclusion drawn against that reference therefore needs a matched-budget check.
+
+We supply one without retraining. The frozen artifact stores an independent record for each of the seven architectures on each of the 110 units, so restricting the graph action to a single architecture yields a four-trial-against-four-trial comparison that is recomputable from the immutable records. The recomputation applies the evaluator's own portfolio rule---validation accuracy descending, then model identifier ascending---and the analysis script refuses to emit a summary unless the unrestricted six-architecture portfolio first reproduces the published values. It does: 89 graph targets, 0.26 points of always-graph regret, 7.46 for the combined rule, and 0.22 for validation selection.
+
+The diagnostic policies are unaffected by this restriction. Edge homophily and MLP validation accuracy do not depend on which graph architectures are available, so each rule's action is reused unchanged; only the realized outcomes, the decision target, and validation selection are recomputed.
+
+\subsection{Results at Matched Budget}
+
+\begin{table}[t]
+\centering
+\caption{Equal-total-compute sensitivity. Each single-architecture graph action receives four trials against the MLP's four. Regret is mean full-set oracle-portfolio regret in percentage points. W/L/T counts datasets on which the combined rule attains lower, higher, or equal mean regret than always-graph.}
+\label{tab:equal_budget}
+\small
+\begin{tabular}{@{}lrrrrrc@{}}
+\toprule
+Graph action & Trials & Graph targets & Always-graph & Combined & Validation & W/L/T \\
+\midrule
+Six architectures & 24 & 89/110 & 0.26 & 7.46 & 0.22 & 0/7/4 \\
+\midrule
+GAT & 4 & 41/110 & 6.35 & 2.08 & 0.01 & 4/2/5 \\
+GCN & 4 & 46/110 & 5.29 & 1.74 & 0.01 & 3/3/5 \\
+LINKX & 4 & 56/110 & 2.13 & 7.99 & 0.32 & 3/4/4 \\
+GPR-GNN & 4 & 60/110 & 0.89 & 1.50 & 0.31 & 3/2/6 \\
+GraphSAGE & 4 & 72/110 & 0.38 & 2.85 & 0.12 & 3/4/4 \\
+H2GCN & 4 & 78/110 & 0.13 & 2.36 & 0.23 & 1/6/4 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Table~\ref{tab:equal_budget} reports the outcome. Three findings follow, and we state the second against our own interest.
+
+First, the asymmetry is real and consequential. The graph target rate falls from 89 of 110 units to between 41 (GAT) and 78 (H2GCN) once the graph action is a single architecture, and always-graph weakens accordingly, reaching 5.29 points of regret for GCN and 6.35 for GAT against 0.26 for the unrestricted portfolio. Readers should not transfer the unrestricted always-graph baseline to an equal-compute setting.
+
+Second, the combined rule's mean regret improves sharply under two of the restrictions: 1.74 points for a GCN-only action and 2.08 for GAT, against 7.46 for the full portfolio. On mean full-set regret alone, the rule beats always-graph in both of those settings. A conclusion phrased as ``these diagnostics are useless'' would therefore be too strong, and we do not make it.
+
+Third, the dataset-level picture---the preregistered inferential unit---does not show a consistent advantage even where the mean flips. Under GCN the datasets split three wins, three losses, and five ties; under GAT, four, two, and five. The combined rule wins by wide margins on Wisconsin, Cornell, and Actor, where low homophily correctly predicts that a GCN-style model will not beat the MLP, and loses on Chameleon and Squirrel, where a GCN-style model beats the MLP despite low homophily. With at most six datasets carrying a nonzero paired difference, the attainable two-sided sign-flip $p$-value floor is $0.03125$ before any correction, so these comparisons cannot resolve the direction either. The claim that the evaluated diagnostics provide no \emph{stable} incremental decision value survives at matched budget; the stronger claim that they provide no value under any portfolio does not, and was never made.
+
+\subsection{Interpretation}
+
+The pattern across Table~\ref{tab:equal_budget} is ordered, not arbitrary, and it is the pattern the structural-mismatch account of Section~\ref{sec:mismatch} predicts. The combined rule's mean regret is lowest exactly where the graph action is a GCN-style architecture whose benefit one-hop homophily was designed to describe (1.74 for GCN, 2.08 for GAT), and highest where the graph action is a heterophily-aware architecture that remains effective at low homophily (7.99 for LINKX). The unrestricted portfolio behaves like the latter case because heterophily-aware architectures supply most of its realized advantage.
+
+Diagnostic utility is therefore a property of the pairing between a statistic and the portfolio it governs, not of the statistic alone. This sharpens rather than softens the operational conclusion. A practitioner who has already committed to a heterophily-aware portfolio---the setting in which a cheap pre-training decision is most valuable, because that portfolio is the expensive one to tune---is precisely the practitioner for whom a homophily threshold is least informative.

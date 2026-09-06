@@ -25,6 +25,14 @@ RESULTS = (ROOT / "sections_tmlr" / "04_prospective_results.tex").read_text(enco
 DISCUSSION = (ROOT / "sections_tmlr" / "07_discussion.tex").read_text(encoding="utf-8")
 CONCLUSION = (ROOT / "sections_tmlr" / "08_conclusion.tex").read_text(encoding="utf-8")
 APPENDIX = (ROOT / "sections_tmlr" / "09_reproducibility_appendix.tex").read_text(encoding="utf-8")
+EQUAL_BUDGET_SECTION = (
+    ROOT / "sections_tmlr" / "04a_equal_budget_sensitivity.tex"
+).read_text(encoding="utf-8")
+EQUAL_BUDGET = json.loads(
+    (
+        ROOT / "results" / "diagnostic" / "route_a_prospective_v2" / "analysis" / "equal_budget_sensitivity.json"
+    ).read_text(encoding="utf-8")
+)
 AUDIT = json.loads(
     (
         ROOT / "results" / "diagnostic" / "route_a_prospective_v2" / "analysis" / "diagnostic_audit.json"
@@ -92,6 +100,57 @@ class RepositionedManuscriptTests(unittest.TestCase):
         )
         self.assertAlmostEqual(always_graph["raw_p"], 2 / 2**7)
         self.assertGreater(always_graph["holm_adjusted_p"], 0.05)
+
+    def test_equal_budget_table_matches_the_frozen_summary(self):
+        rows = re.findall(
+            r"^([A-Za-z0-9-]+) & 4 & (\d+)/110 & ([\d.]+) & ([\d.]+) & ([\d.]+) & (\d)/(\d)/(\d) \\\\",
+            EQUAL_BUDGET_SECTION,
+            re.M,
+        )
+        self.assertEqual(len(rows), 6)
+        for name, targets, always, combined, validation, wins, losses, ties in rows:
+            entry = EQUAL_BUDGET["equal_budget_single_architecture"][name]
+            self.assertEqual(entry["total_trials"], 4)
+            self.assertEqual(entry["graph_targets"], int(targets))
+            for policy, stated in (
+                ("always_graph", always),
+                ("combined", combined),
+                ("validation", validation),
+            ):
+                self.assertAlmostEqual(
+                    entry["mean_regret_pp"][policy], float(stated), places=2
+                )
+            comparison = entry["combined_vs_always_graph"]
+            self.assertEqual(comparison["dataset_wins"], int(wins))
+            self.assertEqual(comparison["dataset_losses"], int(losses))
+            self.assertEqual(comparison["dataset_ties"], int(ties))
+
+    def test_equal_budget_summary_reproduces_the_published_portfolio(self):
+        full = EQUAL_BUDGET["full_portfolio"]
+        self.assertEqual(full["total_trials"], 24)
+        self.assertEqual(full["graph_targets"], 89)
+        for policy, expected in (
+            ("always_graph", 0.26),
+            ("combined", 7.46),
+            ("validation", 0.22),
+        ):
+            self.assertAlmostEqual(full["mean_regret_pp"][policy], expected, places=2)
+
+    def test_equal_budget_claim_is_bounded_not_absolute(self):
+        # The matched-budget result shows the rule beating always-graph on mean
+        # regret for GCN and GAT, so the manuscript must not claim the
+        # diagnostics carry no information under any portfolio.
+        for name in ("GCN", "GAT"):
+            entry = EQUAL_BUDGET["equal_budget_single_architecture"][name]
+            self.assertLess(
+                entry["mean_regret_pp"]["combined"],
+                entry["mean_regret_pp"]["always_graph"],
+            )
+        for text in (INTRODUCTION, DISCUSSION, CONCLUSION):
+            self.assertIn("stable", text)
+        self.assertIn("not that they are uninformative under every possible portfolio", INTRODUCTION)
+        self.assertIn("not that they carry no information under any portfolio", CONCLUSION)
+        self.assertIn("would therefore be too strong, and we do not make it", EQUAL_BUDGET_SECTION)
 
     def test_negative_result_language_is_retained(self):
         self.assertIn("no stable incremental decision value", RESULTS.lower())
