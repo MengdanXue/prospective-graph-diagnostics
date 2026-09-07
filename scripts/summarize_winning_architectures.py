@@ -1,28 +1,28 @@
 #!/usr/bin/env python3
-"""Summarize which graph architecture wins each unit, and where regret concentrates.
+"""Summarize validation-selected graph architectures and regret concentration.
 
 This script performs a deterministic re-aggregation of the frozen diagnostic
 audit. It trains nothing, changes no action, and introduces no new experimental
 setting. Every quantity it emits is a function of fields already present in
 ``diagnostic_audit.json``.
 
-The output supports the structural-mismatch analysis: an edge-homophily
-threshold selects the graph action only on high-homophily datasets, whereas the
-graph portfolio's realized advantage is largely supplied by heterophily-aware
-architectures on low-homophily datasets.
+This is a post-hoc descriptive analysis. Architecture selection within the
+graph portfolio does not establish a graph-versus-MLP win. The concentrations
+can inform a mismatch hypothesis but do not prove a universal mechanism.
 """
 
 from __future__ import annotations
 
 import argparse
 import json
+import math
 from collections import Counter, defaultdict
 from pathlib import Path
 from typing import Any
 
 # Architectures in the frozen graph portfolio that are designed to remain
-# effective when one-hop homophily is low. Fixed by the benchmark configuration,
-# not selected after observing outcomes.
+# effective when one-hop homophily is low. The candidate models were frozen;
+# this architectural grouping and its analysis are post-hoc descriptions.
 HETEROPHILY_AWARE = ("GPR-GNN", "H2GCN", "LINKX")
 
 COMBINED = "historical_combined"
@@ -55,15 +55,15 @@ def summarize(audit: dict[str, Any]) -> dict[str, Any]:
         heterophily_aware = sum(
             count for model, count in counts.items() if model in HETEROPHILY_AWARE
         )
-        combined_regret = sum(
+        combined_regret = math.fsum(
             unit_regret(unit, resolved_action(unit, COMBINED)) for unit in units
         ) / len(units)
-        always_graph_regret = sum(
+        always_graph_regret = math.fsum(
             unit_regret(unit, "graph") for unit in units
         ) / len(units)
         datasets[name] = {
             "units": len(units),
-            "mean_train_label_homophily": sum(u["homophily"] for u in units) / len(units),
+            "mean_train_label_homophily": math.fsum(u["homophily"] for u in units) / len(units),
             "winning_graph_architectures": dict(sorted(counts.items())),
             "heterophily_aware_wins": heterophily_aware,
             "combined_selects_graph": sum(
@@ -77,7 +77,7 @@ def summarize(audit: dict[str, Any]) -> dict[str, Any]:
     total_heterophily_aware = sum(
         1 for u in audit["units"] if u["selected_graph"] in HETEROPHILY_AWARE
     )
-    regret_total = sum(d["mean_combined_regret"] for d in datasets.values())
+    regret_total = math.fsum(d["mean_combined_regret"] for d in datasets.values())
     for name, entry in datasets.items():
         entry["share_of_combined_regret"] = (
             entry["mean_combined_regret"] / regret_total if regret_total else 0.0
@@ -99,7 +99,7 @@ def summarize(audit: dict[str, Any]) -> dict[str, Any]:
         },
         "regret_concentration": {
             "top_four_datasets": top_four,
-            "top_four_share_of_combined_regret": sum(
+            "top_four_share_of_combined_regret": math.fsum(
                 datasets[name]["share_of_combined_regret"] for name in top_four
             ),
             "top_four_units": sum(datasets[name]["units"] for name in top_four),
@@ -133,10 +133,9 @@ def main() -> int:
     audit = json.loads(args.audit.read_text(encoding="utf-8"))
     summary = summarize(audit)
     args.output.parent.mkdir(parents=True, exist_ok=True)
-    args.output.write_text(
-        json.dumps(summary, indent=2, sort_keys=True, ensure_ascii=True) + "\n",
-        encoding="utf-8",
-    )
+    serialized = json.dumps(summary, indent=2, sort_keys=True, ensure_ascii=True, allow_nan=False) + "\n"
+    with args.output.open("x", encoding="utf-8", newline="\n") as handle:
+        handle.write(serialized)
     totals = summary["totals"]
     concentration = summary["regret_concentration"]
     print(

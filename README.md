@@ -89,6 +89,23 @@ python experiments/run_prospective_benchmark.py --help
 python experiments/run_degree_matched_benchmark.py --help
 ```
 
+For current v2 runs, use an entry point that explicitly selects the published
+configuration. The original execution files keep their historical v1 defaults
+so that their source-provenance mapping remains valid; omitting `--config` from
+those older commands does not select the current benchmark. In particular, v1
+includes the ineligible Texas dataset. These v2 entry points forward all other
+arguments to the frozen implementations:
+
+```bash
+python scripts/run_release_v2.py benchmark --data-root /path/to/pyg-cache --output-root tmp/new-prospective
+python scripts/run_release_v2.py intervention --data-root /path/to/pyg-cache --output-root tmp/new-intervention
+```
+
+The `assemble` and `degree-summary` subcommands provide the same explicit v2
+configuration for rebuilding summaries. To run another frozen specification,
+use the original scripts with an explicit `--config`. Configuration fields that
+are fixed in the execution implementation are not a general hyperparameter API.
+
 Both formal runners require a complete local PyG dataset cache and refuse to download or mutate it during a run. They also refuse stale, mixed-provenance, overwritten, or silently retried artifacts.
 
 ## Rebuild the published summaries
@@ -138,6 +155,46 @@ git rev-parse HEAD:results/diagnostic/route_a_degree_matched_v1/summary/summary.
 ```
 
 ## Reproducibility boundary
+
+### Post-hoc portfolio analysis
+
+`main_tmlr.tex` and `sections_tmlr/` contain a separate venue-neutral draft:
+**Diagnostic Utility Depends on the Model Portfolio: A Frozen Graph-vs-MLP
+Decision Benchmark**. It preserves the original submitted manuscript and frozen
+execution files. The additional architecture-selection and single-architecture
+analyses are post-hoc descriptions of the original records, not an independent
+prospective validation. Four trials per action means matched trial count, not
+equal training time or FLOPs. A validation-selected graph architecture is not
+necessarily a graph-versus-MLP winner.
+
+After verifying the release ZIP and manifest against `SHA256SUMS.txt` and
+extracting the archive, rebuild the new summaries to fresh paths:
+
+```bash
+python scripts/summarize_winning_architectures.py --output tmp/rebuild/winning_architectures.json
+python scripts/summarize_equal_budget_sensitivity.py \
+  --records-root tmp/artifacts/formal-v0.1.0/prospective/records \
+  --output tmp/rebuild/equal_budget_sensitivity.json
+python scripts/audit_route_a_claims.py --root . --main main_tmlr.tex
+```
+
+The sensitivity script defaults to the v2 configuration and the extracted
+`MANIFEST.json`. It verifies every prospective record checksum, uses the frozen
+assembler's scope/split/configuration/trial/provenance checks, and binds the
+complete regenerated audit to the supplied audit before computing restrictions.
+Audit runtime metadata is excluded from comparison; floating values allow only
+`1e-12` absolute rounding differences, while counts and actions remain exact.
+The winning-architecture summary uses `math.fsum` for floating sums. Both new
+scripts serialize with LF newlines and refuse to overwrite an existing output.
+The winning-architecture summary is reconstructed in the lightweight tests;
+full reconstruction of the sensitivity summary requires the release records
+and is performed by the command above. Unit tests also exercise mismatched
+audits, duplicate records, invalid provenance, and altered unselected models.
+
+The original evaluator includes Python and NumPy versions in its output. A
+different runtime therefore cannot produce an identical original audit blob
+even when all scientific values match; the original byte-comparison commands
+assume the frozen execution environment.
 
 The frozen outcomes are empirical results for the named dataset/model portfolio, not a universal model-selection theorem. The fixed-degree Gaussian analysis is a scoped mechanistic calculation and not a new Kesten-Stigum threshold. Protocol amendments and the fresh-history source mapping are documented in `docs/`; `docs/execution_source_mapping.json` gives machine-readable Git blob identifiers for every frozen execution file published here.
 

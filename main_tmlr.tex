@@ -12,10 +12,10 @@
 % title block, abstract environment, and bibliography style.
 %
 % Content differences from main_neurocomputing.tex:
-%   - new title and abstract leading with the structural-mismatch finding;
+%   - new title and abstract leading with observed portfolio dependence;
 %   - rewritten introduction and contribution list (sections_tmlr/01);
 %   - added attainable-resolution disclosure in the results (sections_tmlr/04);
-%   - new Section 6.1 on the diagnostic/portfolio mismatch (sections_tmlr/07);
+%   - post-hoc portfolio sensitivity and a scoped mismatch interpretation;
 %   - rewritten conclusion ending on the delivered protocol (sections_tmlr/08);
 %   - new winning-architecture table (sections_tmlr/09);
 %   - the fixed-degree analysis is moved from the body to the appendix.
@@ -46,8 +46,8 @@
 \newtheorem{lemma}{Lemma}
 \newtheorem{assumption}{Assumption}
 
-\title{Why Homophily Statistics Cannot Select Graph Models:\\
-A Frozen Decision Benchmark}
+\title{Diagnostic Utility Depends on the Model Portfolio:\\
+A Frozen Graph-vs-MLP Decision Benchmark}
 
 % ANONYMITY: TMLR reviews are anonymized. Before submitting there, replace the
 % author line below with the template's anonymous author block, and replace the
@@ -66,7 +66,7 @@ A Frozen Decision Benchmark}
 \maketitle
 
 \begin{abstract}
-Choosing whether to use graph structure is an operational decision, yet graph statistics are usually evaluated as correlates of performance rather than as decision rules. We test whether transparent diagnostics whose label-dependent graph statistics use training labels only can select between tuned graph and feature-only multilayer perceptron (MLP) portfolios for node classification, and we explain why they cannot. Before generating confirmatory records, we freeze datasets, splits, seeds, seven architectures, four-trial grids, the practical margin, label scope, abstention, and analysis; the final benchmark contains 11 datasets, 110 dataset--seed units, and 770 model records with no failed units. The combined diagnostic attains 55.5\% selection accuracy, 68.2\% coverage, and 7.46 percentage points of full-set regret, against 80.9\% and 0.26 points for always-graph and 91.8\% and 0.22 points for validation selection. The failure is structural rather than a matter of threshold tuning: the statistic and the decision target are anti-correlated over the regime that dominates the loss. Heterophily-aware architectures win 95 of the 110 units, including every unit on the two most homophilous datasets, so the graph action is not a proxy for GCN-style message passing; meanwhile the four datasets carrying 95.1\% of the combined rule's regret all fall below the frozen homophily threshold, where the rule declines the graph action on all 40 units and 35 of them are won by a heterophily-aware architecture. No threshold on a scalar one-hop summary repairs this, and the diagnosis extends to any such rule paired with a heterophily-aware portfolio. An equal-total-compute check, recomputed from the same frozen records without retraining, confirms the account and bounds the claim: restricting the graph action to one architecture lowers the combined rule's mean regret to 1.74 points against a GCN-only action and 2.08 against GAT, while raising it to 7.99 against LINKX. Diagnostic utility is thus a property of the pairing between statistic and portfolio, and the dataset-level direction remains inconsistent at matched budget, so the diagnostics provide no stable incremental value---not no value under every portfolio. A separate degree-preserving randomization reduces GCN accuracy by 45.5, 29.9, and 17.3 points on Cora, CiteSeer, and PubMed, so the failure is not evidence that edge organization is uninformative. Alongside these findings we deliver the evaluation protocol itself---frozen decision-time information boundaries, matched trivial and validation-based policies, abstention and coverage, oracle-portfolio regret, test-once accounting, dataset-level inference, immutable per-unit provenance, and a deterministic audit binding every reported value to the frozen artifacts---so that richer or learned selectors can be tested on the same terms.
+Simple graph statistics are often proposed as inexpensive guides to model selection, but their decision value must be evaluated against the models they select. We study graph-versus-MLP selection under a frozen protocol covering 11 datasets, ten seeds, seven architectures, and four tuning trials per architecture. Label-dependent graph statistics use training labels only, and validation selects configurations and architectures. The combined diagnostic attains 55.5\% selection accuracy at 68.2\% coverage and incurs 7.46 percentage points of full-set regret, compared with 0.26 for always-graph and 0.22 for validation selection. A post-hoc single-architecture sensitivity analysis changes the graph action while retaining the diagnostic's decisions and the same four-trial grid. The combined rule has lower descriptive mean regret than always-graph for GCN (1.74 versus 5.29 points) and GAT (2.08 versus 6.35), but higher regret for LINKX (7.99 versus 2.13). The other three restrictions also favor always-graph on mean regret. These comparisons match trial counts, not training time or FLOPs, and do not establish an architecture-independent ordering or out-of-dataset generalization. They show that the observed value of a fixed diagnostic changes with its candidate portfolio. Dataset-level inference limits confirmatory conclusions; non-significance is not evidence of equivalence. A separate degree-preserving intervention reduces GCN accuracy on three citation networks, distinguishing useful edge organization from reliable diagnostic decisions. We provide immutable unit-level artifacts and a reproducible evaluation protocol linking information boundaries, selection, abstention, regret, and dataset-level inference.
 \end{abstract}
 
 \input{sections_tmlr/01_introduction}
@@ -79,7 +79,7 @@ Choosing whether to use graph structure is an operational decision, yet graph st
 \input{sections_tmlr/08_conclusion}
 
 \appendix
-\setcounter{table}{0}
+% Keep table numbering continuous to avoid duplicate appendix labels and anchors.
 \input{sections_tmlr/09_reproducibility_appendix}
 \input{sections/06_fixed_degree_analysis}
 

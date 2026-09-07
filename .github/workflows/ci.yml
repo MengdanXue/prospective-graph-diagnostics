@@ -29,9 +29,13 @@ jobs:
             tests.test_diagnostic_scoring \
             tests.test_degree_preserving_shuffle \
             tests.test_public_release_builder \
+            tests.test_tmlr_manuscript \
+            tests.test_release_v2_entry \
             tests.test_submission_safety -v
       - name: Audit active manuscript claims
-        run: python scripts/audit_route_a_claims.py --root . --main main_neurocomputing.tex
+        run: |
+          python scripts/audit_route_a_claims.py --root . --main main_neurocomputing.tex
+          python scripts/audit_route_a_claims.py --root . --main main_tmlr.tex
 
   full-protocol-verification:
     runs-on: ubuntu-latest

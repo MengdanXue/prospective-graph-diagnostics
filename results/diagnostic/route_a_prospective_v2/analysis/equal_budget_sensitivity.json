@@ -1,4 +1,6 @@
 {
+  "analysis_status": "post_hoc_descriptive",
+  "budget_definition": "equal trial count per single-architecture action; not equal training time or FLOPs",
   "equal_budget_single_architecture": {
     "GAT": {
       "combined_vs_always_graph": {
@@ -581,7 +583,7 @@
     "units": 110
   },
   "practical_margin": 0.01,
-  "reproduction_check": "full portfolio reproduces the published values",
+  "reproduction_check": "release manifest, frozen assembly, complete audit, and full portfolio verified",
   "schema_version": "1.0",
   "source_benchmark_id": "route_a_diagnostic_v1"
 }
