@@ -61,7 +61,7 @@ Wisconsin & 5/10 & 0.57 & 0/10/0 & 1.89 & 1.32 & 0.57 \\
 
 \subsection{Validation-Selected Graph Architectures}
 
-Table~\ref{tab:winning_architectures} reports which graph architecture validation selects on each unit, ordered by training-label homophily. It is a deterministic re-aggregation of the frozen audit produced by \texttt{scripts/summarize\_winning\_architectures.py}; no model is retrained and no action is changed. The candidate architectures were frozen in the benchmark. For this post-hoc descriptive analysis, we group GPR-GNN, H2GCN, and LINKX as heterophily-aware on architectural grounds; the group-level analysis was not part of the predeclared inferential family.
+Table~\ref{tab:winning_architectures} reports which graph architecture validation selects on each unit, ordered by training-label homophily. It is a deterministic re-aggregation of the frozen audit produced by \path{scripts/summarize_winning_architectures.py}; no model is retrained and no action is changed. The candidate architectures were frozen in the benchmark. For this post-hoc descriptive analysis, we group GPR-GNN, H2GCN, and LINKX as heterophily-aware on architectural grounds; the group-level analysis was not part of the predeclared inferential family.
 
 Two observations inform Section~\ref{sec:mismatch}. First, heterophily-aware architectures are selected by validation within the graph portfolio in 95 of 110 units and do so across the whole homophily range, including all ten units on PubMed and all ten on Coauthor-CS. Second, the combined rule grants the graph action on exactly the four most homophilous datasets, while the four datasets carrying 95.1\% of its regret sit below the threshold and receive no graph action at all.
 
