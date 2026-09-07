@@ -16,7 +16,7 @@ H2GCN, LINKX, and GPR-GNN are validation-selected within the graph portfolio in 
 
 The paper offers three contributions:
 \begin{enumerate}
-    \item \textbf{An empirical study of portfolio-dependent diagnostic value.} A frozen decision benchmark and explicitly post-hoc single-architecture comparisons show how the relative regret of an unchanged rule varies with the graph action. We report all six restrictions, including results that favor the diagnostic over always-graph.
+    \item \textbf{An empirical study of portfolio-dependent diagnostic value.} A frozen decision benchmark and explicitly post-hoc single-architecture comparisons show how the relative regret of an unchanged rule varies with the graph action. We report all six restrictions, all 63 nonempty candidate subsets, dataset exclusions, and a held-out threshold control, including results that favor the diagnostic over always-graph.
     \item \textbf{A reproducible decision-evaluation protocol.} The release connects training-label scope, validation-based selection, nine diagnostic and reference policies, abstention, oracle-portfolio regret, dataset-level inference, and immutable provenance. It enables direct checks of decisions and outcomes, beyond performance correlations.
     \item \textbf{Evidence separating graph signal from diagnostic value.} A degree-preserving intervention reduces GCN test accuracy by 45.5, 29.9, and 17.3 points on Cora, CiteSeer, and PubMed. This shows sensitivity to non-degree edge organization in those settings, without identifying homophily as the causal attribute.
 \end{enumerate}
