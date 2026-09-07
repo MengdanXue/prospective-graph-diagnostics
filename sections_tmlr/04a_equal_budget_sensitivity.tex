@@ -43,3 +43,58 @@ Dataset-level heterogeneity remains substantial. For GCN, Combined wins, loses, 
 \subsection{Interpretation}
 
 The restriction analysis provides direct empirical evidence that evaluation against one graph action need not transfer to another. It is consistent with a mismatch between a fixed homophily rule and some candidate portfolios, but it does not prove a universal mechanism or exclude other threshold choices. The operational lesson is to specify the candidate models and resource budget when evaluating a diagnostic, and to test any proposed improvement on independent data.
+
+\subsection{All Candidate Subsets and Dataset Sensitivity}
+\label{sec:subset_robustness}
+
+We enumerate all $2^6-1=63$ nonempty graph-architecture subsets using the same validation selection and frozen diagnostic actions. Define $\Delta$ as Combined minus always-graph mean regret in percentage points; negative values favor Combined. Table~\ref{tab:subset_sensitivity} reports the entire enumeration by subset size. Only GAT, GCN, and their pair favor Combined. The 63 subsets overlap in both models and datasets: their counts are descriptive, not 63 independent replications or estimates of a generalization probability.
+
+\begin{table}[t]
+\centering
+\caption{Post-hoc enumeration of all available graph portfolios. Each architecture contributes four trials. The range is over candidate subsets, not a confidence interval.}
+\label{tab:subset_sensitivity}
+\small
+\begin{tabular}{@{}rrrrr@{}}
+\toprule
+Architectures & Subsets & $\Delta<0$ & Min $\Delta$ & Max $\Delta$ \\
+\midrule
+1 & 6 & 2 & -4.26 & 5.86 \\
+2 & 15 & 1 & -3.23 & 7.32 \\
+3 & 20 & 0 & 1.68 & 7.38 \\
+4 & 15 & 0 & 2.48 & 7.38 \\
+5 & 6 & 0 & 3.09 & 7.31 \\
+6 & 1 & 0 & 7.20 & 7.20 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+At the same eight-trial graph budget, GAT+GCN yields Combined/always-graph regrets of 2.27/5.50 points, whereas H2GCN+LINKX yields 7.59/0.27. Thus equal trial count does not remove variation with architecture composition. Nevertheless, the favorable average under GAT or GCN is sensitive to dataset composition. Omitting any one dataset preserves its direction, but omitting both Cornell and Wisconsin reverses it: $\Delta$ becomes $+1.11$ for GAT and $+0.92$ for GCN, and none of the 63 subsets favors Combined. This is a post-hoc influence check, not grounds for discarding these datasets.
+
+Separately omitting Chameleon and Squirrel, whose original versions have known duplicate-node concerns, leaves full-portfolio Combined/always-graph regrets of 4.90/0.31 points ($\Delta=+4.59$). Seven of the 63 remaining subset comparisons favor Combined. This exclusion does not establish performance on cleaned versions of either graph. All per-subset and per-dataset values, including leave-one-dataset-out ranges, are released; neither exclusion replaces the frozen full-set result.
+
+\subsection{A Post-Hoc Calibrated Threshold Control}
+\label{sec:calibrated_threshold}
+
+To distinguish the frozen threshold from the homophily statistic itself, we fit a graph-if-$h_1\geq t$ rule separately for each held-out dataset. The fixed grid is $\{-1,0,0.01,\ldots,1,2\}$, including constant graph and MLP policies. Each fold minimizes equal-weight mean dataset regret on the other ten datasets; ties within $10^{-12}$ choose the smallest threshold. The selected-model test outcomes of those ten datasets serve as meta-training targets. Neither outcomes nor model records of the held-out dataset select its threshold. We then evaluate on that dataset's ten seeds and average the eleven held-out dataset means.
+
+\begin{table}[t]
+\centering
+\caption{Post-hoc held-out threshold control. Regrets are percentage points, using each row's own graph/MLP oracle. Calibration is performed separately for each portfolio; it is not an independent prospective experiment.}
+\label{tab:calibrated_threshold}
+\small
+\begin{tabular}{@{}lrrr@{}}
+\toprule
+Graph action & Frozen Combined & Calibrated & Always-graph \\
+\midrule
+GAT & 2.08 & 1.53 & 6.35 \\
+GCN & 1.74 & 1.58 & 5.29 \\
+GPR-GNN & 1.50 & 0.81 & 0.89 \\
+GraphSAGE & 2.85 & 0.82 & 0.38 \\
+H2GCN & 2.36 & 1.05 & 0.13 \\
+LINKX & 7.99 & 4.15 & 2.13 \\
+Six architectures & 7.46 & 2.41 & 0.26 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Calibration lowers mean regret relative to the frozen rule in all seven rows, including from 7.46 to 2.41 points for the full portfolio, but still exceeds its always-graph regret of 0.26. It also improves slightly on always-graph for GPR-GNN, unlike the frozen threshold. These results argue against interpreting failure of the frozen cutoff as failure of every threshold. The control was designed after inspection of the original benchmark, its training folds overlap, and graph domains may be related. It is a stronger threshold baseline, not a representative comparison with all published diagnostic methods or evidence of stable external validity. We attach no new confirmatory significance claim to these post-hoc comparisons.

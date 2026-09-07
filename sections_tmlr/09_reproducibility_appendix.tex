@@ -96,6 +96,8 @@ Total & --- & --- & 95/110 & 40 & 7.46 \\
 
 All runs use PyTorch 2.9.1 and PyTorch Geometric 2.7.0. Planetoid loads Cora, CiteSeer, and PubMed; WebKB loads Wisconsin and Cornell. WikipediaNetwork with geometric preprocessing loads Chameleon and Squirrel. Actor uses the Actor loader. Roman-empire and Amazon-ratings use PyG's Heterophilous Graph Dataset loader; Coauthor-CS uses Coauthor. The PyG \texttt{NormalizeFeatures} transform is applied on load. We then remove self-loops, collapse duplicate and reverse edges to a unique undirected edge set, and emit both directions for message passing; isolated nodes are retained. These canonical edges are also the input to the diagnostics.
 
+Chameleon (2,277 nodes) and Squirrel (5,201 nodes) are the original geometric-preprocessing versions, not the duplicate-filtered variants. Prior work identifies problematic duplicate nodes in these benchmarks~\cite{platonov2023heterophilous}. Our edge canonicalization removes repeated edges, not duplicate nodes, and does not resolve that concern. Section~\ref{sec:subset_robustness} therefore reports their exclusion as a post-hoc sensitivity check; no filtered-graph retraining is claimed.
+
 Table~\ref{tab:architecture_details} completes the common training grid in Table~\ref{tab:frozen_training}. Unless stated otherwise, hidden width is 64, outputs are unnormalized logits, and dropout is the selected trial value. No architecture other than the PyG LINKX implementation uses BatchNorm.
 
 \begin{table}[ht]
