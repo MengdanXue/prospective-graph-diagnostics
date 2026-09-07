@@ -30,6 +30,7 @@ jobs:
             tests.test_degree_preserving_shuffle \
             tests.test_public_release_builder \
             tests.test_tmlr_manuscript \
+            tests.test_portfolio_robustness \
             tests.test_release_v2_entry \
             tests.test_submission_safety -v
       - name: Audit active manuscript claims
@@ -57,3 +58,37 @@ jobs:
         run: python -m pip install -r requirements-ci.lock.txt
       - name: Run the complete protocol suite
         run: python -m unittest discover -s tests -v
+      - name: Reconstruct post-hoc results from the public release
+        run: |
+          mkdir -p tmp/release
+          curl --fail --location --retry 3 https://github.com/MengdanXue/prospective-graph-diagnostics/releases/download/v0.1.0/prospective-graph-diagnostics-formal-artifacts-v0.1.0.zip -o tmp/release.zip
+          echo "209d386f078e0c4b2b15eb221b52c52bb002fc136a473494684e01be95b70389  tmp/release.zip" | sha256sum --check
+          python -m zipfile -e tmp/release.zip tmp/release
+          python scripts/check_posthoc_release.py --records-root tmp/release/prospective/records
+
+  manuscript-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/Tectonic
+          key: tectonic-0.17.0-${{ runner.os }}-v1
+      - name: Install checksum-pinned Tectonic
+        run: |
+          curl --fail --location --retry 3 https://github.com/tectonic-typesetting/tectonic/releases/download/tectonic%400.17.0/tectonic-0.17.0-x86_64-unknown-linux-gnu.tar.gz -o "$RUNNER_TEMP/tectonic.tar.gz"
+          echo "1a715688baf591e650c8aeb160ae934e181685eecbb38b317de30b269ac5d606  $RUNNER_TEMP/tectonic.tar.gz" | sha256sum --check
+          tar -xzf "$RUNNER_TEMP/tectonic.tar.gz" -C "$RUNNER_TEMP"
+      - name: Compile TMLR manuscript and check references and layout
+        run: |
+          mkdir -p tmp/manuscript
+          "$RUNNER_TEMP/tectonic" main_tmlr.tex --outdir tmp/manuscript --keep-logs --untrusted
+          python scripts/check_latex_log.py tmp/manuscript/main_tmlr.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: tmlr-manuscript
+          path: tmp/manuscript/

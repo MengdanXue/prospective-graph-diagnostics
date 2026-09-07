@@ -203,3 +203,27 @@ The frozen outcomes are empirical results for the named dataset/model portfolio,
 Citation metadata is provided in `CITATION.cff`. The manuscript is a working research draft targeting Neurocomputing; this repository does not imply acceptance or publication.
 
 The original research code in this repository is released under the MIT License; see `LICENSE`. The unmodified Elsevier class and bibliography-style files under `submission_assets/elsevier/` remain subject to the terms of their upstream distribution and are not relicensed by this repository.
+
+
+### Post-hoc robustness and continuous manuscript verification
+
+The additional `portfolio_robustness.json` contains all 63 nonempty candidate
+subsets, dataset exclusions, and seven leave-one-dataset-out homophily-threshold
+controls. All are post-hoc reanalyses, with no model retraining or GPU required.
+The held-out dataset never supplies the outcomes used to choose its threshold;
+other datasets' selected-model test outcomes are explicitly meta-training data.
+
+```bash
+python scripts/summarize_portfolio_robustness.py --records-root tmp/artifacts/formal-v0.1.0/prospective/records --output tmp/rebuild/portfolio_robustness.json
+python scripts/check_posthoc_release.py --records-root tmp/artifacts/formal-v0.1.0/prospective/records
+tectonic main_tmlr.tex --outdir tmp/manuscript --keep-logs --untrusted
+python scripts/check_latex_log.py tmp/manuscript/main_tmlr.log
+```
+
+CI downloads the public v0.1.0 archive, verifies its pinned SHA-256, checks the
+manifest and full frozen audit, then reconstructs both sensitivity summaries.
+The manuscript job uses checksum-pinned Tectonic 0.17.0 and uploads the PDF/log.
+Undefined references/citations, duplicate labels and overfull boxes fail the job;
+underfull spacing warnings are allowed. This supplements, rather than replaces,
+visual review. The draft's publication status and remaining independent-validation
+limits are documented in `docs/repositioning_plan.md`.

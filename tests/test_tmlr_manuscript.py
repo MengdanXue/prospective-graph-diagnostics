@@ -180,7 +180,8 @@ class RepositionedManuscriptTests(unittest.TestCase):
         self.assertNotIn(r"\setcounter{table}{0}", MAIN_TEXT)
 
     def test_negative_result_language_is_retained(self):
-        self.assertIn("no stable incremental decision value", RESULTS.lower())
+        self.assertIn("do not demonstrate incremental value in this benchmark", RESULTS.lower())
+        self.assertNotIn("no stable incremental decision value", RESULTS.lower())
 
     def test_mismatch_claim_is_scoped_to_the_paired_portfolio(self):
         self.assertIn("heterophily-aware portfolio", CONCLUSION)
