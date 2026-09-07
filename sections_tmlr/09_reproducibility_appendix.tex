@@ -59,21 +59,21 @@ Wisconsin & 5/10 & 0.57 & 0/10/0 & 1.89 & 1.32 & 0.57 \\
 \end{tabular}
 \end{table}
 
-\subsection{Winning Graph Architectures and the Structural Mismatch}
+\subsection{Validation-Selected Graph Architectures}
 
-Table~\ref{tab:winning_architectures} reports which graph architecture validation selects on each unit, ordered by training-label homophily. It is a deterministic re-aggregation of the frozen audit produced by \texttt{scripts/summarize\_winning\_architectures.py}; no model is retrained and no action is changed. The heterophily-aware set (GPR-GNN, H2GCN, LINKX) is fixed by the benchmark configuration in Section~\ref{sec:protocol}, not chosen after observing outcomes.
+Table~\ref{tab:winning_architectures} reports which graph architecture validation selects on each unit, ordered by training-label homophily. It is a deterministic re-aggregation of the frozen audit produced by \texttt{scripts/summarize\_winning\_architectures.py}; no model is retrained and no action is changed. The candidate architectures were frozen in the benchmark. For this post-hoc descriptive analysis, we group GPR-GNN, H2GCN, and LINKX as heterophily-aware on architectural grounds; the group-level analysis was not part of the predeclared inferential family.
 
-Two facts support Section~\ref{sec:mismatch}. First, heterophily-aware architectures win 95 of 110 units and do so across the whole homophily range, including all ten units on PubMed and all ten on Coauthor-CS. Second, the combined rule grants the graph action on exactly the four most homophilous datasets, while the four datasets carrying 95.1\% of its regret sit below the threshold and receive no graph action at all.
+Two observations inform Section~\ref{sec:mismatch}. First, heterophily-aware architectures are selected by validation within the graph portfolio in 95 of 110 units and do so across the whole homophily range, including all ten units on PubMed and all ten on Coauthor-CS. Second, the combined rule grants the graph action on exactly the four most homophilous datasets, while the four datasets carrying 95.1\% of its regret sit below the threshold and receive no graph action at all.
 
 \begin{table}[ht]
 \centering
-\caption{Validation-selected graph architecture per dataset, ordered by mean training-label homophily $h_1$. ``Het.-aware'' counts units won by GPR-GNN, H2GCN, or LINKX. ``Combined G'' counts graph actions taken by the combined rule after the frozen MLP fallback. Regret is mean full-set oracle-portfolio regret in percentage points.}
+\caption{Validation-selected graph architecture per dataset, ordered by mean training-label homophily $h_1$. ``Het.-aware'' counts graph-portfolio selections of GPR-GNN, H2GCN, or LINKX, not wins over MLP. ``Combined G'' counts graph actions taken by the combined rule after the frozen MLP fallback. Regret is mean full-set oracle-portfolio regret in percentage points.}
 \label{tab:winning_architectures}
 \scriptsize
 \setlength{\tabcolsep}{3.0pt}
 \begin{tabular}{@{}lrlrrr@{}}
 \toprule
-Dataset & $h_1$ & Winning graph architectures & Het.-aware & Combined G & Regret \\
+Dataset & $h_1$ & Selected graph architectures & Het.-aware & Combined G & Regret \\
 \midrule
 Roman-empire & 0.047 & LINKX 9, H2GCN 1 & 10/10 & 0 & 23.66 \\
 Cornell & 0.114 & GPR-GNN 4, H2GCN 4, GraphSAGE 2 & 8/10 & 0 & 1.75 \\

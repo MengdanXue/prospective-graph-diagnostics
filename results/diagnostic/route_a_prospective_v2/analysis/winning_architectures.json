@@ -18,7 +18,7 @@
       "heterophily_aware_wins": 10,
       "mean_always_graph_regret": 0.0,
       "mean_combined_regret": 0.1644838809967041,
-      "mean_train_label_homophily": 0.38032812028056834,
+      "mean_train_label_homophily": 0.3803281202805683,
       "share_of_combined_regret": 0.20051898402669188,
       "units": 10,
       "winning_graph_architectures": {
@@ -30,7 +30,7 @@
       "heterophily_aware_wins": 5,
       "mean_always_graph_regret": 0.0,
       "mean_combined_regret": 0.15882352888584136,
-      "mean_train_label_homophily": 0.23623992333078409,
+      "mean_train_label_homophily": 0.23623992333078406,
       "share_of_combined_regret": 0.19361856285699514,
       "units": 10,
       "winning_graph_architectures": {
@@ -44,7 +44,7 @@
       "heterophily_aware_wins": 5,
       "mean_always_graph_regret": 0.0,
       "mean_combined_regret": 0.0,
-      "mean_train_label_homophily": 0.7318424745154233,
+      "mean_train_label_homophily": 0.7318424745154234,
       "share_of_combined_regret": 0.0,
       "units": 10,
       "winning_graph_architectures": {
@@ -84,7 +84,7 @@
       "heterophily_aware_wins": 8,
       "mean_always_graph_regret": 0.012500011920928955,
       "mean_combined_regret": 0.017500007152557374,
-      "mean_train_label_homophily": 0.11429837692359132,
+      "mean_train_label_homophily": 0.11429837692359135,
       "share_of_combined_regret": 0.021333905993870368,
       "units": 10,
       "winning_graph_architectures": {
@@ -98,7 +98,7 @@
       "heterophily_aware_wins": 10,
       "mean_always_graph_regret": 0.0,
       "mean_combined_regret": 0.0,
-      "mean_train_label_homophily": 0.803733811370756,
+      "mean_train_label_homophily": 0.8037338113707561,
       "share_of_combined_regret": 0.0,
       "units": 10,
       "winning_graph_architectures": {
@@ -135,7 +135,7 @@
       "heterophily_aware_wins": 9,
       "mean_always_graph_regret": 0.013207554817199707,
       "mean_combined_regret": 0.01886792778968811,
-      "mean_train_label_homophily": 0.17188601869669737,
+      "mean_train_label_homophily": 0.17188601869669742,
       "share_of_combined_regret": 0.023001510471126693,
       "units": 10,
       "winning_graph_architectures": {
@@ -160,7 +160,7 @@
       "Chameleon"
     ],
     "top_four_heterophily_aware_wins": 35,
-    "top_four_max_homophily": 0.38032812028056834,
+    "top_four_max_homophily": 0.3803281202805683,
     "top_four_share_of_combined_regret": 0.9514995288324692,
     "top_four_units": 40
   },

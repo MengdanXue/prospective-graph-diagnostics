@@ -11,9 +11,12 @@ import json
 import re
 import subprocess
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 
+import numpy as np
+from experiments.evaluate_diagnostics import holm_adjust, sign_flip_p
 from scripts.audit_route_a_claims import audit
 from scripts.summarize_winning_architectures import summarize
 
@@ -71,7 +74,7 @@ class RepositionedManuscriptTests(unittest.TestCase):
         totals = PUBLISHED["totals"]
         self.assertEqual(totals["heterophily_aware_wins"], 95)
         self.assertEqual(totals["units"], 110)
-        for text in (INTRODUCTION, DISCUSSION, CONCLUSION, MAIN_TEXT):
+        for text in (INTRODUCTION, DISCUSSION):
             self.assertIn("95 of the 110 units", text)
 
     def test_regret_concentration_is_reported_accurately(self):
@@ -83,7 +86,7 @@ class RepositionedManuscriptTests(unittest.TestCase):
         self.assertAlmostEqual(
             concentration["top_four_share_of_combined_regret"], 0.951, places=3
         )
-        for text in (INTRODUCTION, DISCUSSION, CONCLUSION, MAIN_TEXT):
+        for text in (INTRODUCTION, DISCUSSION):
             self.assertIn("95.1\\%", text)
             # The 40 declined units are stated in every venue-facing summary,
             # with wording that varies between "all 40 units" and
@@ -92,14 +95,25 @@ class RepositionedManuscriptTests(unittest.TestCase):
 
     def test_attainable_resolution_limitation_is_disclosed(self):
         self.assertIn("$2^{1-k}$", RESULTS)
-        self.assertIn("could not have rejected under any realization", RESULTS)
+        self.assertNotIn("could not have rejected under any realization", RESULTS)
+        self.assertIn("conditional resolution limitation", RESULTS)
+        self.assertIn("Holm's first step", RESULTS)
         self.assertIn("$p=0.015625$", RESULTS)
-        self.assertIn("$k\\geq 9$", RESULTS)
         always_graph = next(
             c for c in AUDIT["paired_comparisons"] if c["method"] == "always_graph"
         )
         self.assertAlmostEqual(always_graph["raw_p"], 2 / 2**7)
         self.assertGreater(always_graph["holm_adjusted_p"], 0.05)
+
+    def test_eleven_datasets_do_not_imply_zero_attainable_power(self):
+        observed_pattern = np.array([-1.0] * 7 + [0.0] * 4)
+        self.assertEqual(sign_flip_p(observed_pattern, samples=10000, seed=0), 2 / 2**7)
+        possible_pattern = np.ones(11)
+        floor = sign_flip_p(possible_pattern, samples=10000, seed=0)
+        family = [{"raw_p": floor} for _ in range(8)]
+        holm_adjust(family)
+        self.assertLess(family[0]["holm_adjusted_p"], .05)
+        self.assertIn("0.0009765625", RESULTS)
 
     def test_equal_budget_table_matches_the_frozen_summary(self):
         rows = re.findall(
@@ -146,11 +160,24 @@ class RepositionedManuscriptTests(unittest.TestCase):
                 entry["mean_regret_pp"]["combined"],
                 entry["mean_regret_pp"]["always_graph"],
             )
-        for text in (INTRODUCTION, DISCUSSION, CONCLUSION):
-            self.assertIn("stable", text)
-        self.assertIn("not that they are uninformative under every possible portfolio", INTRODUCTION)
-        self.assertIn("not that they carry no information under any portfolio", CONCLUSION)
-        self.assertIn("would therefore be too strong, and we do not make it", EQUAL_BUDGET_SECTION)
+        for text in (INTRODUCTION, DISCUSSION, CONCLUSION, MAIN_TEXT, EQUAL_BUDGET_SECTION):
+            self.assertIn("post-hoc", text.lower())
+            self.assertNotIn("No threshold on a scalar one-hop summary repairs this", text)
+            self.assertNotIn("Why Homophily Statistics Cannot", text)
+        self.assertIn("It does not equalize training time", EQUAL_BUDGET_SECTION)
+        self.assertNotIn("Equal-Total-Compute Sensitivity", EQUAL_BUDGET_SECTION)
+        self.assertIn("not a proof that no scalar threshold can improve it", DISCUSSION)
+
+    def test_portfolio_interpretation_preserves_the_gpr_counterexample(self):
+        single = EQUAL_BUDGET["equal_budget_single_architecture"]
+        for other in ("GCN", "GAT"):
+            self.assertLess(single["GPR-GNN"]["mean_regret_pp"]["combined"], single[other]["mean_regret_pp"]["combined"])
+        self.assertIn("lowest absolute Combined regret (1.50 points)", EQUAL_BUDGET_SECTION)
+        self.assertIn("not the number of units in which graph beats MLP", DISCUSSION)
+        self.assertIn("does not guarantee a better selected test result", EQUAL_BUDGET_SECTION)
+
+    def test_appendix_does_not_reuse_body_table_numbers(self):
+        self.assertNotIn(r"\setcounter{table}{0}", MAIN_TEXT)
 
     def test_negative_result_language_is_retained(self):
         self.assertIn("no stable incremental decision value", RESULTS.lower())
@@ -179,14 +206,23 @@ class RepositionedManuscriptTests(unittest.TestCase):
             )
 
     def test_summary_script_is_deterministic(self):
-        first = subprocess.run(
-            [sys.executable, "scripts/summarize_winning_architectures.py", "--output", "/dev/stdout"],
-            cwd=ROOT,
-            capture_output=True,
-            text=True,
-            check=True,
-        )
-        self.assertIn("95/110", first.stdout)
+        with tempfile.TemporaryDirectory() as tmp:
+            paths = [Path(tmp) / f"summary-{i}.json" for i in range(2)]
+            for path in paths:
+                completed = subprocess.run(
+                    [sys.executable, "scripts/summarize_winning_architectures.py", "--output", str(path)],
+                    cwd=ROOT, capture_output=True, text=True, check=True,
+                )
+                self.assertIn("95/110", completed.stdout)
+            self.assertEqual(paths[0].read_bytes(), paths[1].read_bytes())
+            self.assertEqual(json.loads(paths[0].read_text()), PUBLISHED)
+            original = paths[0].read_bytes()
+            retry = subprocess.run(
+                [sys.executable, "scripts/summarize_winning_architectures.py", "--output", str(paths[0])],
+                cwd=ROOT, capture_output=True, text=True,
+            )
+            self.assertNotEqual(retry.returncode, 0)
+            self.assertEqual(paths[0].read_bytes(), original)
 
 
 if __name__ == "__main__":
