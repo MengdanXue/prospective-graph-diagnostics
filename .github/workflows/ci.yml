@@ -29,6 +29,7 @@ jobs:
             tests.test_diagnostic_scoring \
             tests.test_degree_preserving_shuffle \
             tests.test_public_release_builder \
+            tests.test_diagnostic_artifact_packaging \
             tests.test_tmlr_manuscript \
             tests.test_training_diagnostic_manuscript \
             tests.test_portfolio_robustness \

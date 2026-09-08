@@ -6,15 +6,15 @@ JSON and Markdown files are byte-identical to the validated output produced
 from 420 records.
 
 The large, non-Git record archives are in the sibling working directory
-`../revision-package/assets/`:
+`../revision-final-2026-09-08/assets/`:
 
 | Archive | Contents | SHA-256 |
 | --- | --- | --- |
-| `posthoc_graph_parameterization_v1.zip` | 420 graph/MLP records from the graph parameterization run, run manifest, completion marker, frozen graph config, summary, graph source snapshot at `c48c34ee160f7f6ab62bfcaf10b5e90f40568466`, the exact `a22606a…` summarizer and historical MLP source snapshot used by control verification, and the earlier 198-record failed attempt | `6535dfe6e41a109ae3d204c50e1557d611e92a993386d49f93a71ab900a1869f` |
-| `posthoc_diagnostic_controls_v1.zip` | 200 MLP optimization records plus the 280-record preprocessing control, their manifests and completion markers, frozen configs, and source snapshots | `9a96eb21a4be478e2ef6d1e3dc9434d8dfec102ac719ba2adcbc6c267d14fc73` |
-| `training_reproducibility_audit_v1.zip` | 22-worker reliability audit, raw logs, 22 worker records and state/log artifacts, frozen config, complete hash manifest, audit summary, and exact source snapshot | `18c9d9671f43cda9addd6548cc344e45217d37b1785e34489dd1b0c2a095ee88` |
+| `posthoc_graph_parameterization_v1.zip` | 420 graph/MLP records from the graph parameterization run, run manifest, completion marker, frozen graph config, summary, graph source snapshot at `c48c34ee160f7f6ab62bfcaf10b5e90f40568466`, the exact `a22606a…` summarizer and historical MLP source snapshot used by control verification, and the earlier 198-record failed attempt | `7ee948ec89856c4223ab7f9043d3858f3f337491c2eaa7167196f14a64f89a06` |
+| `posthoc_diagnostic_controls_v1.zip` | 200 MLP optimization records plus the 280-record preprocessing control, their manifests and completion markers, frozen configs, and source snapshots | `4ab10775a8bbcce924d206d74a101c5a8f7e751a0d50a68ba3d5a0f0a6972c56` |
+| `training_reproducibility_audit_v1.zip` | 22-worker reliability audit, raw logs, 22 worker records and state/log artifacts, frozen config, complete hash manifest, audit summary, and exact source snapshot | `39d6c1c126be7d3db0b24153ef0a0c43d6a95052d98ff3a6c57bde6e7ea8f1c6` |
 
-The adjacent `.sha256` files authenticate each ZIP byte stream. Each ZIP also
+The adjacent `.sha256` files record each ZIP byte-stream digest. Each ZIP also
 contains `hash_manifest.json`, which lists the SHA-256 and byte length of
 every extracted entry except the hash manifest itself. The packaging command
 is reproducible. The graph and controls packages exclude NPZ data, virtual
@@ -50,20 +50,26 @@ commit, including its historical-source verification logic.
 
 ## Rebuild and verify
 
-From the repository root, recreate the package after obtaining the two NPZ
-inputs separately and verifying their SHA-256 values from the frozen configs:
+For the portable handoff, start with [the handoff guide](revision_handoff.md).
+To regenerate archive containers from the original completed run directories,
+run the following from the repository root. Packaging itself needs the retained
+records and source history; feature reconstruction additionally needs the two
+NPZ inputs and their frozen SHA-256 checks:
 
 ```text
 python scripts/package_diagnostic_artifacts.py \
   --repo-root . \
   --graph-run-root ../graph-parameterization-v1-fixed \
-  --graph-summary-root ../graph-parameterization-v1-analysis-fixed \
+  --graph-summary-root ../graph-parameterization-v1-analysis-final \
+  --initial-graph-run-root ../graph-parameterization-v1 \
   --mlp-run-root ../mlp-optimization-v1 \
   --preprocessing-run-root ../preprocessing-full \
-  --output-dir ../revision-package/assets
+  --audit-run-root ../training-reproducibility-audit-v1 \
+  --output-dir ../revision-rebuilt/assets
 ```
 
-The script refuses incomplete runs, failed-record artifacts, wrong record
+Use a fresh output directory: existing ZIPs and checksums are never replaced.
+The script refuses incomplete runs, failed-record artifacts in completed runs, wrong record
 counts, provenance drift, mismatched source hashes, or nonzero test-evaluation
 bindings for the graph/MLP validation-only runs. It reads historical files via
 `git show <recorded-commit>:<path>` and writes those exact bytes into the
