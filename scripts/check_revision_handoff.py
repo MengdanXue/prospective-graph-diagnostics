@@ -54,6 +54,16 @@ def compare_preprocessing_summary(actual, expected):
     return validation
 
 
+def compare_mlp_summary(actual, expected, data_root):
+    comparable = json.loads(json.dumps(actual))
+    require(comparable["transform_reconstruction"]["data_root"] == str(data_root),
+            "MLP reconstruction used an unexpected data directory")
+    relocation = {"original": expected["transform_reconstruction"]["data_root"], "verified": str(data_root)}
+    comparable["transform_reconstruction"]["data_root"] = relocation["original"]
+    require(comparable == expected, "MLP summary differs from tracked result")
+    return relocation
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--assets-dir", type=Path, required=True)
@@ -119,7 +129,7 @@ def main():
              "--data-root", str(data), "--preprocessing-root", str(controls / "preprocessing"),
              "--output-root", str(mlp_out)], mlp_source, output / "mlp.log")
         expected_mlp = ROOT / "results/diagnostic/posthoc_mlp_optimization_v1/analysis/mlp_optimization_diagnostic_summary.json"
-        require(load(mlp_out / expected_mlp.name) == load(expected_mlp), "MLP summary differs from tracked result")
+        report["mlp_data_directory_relocation"] = compare_mlp_summary(load(mlp_out / expected_mlp.name), load(expected_mlp), data)
         graph_out = output / "graph_summary"
         run([python, "scripts/summarize_graph_parameterization_diagnostic.py", "--run-root", str(graph),
              "--data-root", str(data), "--preprocessing-root", str(controls / "preprocessing"),
