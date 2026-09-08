@@ -1,0 +1,193 @@
+{
+  "inference": {
+    "configured_monte_carlo_samples": 10000,
+    "configured_seed": 20260809,
+    "datasets": 11,
+    "enumerated_patterns_per_other_comparison": 2048,
+    "family_preserved": "no post-outcome deletion of the identical-policy comparison",
+    "family_size": 8,
+    "homophily_only_enumerated_patterns": 0,
+    "homophily_only_mode": "all_zero_short_circuit_p_1",
+    "identical_full_set_policy": "homophily_only",
+    "monte_carlo_parameters_used_for_these_comparisons": false,
+    "other_seven_comparisons_mode": "exhaustive",
+    "random_50_50": "analytic expected regret, not a sampled action sequence"
+  },
+  "schema_version": "1.0",
+  "source_benchmark_id": "route_a_diagnostic_v1",
+  "splits": {
+    "Actor": {
+      "class_counts": {
+        "0": 853,
+        "1": 1337,
+        "2": 1630,
+        "3": 1815,
+        "4": 1965
+      },
+      "nodes": 7600,
+      "test": 1522,
+      "train": 4559,
+      "validation": 1519
+    },
+    "Amazon-ratings": {
+      "class_counts": {
+        "0": 6560,
+        "1": 9010,
+        "2": 5678,
+        "3": 2183,
+        "4": 1061
+      },
+      "nodes": 24492,
+      "test": 4902,
+      "train": 14693,
+      "validation": 4897
+    },
+    "Chameleon": {
+      "class_counts": {
+        "0": 456,
+        "1": 460,
+        "2": 453,
+        "3": 521,
+        "4": 387
+      },
+      "nodes": 2277,
+      "test": 459,
+      "train": 1364,
+      "validation": 454
+    },
+    "CiteSeer": {
+      "class_counts": {
+        "0": 264,
+        "1": 590,
+        "2": 668,
+        "3": 701,
+        "4": 596,
+        "5": 508
+      },
+      "nodes": 3327,
+      "test": 671,
+      "train": 1993,
+      "validation": 663
+    },
+    "Coauthor-CS": {
+      "class_counts": {
+        "0": 708,
+        "1": 462,
+        "10": 1444,
+        "11": 2033,
+        "12": 420,
+        "13": 4136,
+        "14": 876,
+        "2": 2050,
+        "3": 429,
+        "4": 1394,
+        "5": 2193,
+        "6": 371,
+        "7": 924,
+        "8": 775,
+        "9": 118
+      },
+      "nodes": 18333,
+      "test": 3680,
+      "train": 10993,
+      "validation": 3660
+    },
+    "Cora": {
+      "class_counts": {
+        "0": 351,
+        "1": 217,
+        "2": 418,
+        "3": 818,
+        "4": 426,
+        "5": 298,
+        "6": 180
+      },
+      "nodes": 2708,
+      "test": 548,
+      "train": 1621,
+      "validation": 539
+    },
+    "Cornell": {
+      "class_counts": {
+        "0": 38,
+        "1": 16,
+        "2": 30,
+        "3": 82,
+        "4": 17
+      },
+      "nodes": 183,
+      "test": 40,
+      "train": 108,
+      "validation": 35
+    },
+    "PubMed": {
+      "class_counts": {
+        "0": 4103,
+        "1": 7739,
+        "2": 7875
+      },
+      "nodes": 19717,
+      "test": 3946,
+      "train": 11829,
+      "validation": 3942
+    },
+    "Roman-empire": {
+      "class_counts": {
+        "0": 944,
+        "1": 3163,
+        "10": 717,
+        "11": 445,
+        "12": 428,
+        "13": 365,
+        "14": 329,
+        "15": 319,
+        "16": 312,
+        "17": 2194,
+        "2": 3133,
+        "3": 2502,
+        "4": 2487,
+        "5": 1359,
+        "6": 1244,
+        "7": 1080,
+        "8": 852,
+        "9": 789
+      },
+      "nodes": 22662,
+      "test": 4548,
+      "train": 13591,
+      "validation": 4523
+    },
+    "Squirrel": {
+      "class_counts": {
+        "0": 1042,
+        "1": 1040,
+        "2": 1039,
+        "3": 1040,
+        "4": 1040
+      },
+      "nodes": 5201,
+      "test": 1042,
+      "train": 3120,
+      "validation": 1039
+    },
+    "Wisconsin": {
+      "class_counts": {
+        "0": 10,
+        "1": 70,
+        "2": 118,
+        "3": 32,
+        "4": 21
+      },
+      "nodes": 251,
+      "test": 53,
+      "train": 149,
+      "validation": 49
+    }
+  },
+  "threshold_empty_interval": {
+    "interpretation": "all thresholds strictly inside this interval give identical full-set graph/MLP actions on these 110 units",
+    "lower": 0.3847710900756087,
+    "upper": 0.712468193384224
+  }
+}
+

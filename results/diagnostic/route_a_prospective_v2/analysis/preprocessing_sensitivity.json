@@ -1,0 +1,1163 @@
+{
+  "analysis_status": "post_hoc_paired_sensitivity",
+  "conditions": {
+    "normalize_features": {
+      "mean_graph_test": 0.47610522955656054,
+      "mean_mlp_test": 0.26734474301338196,
+      "mean_regret_pp": {
+        "always_graph": 0.0,
+        "always_mlp": 20.876048654317856,
+        "historical_combined": 20.876048654317856,
+        "validation_selection": 0.0
+      },
+      "mean_test_gap": 0.20876048654317855,
+      "target_graph": 20,
+      "units": 20
+    },
+    "raw": {
+      "mean_graph_test": 0.6706761658191681,
+      "mean_mlp_test": 0.537689808011055,
+      "mean_regret_pp": {
+        "always_graph": 0.0,
+        "always_mlp": 13.29863578081131,
+        "historical_combined": 13.29863578081131,
+        "validation_selection": 0.0
+      },
+      "mean_test_gap": 0.1329863578081131,
+      "target_graph": 20,
+      "units": 20
+    }
+  },
+  "datasets": {
+    "Amazon-ratings": {
+      "normalize_features": {
+        "mean_graph_test": 0.5306405484676361,
+        "mean_mlp_test": 0.367605060338974,
+        "mean_regret_pp": {
+          "always_graph": 0.0,
+          "always_mlp": 16.30354881286621,
+          "historical_combined": 16.30354881286621,
+          "validation_selection": 0.0
+        },
+        "mean_test_gap": 0.16303548812866211,
+        "selected_graph_counts": {
+          "GAT": 0,
+          "GCN": 0,
+          "GPR-GNN": 0,
+          "GraphSAGE": 0,
+          "H2GCN": 0,
+          "LINKX": 10
+        },
+        "target_graph": 10,
+        "units": [
+          {
+            "actions": {
+              "always_graph": "graph",
+              "always_mlp": "mlp",
+              "historical_combined": "mlp",
+              "validation_selection": "graph"
+            },
+            "dataset": "Amazon-ratings",
+            "graph_test": 0.5248878002166748,
+            "graph_validation": 0.5340003967285156,
+            "mlp_test": 0.367605060338974,
+            "mlp_validation": 0.367980420589447,
+            "regret": {
+              "always_graph": 0.0,
+              "always_mlp": 0.1572827398777008,
+              "historical_combined": 0.1572827398777008,
+              "validation_selection": 0.0
+            },
+            "seed": 0,
+            "selected_graph": "LINKX",
+            "target": "graph",
+            "test_gap": 0.1572827398777008
+          },
+          {
+            "actions": {
+              "always_graph": "graph",
+              "always_mlp": "mlp",
+              "historical_combined": "mlp",
+              "validation_selection": "graph"
+            },
+            "dataset": "Amazon-ratings",
+            "graph_test": 0.5246837735176086,
+            "graph_validation": 0.5356341004371643,
+            "mlp_test": 0.367605060338974,
+            "mlp_validation": 0.367980420589447,
+            "regret": {
+              "always_graph": 0.0,
+              "always_mlp": 0.15707871317863464,
+              "historical_combined": 0.15707871317863464,
+              "validation_selection": 0.0
+            },
+            "seed": 1,
+            "selected_graph": "LINKX",
+            "target": "graph",
+            "test_gap": 0.15707871317863464
+          },
+          {
+            "actions": {
+              "always_graph": "graph",
+              "always_mlp": "mlp",
+              "historical_combined": "mlp",
+              "validation_selection": "graph"
+            },
+            "dataset": "Amazon-ratings",
+            "graph_test": 0.5375356674194336,
+            "graph_validation": 0.5419644713401794,
+            "mlp_test": 0.367605060338974,
+            "mlp_validation": 0.367980420589447,
+            "regret": {
+              "always_graph": 0.0,
+              "always_mlp": 0.1699306070804596,
+              "historical_combined": 0.1699306070804596,
+              "validation_selection": 0.0
+            },
+            "seed": 2,
+            "selected_graph": "LINKX",
+            "target": "graph",
+            "test_gap": 0.1699306070804596
+          },
+          {
+            "actions": {
+              "always_graph": "graph",
+              "always_mlp": "mlp",
+              "historical_combined": "mlp",
+              "validation_selection": "graph"
+            },
+            "dataset": "Amazon-ratings",
+            "graph_test": 0.5332517027854919,
+            "graph_validation": 0.5362467169761658,
+            "mlp_test": 0.367605060338974,
+            "mlp_validation": 0.367980420589447,
+            "regret": {
+              "always_graph": 0.0,
+              "always_mlp": 0.16564664244651794,
+              "historical_combined": 0.16564664244651794,
+              "validation_selection": 0.0
+            },
+            "seed": 3,
+            "selected_graph": "LINKX",
+            "target": "graph",
+            "test_gap": 0.16564664244651794
+          },
+          {
+            "actions": {
+              "always_graph": "graph",
+              "always_mlp": "mlp",
+              "historical_combined": "mlp",
+              "validation_selection": "graph"
+            },
+            "dataset": "Amazon-ratings",
+            "graph_test": 0.5330477356910706,
+            "graph_validation": 0.5362467169761658,
+            "mlp_test": 0.367605060338974,
+            "mlp_validation": 0.367980420589447,
+            "regret": {
+              "always_graph": 0.0,
+              "always_mlp": 0.16544267535209656,
+              "historical_combined": 0.16544267535209656,
+              "validation_selection": 0.0
+            },
+            "seed": 4,
+            "selected_graph": "LINKX",
+            "target": "graph",
+            "test_gap": 0.16544267535209656
+          },
+          {
+            "actions": {
+              "always_graph": "graph",
+              "always_mlp": "mlp",
+              "historical_combined": "mlp",
+              "validation_selection": "graph"
+            },
+            "dataset": "Amazon-ratings",
+            "graph_test": 0.522031843662262,
+            "graph_validation": 0.5366551280021667,
+            "mlp_test": 0.367605060338974,
+            "mlp_validation": 0.367980420589447,
+            "regret": {
+              "always_graph": 0.0,
+              "always_mlp": 0.15442678332328796,
+              "historical_combined": 0.15442678332328796,
+              "validation_selection": 0.0
+            },
+            "seed": 5,
+            "selected_graph": "LINKX",
+            "target": "graph",
+            "test_gap": 0.15442678332328796
+          },
+          {
+            "actions": {
+              "always_graph": "graph",
+              "always_mlp": "mlp",
+              "historical_combined": "mlp",
+              "validation_selection": "graph"
+            },
+            "dataset": "Amazon-ratings",
+            "graph_test": 0.5291717648506165,
+            "graph_validation": 0.5342046022415161,
+            "mlp_test": 0.367605060338974,
+            "mlp_validation": 0.367980420589447,
+            "regret": {
+              "always_graph": 0.0,
+              "always_mlp": 0.16156670451164246,
+              "historical_combined": 0.16156670451164246,
+              "validation_selection": 0.0
+            },
+            "seed": 6,
+            "selected_graph": "LINKX",
+            "target": "graph",
+            "test_gap": 0.16156670451164246
+          },
+          {
+            "actions": {
+              "always_graph": "graph",
+              "always_mlp": "mlp",
+              "historical_combined": "mlp",
+              "validation_selection": "graph"
+            },
+            "dataset": "Amazon-ratings",
+            "graph_test": 0.5316197276115417,
+            "graph_validation": 0.5360425114631653,
+            "mlp_test": 0.367605060338974,
+            "mlp_validation": 0.367980420589447,
+            "regret": {
+              "always_graph": 0.0,
+              "always_mlp": 0.16401466727256775,
+              "historical_combined": 0.16401466727256775,
+              "validation_selection": 0.0
+            },
+            "seed": 7,
+            "selected_graph": "LINKX",
+            "target": "graph",
+            "test_gap": 0.16401466727256775
+          },
+          {
+            "actions": {
+              "always_graph": "graph",
+              "always_mlp": "mlp",
+              "historical_combined": "mlp",
+              "validation_selection": "graph"
+            },
+            "dataset": "Amazon-ratings",
+            "graph_test": 0.5383517146110535,
+            "graph_validation": 0.5382887721061707,
+            "mlp_test": 0.367605060338974,
+            "mlp_validation": 0.367980420589447,
+            "regret": {
+              "always_graph": 0.0,
+              "always_mlp": 0.17074665427207947,
+              "historical_combined": 0.17074665427207947,
+              "validation_selection": 0.0
+            },
+            "seed": 8,
+            "selected_graph": "LINKX",
+            "target": "graph",
+            "test_gap": 0.17074665427207947
+          },
+          {
+            "actions": {
+              "always_graph": "graph",
+              "always_mlp": "mlp",
+              "historical_combined": "mlp",
+              "validation_selection": "graph"
+            },
+            "dataset": "Amazon-ratings",
+            "graph_test": 0.5318237543106079,
+            "graph_validation": 0.5348172783851624,
+            "mlp_test": 0.367605060338974,
+            "mlp_validation": 0.367980420589447,
+            "regret": {
+              "always_graph": 0.0,
+              "always_mlp": 0.1642186939716339,
+              "historical_combined": 0.1642186939716339,
+              "validation_selection": 0.0
+            },
+            "seed": 9,
+            "selected_graph": "LINKX",
+            "target": "graph",
+            "test_gap": 0.1642186939716339
+          }
+        ]
+      },
+      "raw": {
+        "mean_graph_test": 0.5317217469215393,
+        "mean_mlp_test": 0.41348429322242736,
+        "mean_regret_pp": {
+          "always_graph": 0.0,
+          "always_mlp": 11.823745369911194,
+          "historical_combined": 11.823745369911194,
+          "validation_selection": 0.0
+        },
+        "mean_test_gap": 0.11823745369911194,
+        "selected_graph_counts": {
+          "GAT": 0,
+          "GCN": 0,
+          "GPR-GNN": 0,
+          "GraphSAGE": 0,
+          "H2GCN": 0,
+          "LINKX": 10
+        },
+        "target_graph": 10,
+        "units": [
+          {
+            "actions": {
+              "always_graph": "graph",
+              "always_mlp": "mlp",
+              "historical_combined": "mlp",
+              "validation_selection": "graph"
+            },
+            "dataset": "Amazon-ratings",
+            "graph_test": 0.5210118293762207,
+            "graph_validation": 0.5356341004371643,
+            "mlp_test": 0.40473276376724243,
+            "mlp_validation": 0.41596898436546326,
+            "regret": {
+              "always_graph": 0.0,
+              "always_mlp": 0.11627906560897827,
+              "historical_combined": 0.11627906560897827,
+              "validation_selection": 0.0
+            },
+            "seed": 0,
+            "selected_graph": "LINKX",
+            "target": "graph",
+            "test_gap": 0.11627906560897827
+          },
+          {
+            "actions": {
+              "always_graph": "graph",
+              "always_mlp": "mlp",
+              "historical_combined": "mlp",
+              "validation_selection": "graph"
+            },
+            "dataset": "Amazon-ratings",
+            "graph_test": 0.5283557772636414,
+            "graph_validation": 0.5350214838981628,
+            "mlp_test": 0.41309669613838196,
+            "mlp_validation": 0.4169900119304657,
+            "regret": {
+              "always_graph": 0.0,
+              "always_mlp": 0.1152590811252594,
+              "historical_combined": 0.1152590811252594,
+              "validation_selection": 0.0
+            },
+            "seed": 1,
+            "selected_graph": "LINKX",
+            "target": "graph",
+            "test_gap": 0.1152590811252594
+          },
+          {
+            "actions": {
+              "always_graph": "graph",
+              "always_mlp": "mlp",
+              "historical_combined": "mlp",
+              "validation_selection": "graph"
+            },
+            "dataset": "Amazon-ratings",
+            "graph_test": 0.5354956984519958,
+            "graph_validation": 0.5376761555671692,
+            "mlp_test": 0.41248470544815063,
+            "mlp_validation": 0.4218909740447998,
+            "regret": {
+              "always_graph": 0.0,
+              "always_mlp": 0.12301099300384521,
+              "historical_combined": 0.12301099300384521,
+              "validation_selection": 0.0
+            },
+            "seed": 2,
+            "selected_graph": "LINKX",
+            "target": "graph",
+            "test_gap": 0.12301099300384521
+          },
+          {
+            "actions": {
+              "always_graph": "graph",
+              "always_mlp": "mlp",
+              "historical_combined": "mlp",
+              "validation_selection": "graph"
+            },
+            "dataset": "Amazon-ratings",
+            "graph_test": 0.5340677499771118,
+            "graph_validation": 0.5411476492881775,
+            "mlp_test": 0.41309669613838196,
+            "mlp_validation": 0.41596898436546326,
+            "regret": {
+              "always_graph": 0.0,
+              "always_mlp": 0.12097105383872986,
+              "historical_combined": 0.12097105383872986,
+              "validation_selection": 0.0
+            },
+            "seed": 3,
+            "selected_graph": "LINKX",
+            "target": "graph",
+            "test_gap": 0.12097105383872986
+          },
+          {
+            "actions": {
+              "always_graph": "graph",
+              "always_mlp": "mlp",
+              "historical_combined": "mlp",
+              "validation_selection": "graph"
+            },
+            "dataset": "Amazon-ratings",
+            "graph_test": 0.5383517146110535,
+            "graph_validation": 0.5435981154441833,
+            "mlp_test": 0.4184006452560425,
+            "mlp_validation": 0.4235246181488037,
+            "regret": {
+              "always_graph": 0.0,
+              "always_mlp": 0.11995106935501099,
+              "historical_combined": 0.11995106935501099,
+              "validation_selection": 0.0
+            },
+            "seed": 4,
+            "selected_graph": "LINKX",
+            "target": "graph",
+            "test_gap": 0.11995106935501099
+          },
+          {
+            "actions": {
+              "always_graph": "graph",
+              "always_mlp": "mlp",
+              "historical_combined": "mlp",
+              "validation_selection": "graph"
+            },
+            "dataset": "Amazon-ratings",
+            "graph_test": 0.5279477834701538,
+            "graph_validation": 0.5419644713401794,
+            "mlp_test": 0.4106487035751343,
+            "mlp_validation": 0.41311007738113403,
+            "regret": {
+              "always_graph": 0.0,
+              "always_mlp": 0.11729907989501953,
+              "historical_combined": 0.11729907989501953,
+              "validation_selection": 0.0
+            },
+            "seed": 5,
+            "selected_graph": "LINKX",
+            "target": "graph",
+            "test_gap": 0.11729907989501953
+          },
+          {
+            "actions": {
+              "always_graph": "graph",
+              "always_mlp": "mlp",
+              "historical_combined": "mlp",
+              "validation_selection": "graph"
+            },
+            "dataset": "Amazon-ratings",
+            "graph_test": 0.5312117338180542,
+            "graph_validation": 0.5429854989051819,
+            "mlp_test": 0.4212566316127777,
+            "mlp_validation": 0.4251582622528076,
+            "regret": {
+              "always_graph": 0.0,
+              "always_mlp": 0.10995510220527649,
+              "historical_combined": 0.10995510220527649,
+              "validation_selection": 0.0
+            },
+            "seed": 6,
+            "selected_graph": "LINKX",
+            "target": "graph",
+            "test_gap": 0.10995510220527649
+          },
+          {
+            "actions": {
+              "always_graph": "graph",
+              "always_mlp": "mlp",
+              "historical_combined": "mlp",
+              "validation_selection": "graph"
+            },
+            "dataset": "Amazon-ratings",
+            "graph_test": 0.523459792137146,
+            "graph_validation": 0.5372677445411682,
+            "mlp_test": 0.41166871786117554,
+            "mlp_validation": 0.41821524500846863,
+            "regret": {
+              "always_graph": 0.0,
+              "always_mlp": 0.11179107427597046,
+              "historical_combined": 0.11179107427597046,
+              "validation_selection": 0.0
+            },
+            "seed": 7,
+            "selected_graph": "LINKX",
+            "target": "graph",
+            "test_gap": 0.11179107427597046
+          },
+          {
+            "actions": {
+              "always_graph": "graph",
+              "always_mlp": "mlp",
+              "historical_combined": "mlp",
+              "validation_selection": "graph"
+            },
+            "dataset": "Amazon-ratings",
+            "graph_test": 0.535699725151062,
+            "graph_validation": 0.5382887721061707,
+            "mlp_test": 0.4135046899318695,
+            "mlp_validation": 0.40984275937080383,
+            "regret": {
+              "always_graph": 0.0,
+              "always_mlp": 0.1221950352191925,
+              "historical_combined": 0.1221950352191925,
+              "validation_selection": 0.0
+            },
+            "seed": 8,
+            "selected_graph": "LINKX",
+            "target": "graph",
+            "test_gap": 0.1221950352191925
+          },
+          {
+            "actions": {
+              "always_graph": "graph",
+              "always_mlp": "mlp",
+              "historical_combined": "mlp",
+              "validation_selection": "graph"
+            },
+            "dataset": "Amazon-ratings",
+            "graph_test": 0.5416156649589539,
+            "graph_validation": 0.5397182106971741,
+            "mlp_test": 0.4159526824951172,
+            "mlp_validation": 0.4237288236618042,
+            "regret": {
+              "always_graph": 0.0,
+              "always_mlp": 0.12566298246383667,
+              "historical_combined": 0.12566298246383667,
+              "validation_selection": 0.0
+            },
+            "seed": 9,
+            "selected_graph": "LINKX",
+            "target": "graph",
+            "test_gap": 0.12566298246383667
+          }
+        ]
+      }
+    },
+    "Roman-empire": {
+      "normalize_features": {
+        "mean_graph_test": 0.42156991064548494,
+        "mean_mlp_test": 0.16708442568778992,
+        "mean_regret_pp": {
+          "always_graph": 0.0,
+          "always_mlp": 25.4485484957695,
+          "historical_combined": 25.4485484957695,
+          "validation_selection": 0.0
+        },
+        "mean_test_gap": 0.254485484957695,
+        "selected_graph_counts": {
+          "GAT": 0,
+          "GCN": 0,
+          "GPR-GNN": 0,
+          "GraphSAGE": 0,
+          "H2GCN": 1,
+          "LINKX": 9
+        },
+        "target_graph": 10,
+        "units": [
+          {
+            "actions": {
+              "always_graph": "graph",
+              "always_mlp": "mlp",
+              "historical_combined": "mlp",
+              "validation_selection": "graph"
+            },
+            "dataset": "Roman-empire",
+            "graph_test": 0.41996482014656067,
+            "graph_validation": 0.41653770208358765,
+            "mlp_test": 0.13940192759037018,
+            "mlp_validation": 0.1397302746772766,
+            "regret": {
+              "always_graph": 0.0,
+              "always_mlp": 0.2805628925561905,
+              "historical_combined": 0.2805628925561905,
+              "validation_selection": 0.0
+            },
+            "seed": 0,
+            "selected_graph": "LINKX",
+            "target": "graph",
+            "test_gap": 0.2805628925561905
+          },
+          {
+            "actions": {
+              "always_graph": "graph",
+              "always_mlp": "mlp",
+              "historical_combined": "mlp",
+              "validation_selection": "graph"
+            },
+            "dataset": "Roman-empire",
+            "graph_test": 0.43051889538764954,
+            "graph_validation": 0.4474906027317047,
+            "mlp_test": 0.13940192759037018,
+            "mlp_validation": 0.1397302746772766,
+            "regret": {
+              "always_graph": 0.0,
+              "always_mlp": 0.29111696779727936,
+              "historical_combined": 0.29111696779727936,
+              "validation_selection": 0.0
+            },
+            "seed": 1,
+            "selected_graph": "LINKX",
+            "target": "graph",
+            "test_gap": 0.29111696779727936
+          },
+          {
+            "actions": {
+              "always_graph": "graph",
+              "always_mlp": "mlp",
+              "historical_combined": "mlp",
+              "validation_selection": "graph"
+            },
+            "dataset": "Roman-empire",
+            "graph_test": 0.4250219762325287,
+            "graph_validation": 0.4335618019104004,
+            "mlp_test": 0.22845205664634705,
+            "mlp_validation": 0.23037806153297424,
+            "regret": {
+              "always_graph": 0.0,
+              "always_mlp": 0.19656991958618164,
+              "historical_combined": 0.19656991958618164,
+              "validation_selection": 0.0
+            },
+            "seed": 2,
+            "selected_graph": "LINKX",
+            "target": "graph",
+            "test_gap": 0.19656991958618164
+          },
+          {
+            "actions": {
+              "always_graph": "graph",
+              "always_mlp": "mlp",
+              "historical_combined": "mlp",
+              "validation_selection": "graph"
+            },
+            "dataset": "Roman-empire",
+            "graph_test": 0.38896217942237854,
+            "graph_validation": 0.3995136022567749,
+            "mlp_test": 0.24802109599113464,
+            "mlp_validation": 0.25359275937080383,
+            "regret": {
+              "always_graph": 0.0,
+              "always_mlp": 0.1409410834312439,
+              "historical_combined": 0.1409410834312439,
+              "validation_selection": 0.0
+            },
+            "seed": 3,
+            "selected_graph": "LINKX",
+            "target": "graph",
+            "test_gap": 0.1409410834312439
+          },
+          {
+            "actions": {
+              "always_graph": "graph",
+              "always_mlp": "mlp",
+              "historical_combined": "mlp",
+              "validation_selection": "graph"
+            },
+            "dataset": "Roman-empire",
+            "graph_test": 0.28496041893959045,
+            "graph_validation": 0.28675657510757446,
+            "mlp_test": 0.15127527713775635,
+            "mlp_validation": 0.15144816040992737,
+            "regret": {
+              "always_graph": 0.0,
+              "always_mlp": 0.1336851418018341,
+              "historical_combined": 0.1336851418018341,
+              "validation_selection": 0.0
+            },
+            "seed": 4,
+            "selected_graph": "H2GCN",
+            "target": "graph",
+            "test_gap": 0.1336851418018341
+          },
+          {
+            "actions": {
+              "always_graph": "graph",
+              "always_mlp": "mlp",
+              "historical_combined": "mlp",
+              "validation_selection": "graph"
+            },
+            "dataset": "Roman-empire",
+            "graph_test": 0.48944589495658875,
+            "graph_validation": 0.4928145110607147,
+            "mlp_test": 0.13940192759037018,
+            "mlp_validation": 0.1397302746772766,
+            "regret": {
+              "always_graph": 0.0,
+              "always_mlp": 0.35004396736621857,
+              "historical_combined": 0.35004396736621857,
+              "validation_selection": 0.0
+            },
+            "seed": 5,
+            "selected_graph": "LINKX",
+            "target": "graph",
+            "test_gap": 0.35004396736621857
+          },
+          {
+            "actions": {
+              "always_graph": "graph",
+              "always_mlp": "mlp",
+              "historical_combined": "mlp",
+              "validation_selection": "graph"
+            },
+            "dataset": "Roman-empire",
+            "graph_test": 0.43293753266334534,
+            "graph_validation": 0.4393101930618286,
+            "mlp_test": 0.13940192759037018,
+            "mlp_validation": 0.1397302746772766,
+            "regret": {
+              "always_graph": 0.0,
+              "always_mlp": 0.29353560507297516,
+              "historical_combined": 0.29353560507297516,
+              "validation_selection": 0.0
+            },
+            "seed": 6,
+            "selected_graph": "LINKX",
+            "target": "graph",
+            "test_gap": 0.29353560507297516
+          },
+          {
+            "actions": {
+              "always_graph": "graph",
+              "always_mlp": "mlp",
+              "historical_combined": "mlp",
+              "validation_selection": "graph"
+            },
+            "dataset": "Roman-empire",
+            "graph_test": 0.4793315529823303,
+            "graph_validation": 0.4718107581138611,
+            "mlp_test": 0.1888742297887802,
+            "mlp_validation": 0.1848330795764923,
+            "regret": {
+              "always_graph": 0.0,
+              "always_mlp": 0.2904573231935501,
+              "historical_combined": 0.2904573231935501,
+              "validation_selection": 0.0
+            },
+            "seed": 7,
+            "selected_graph": "LINKX",
+            "target": "graph",
+            "test_gap": 0.2904573231935501
+          },
+          {
+            "actions": {
+              "always_graph": "graph",
+              "always_mlp": "mlp",
+              "historical_combined": "mlp",
+              "validation_selection": "graph"
+            },
+            "dataset": "Roman-empire",
+            "graph_test": 0.3984168767929077,
+            "graph_validation": 0.3964183032512665,
+            "mlp_test": 0.13940192759037018,
+            "mlp_validation": 0.1397302746772766,
+            "regret": {
+              "always_graph": 0.0,
+              "always_mlp": 0.25901494920253754,
+              "historical_combined": 0.25901494920253754,
+              "validation_selection": 0.0
+            },
+            "seed": 8,
+            "selected_graph": "LINKX",
+            "target": "graph",
+            "test_gap": 0.25901494920253754
+          },
+          {
+            "actions": {
+              "always_graph": "graph",
+              "always_mlp": "mlp",
+              "historical_combined": "mlp",
+              "validation_selection": "graph"
+            },
+            "dataset": "Roman-empire",
+            "graph_test": 0.46613895893096924,
+            "graph_validation": 0.4693787395954132,
+            "mlp_test": 0.15721195936203003,
+            "mlp_validation": 0.15653327107429504,
+            "regret": {
+              "always_graph": 0.0,
+              "always_mlp": 0.3089269995689392,
+              "historical_combined": 0.3089269995689392,
+              "validation_selection": 0.0
+            },
+            "seed": 9,
+            "selected_graph": "LINKX",
+            "target": "graph",
+            "test_gap": 0.3089269995689392
+          }
+        ]
+      },
+      "raw": {
+        "mean_graph_test": 0.8096305847167968,
+        "mean_mlp_test": 0.6618953227996827,
+        "mean_regret_pp": {
+          "always_graph": 0.0,
+          "always_mlp": 14.773526191711426,
+          "historical_combined": 14.773526191711426,
+          "validation_selection": 0.0
+        },
+        "mean_test_gap": 0.14773526191711425,
+        "selected_graph_counts": {
+          "GAT": 0,
+          "GCN": 0,
+          "GPR-GNN": 0,
+          "GraphSAGE": 0,
+          "H2GCN": 10,
+          "LINKX": 0
+        },
+        "target_graph": 10,
+        "units": [
+          {
+            "actions": {
+              "always_graph": "graph",
+              "always_mlp": "mlp",
+              "historical_combined": "mlp",
+              "validation_selection": "graph"
+            },
+            "dataset": "Roman-empire",
+            "graph_test": 0.8034300804138184,
+            "graph_validation": 0.8171567320823669,
+            "mlp_test": 0.6583113074302673,
+            "mlp_validation": 0.6615078449249268,
+            "regret": {
+              "always_graph": 0.0,
+              "always_mlp": 0.14511877298355103,
+              "historical_combined": 0.14511877298355103,
+              "validation_selection": 0.0
+            },
+            "seed": 0,
+            "selected_graph": "H2GCN",
+            "target": "graph",
+            "test_gap": 0.14511877298355103
+          },
+          {
+            "actions": {
+              "always_graph": "graph",
+              "always_mlp": "mlp",
+              "historical_combined": "mlp",
+              "validation_selection": "graph"
+            },
+            "dataset": "Roman-empire",
+            "graph_test": 0.8106859922409058,
+            "graph_validation": 0.8140614628791809,
+            "mlp_test": 0.6605101227760315,
+            "mlp_validation": 0.6652663946151733,
+            "regret": {
+              "always_graph": 0.0,
+              "always_mlp": 0.15017586946487427,
+              "historical_combined": 0.15017586946487427,
+              "validation_selection": 0.0
+            },
+            "seed": 1,
+            "selected_graph": "H2GCN",
+            "target": "graph",
+            "test_gap": 0.15017586946487427
+          },
+          {
+            "actions": {
+              "always_graph": "graph",
+              "always_mlp": "mlp",
+              "historical_combined": "mlp",
+              "validation_selection": "graph"
+            },
+            "dataset": "Roman-empire",
+            "graph_test": 0.8047493100166321,
+            "graph_validation": 0.816935658454895,
+            "mlp_test": 0.6583113074302673,
+            "mlp_validation": 0.6643820405006409,
+            "regret": {
+              "always_graph": 0.0,
+              "always_mlp": 0.14643800258636475,
+              "historical_combined": 0.14643800258636475,
+              "validation_selection": 0.0
+            },
+            "seed": 2,
+            "selected_graph": "H2GCN",
+            "target": "graph",
+            "test_gap": 0.14643800258636475
+          },
+          {
+            "actions": {
+              "always_graph": "graph",
+              "always_mlp": "mlp",
+              "historical_combined": "mlp",
+              "validation_selection": "graph"
+            },
+            "dataset": "Roman-empire",
+            "graph_test": 0.8029903173446655,
+            "graph_validation": 0.80499666929245,
+            "mlp_test": 0.6620492339134216,
+            "mlp_validation": 0.6663718819618225,
+            "regret": {
+              "always_graph": 0.0,
+              "always_mlp": 0.1409410834312439,
+              "historical_combined": 0.1409410834312439,
+              "validation_selection": 0.0
+            },
+            "seed": 3,
+            "selected_graph": "H2GCN",
+            "target": "graph",
+            "test_gap": 0.1409410834312439
+          },
+          {
+            "actions": {
+              "always_graph": "graph",
+              "always_mlp": "mlp",
+              "historical_combined": "mlp",
+              "validation_selection": "graph"
+            },
+            "dataset": "Roman-empire",
+            "graph_test": 0.8106859922409058,
+            "graph_validation": 0.8160513043403625,
+            "mlp_test": 0.6715039610862732,
+            "mlp_validation": 0.6703515648841858,
+            "regret": {
+              "always_graph": 0.0,
+              "always_mlp": 0.13918203115463257,
+              "historical_combined": 0.13918203115463257,
+              "validation_selection": 0.0
+            },
+            "seed": 4,
+            "selected_graph": "H2GCN",
+            "target": "graph",
+            "test_gap": 0.13918203115463257
+          },
+          {
+            "actions": {
+              "always_graph": "graph",
+              "always_mlp": "mlp",
+              "historical_combined": "mlp",
+              "validation_selection": "graph"
+            },
+            "dataset": "Roman-empire",
+            "graph_test": 0.8104661107063293,
+            "graph_validation": 0.8078708648681641,
+            "mlp_test": 0.6602902412414551,
+            "mlp_validation": 0.6577492952346802,
+            "regret": {
+              "always_graph": 0.0,
+              "always_mlp": 0.15017586946487427,
+              "historical_combined": 0.15017586946487427,
+              "validation_selection": 0.0
+            },
+            "seed": 5,
+            "selected_graph": "H2GCN",
+            "target": "graph",
+            "test_gap": 0.15017586946487427
+          },
+          {
+            "actions": {
+              "always_graph": "graph",
+              "always_mlp": "mlp",
+              "historical_combined": "mlp",
+              "validation_selection": "graph"
+            },
+            "dataset": "Roman-empire",
+            "graph_test": 0.813324511051178,
+            "graph_validation": 0.8147247433662415,
+            "mlp_test": 0.6646877527236938,
+            "mlp_validation": 0.6661508083343506,
+            "regret": {
+              "always_graph": 0.0,
+              "always_mlp": 0.14863675832748413,
+              "historical_combined": 0.14863675832748413,
+              "validation_selection": 0.0
+            },
+            "seed": 6,
+            "selected_graph": "H2GCN",
+            "target": "graph",
+            "test_gap": 0.14863675832748413
+          },
+          {
+            "actions": {
+              "always_graph": "graph",
+              "always_mlp": "mlp",
+              "historical_combined": "mlp",
+              "validation_selection": "graph"
+            },
+            "dataset": "Roman-empire",
+            "graph_test": 0.8124449849128723,
+            "graph_validation": 0.8027857542037964,
+            "mlp_test": 0.6704045534133911,
+            "mlp_validation": 0.6568649411201477,
+            "regret": {
+              "always_graph": 0.0,
+              "always_mlp": 0.1420404314994812,
+              "historical_combined": 0.1420404314994812,
+              "validation_selection": 0.0
+            },
+            "seed": 7,
+            "selected_graph": "H2GCN",
+            "target": "graph",
+            "test_gap": 0.1420404314994812
+          },
+          {
+            "actions": {
+              "always_graph": "graph",
+              "always_mlp": "mlp",
+              "historical_combined": "mlp",
+              "validation_selection": "graph"
+            },
+            "dataset": "Roman-empire",
+            "graph_test": 0.8131046295166016,
+            "graph_validation": 0.8098607063293457,
+            "mlp_test": 0.6543535590171814,
+            "mlp_validation": 0.6703515648841858,
+            "regret": {
+              "always_graph": 0.0,
+              "always_mlp": 0.15875107049942017,
+              "historical_combined": 0.15875107049942017,
+              "validation_selection": 0.0
+            },
+            "seed": 8,
+            "selected_graph": "H2GCN",
+            "target": "graph",
+            "test_gap": 0.15875107049942017
+          },
+          {
+            "actions": {
+              "always_graph": "graph",
+              "always_mlp": "mlp",
+              "historical_combined": "mlp",
+              "validation_selection": "graph"
+            },
+            "dataset": "Roman-empire",
+            "graph_test": 0.8144239187240601,
+            "graph_validation": 0.8162723779678345,
+            "mlp_test": 0.6585311889648438,
+            "mlp_validation": 0.6652663946151733,
+            "regret": {
+              "always_graph": 0.0,
+              "always_mlp": 0.1558927297592163,
+              "historical_combined": 0.1558927297592163,
+              "validation_selection": 0.0
+            },
+            "seed": 9,
+            "selected_graph": "H2GCN",
+            "target": "graph",
+            "test_gap": 0.1558927297592163
+          }
+        ]
+      }
+    }
+  },
+  "paired_differences": {
+    "Amazon-ratings": {
+      "graph_test": {
+        "mean_raw_minus_normalized": 0.0010811984539031982,
+        "raw_minus_normalized_by_seed": [
+          -0.0038759708404541016,
+          0.003672003746032715,
+          -0.002039968967437744,
+          0.000816047191619873,
+          0.00530397891998291,
+          0.005915939807891846,
+          0.002039968967437744,
+          -0.008159935474395752,
+          -0.002651989459991455,
+          0.009791910648345947
+        ]
+      },
+      "mlp_test": {
+        "mean_raw_minus_normalized": 0.04587923288345337,
+        "raw_minus_normalized_by_seed": [
+          0.03712770342826843,
+          0.04549163579940796,
+          0.044879645109176636,
+          0.04549163579940796,
+          0.05079558491706848,
+          0.04304364323616028,
+          0.05365157127380371,
+          0.04406365752220154,
+          0.04589962959289551,
+          0.04834762215614319
+        ]
+      },
+      "test_gap": {
+        "mean_raw_minus_normalized": -0.044798034429550174,
+        "raw_minus_normalized_by_seed": [
+          -0.041003674268722534,
+          -0.041819632053375244,
+          -0.04691961407661438,
+          -0.044675588607788086,
+          -0.04549160599708557,
+          -0.03712770342826843,
+          -0.05161160230636597,
+          -0.05222359299659729,
+          -0.04855161905288696,
+          -0.03855571150779724
+        ]
+      }
+    },
+    "Roman-empire": {
+      "graph_test": {
+        "mean_raw_minus_normalized": 0.38806067407131195,
+        "raw_minus_normalized_by_seed": [
+          0.3834652602672577,
+          0.3801670968532562,
+          0.3797273337841034,
+          0.414028137922287,
+          0.5257255733013153,
+          0.3210202157497406,
+          0.38038697838783264,
+          0.333113431930542,
+          0.41468775272369385,
+          0.3482849597930908
+        ]
+      },
+      "mlp_test": {
+        "mean_raw_minus_normalized": 0.4948108971118927,
+        "raw_minus_normalized_by_seed": [
+          0.5189093798398972,
+          0.5211081951856613,
+          0.4298592507839203,
+          0.414028137922287,
+          0.5202286839485168,
+          0.5208883136510849,
+          0.5252858251333237,
+          0.4815303236246109,
+          0.5149516314268112,
+          0.5013192296028137
+        ]
+      },
+      "test_gap": {
+        "mean_raw_minus_normalized": -0.10675022304058075,
+        "raw_minus_normalized_by_seed": [
+          -0.13544411957263947,
+          -0.1409410983324051,
+          -0.050131916999816895,
+          0.0,
+          0.005496889352798462,
+          -0.1998680979013443,
+          -0.14489884674549103,
+          -0.1484168916940689,
+          -0.10026387870311737,
+          -0.1530342698097229
+        ]
+      }
+    }
+  },
+  "schema_version": "1.0",
+  "source_run": {
+    "config_sha256": "e8c7fdfb29f16afbb92e3dc92c5a39d1c166eaf1f53cb56da1868966088e3d27",
+    "environment": {
+      "cuda_available": true,
+      "cuda_device": "NVIDIA GeForce RTX 5060 Laptop GPU",
+      "cuda_runtime": "12.8",
+      "device": "cuda",
+      "numpy": "2.3.5",
+      "platform": "Windows-11-10.0.26200-SP0",
+      "python": "3.12.14",
+      "scikit_learn": "1.7.1",
+      "scipy": "1.16.1",
+      "torch": "2.9.1+cu128",
+      "torch_geometric": "2.7.0"
+    },
+    "raw_record_count": 280,
+    "run_id": "posthoc_preprocessing_v1",
+    "scope_verified": true,
+    "source_commit": "aee552e5063a82cf87e2e01373a7136dac09c70e"
+  }
+}
+
