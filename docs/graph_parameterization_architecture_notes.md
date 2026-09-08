@@ -31,3 +31,5 @@ Input-only checks using the original canonical edges and `gcn_norm` with self-lo
 | Amazon-ratings | 0 | 0.387698 | 4.363376 | 0.306325 |
 
 These checks used no model training, validation scores or test scores. Data checksums and splits were verified by the existing input loader. All numerical performance conclusions must wait for the complete, paired 420-record study.
+
+The graph runner retains the training-time validation values used to select each checkpoint separately from the final selected-state replay values reported for train and validation partitions. This distinction is necessary because CUDA message-passing kernels can be nondeterministic across replays; the final partition metrics are the canonical reported values and are required to agree internally with the saved row.

@@ -150,9 +150,17 @@ def validate_record(
     selected = select_trial(trials)
     if row.get("selected_trial_id") != selected["trial_id"]:
         raise ValueError("selected trial mismatch")
+    selection_accuracy = row.get("selection_validation_accuracy", selected["validation_accuracy"])
+    selection_loss = row.get("selection_validation_loss", selected["validation_loss"])
+    if (not _finite(selection_accuracy) or
+            not math.isclose(float(selection_accuracy), float(selected["validation_accuracy"]), abs_tol=1e-12)):
+        raise ValueError("selection validation accuracy mismatch")
+    if (not _finite(selection_loss) or
+            not math.isclose(float(selection_loss), float(selected["validation_loss"]), abs_tol=1e-12)):
+        raise ValueError("selection validation loss mismatch")
     for key in ("validation_accuracy", "validation_loss"):
-        if not _finite(row.get(key)) or not math.isclose(float(row[key]), float(selected[key]), abs_tol=1e-12):
-            raise ValueError(f"selected {key} mismatch")
+        if not _finite(row.get(key)):
+            raise ValueError(f"reported {key} is not finite")
     partitions = row.get("partitions")
     if not isinstance(partitions, dict) or set(partitions) != {"train", "validation"}:
         raise ValueError("partition scope mismatch")
