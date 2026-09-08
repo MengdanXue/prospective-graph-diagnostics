@@ -22,6 +22,15 @@ environments, Torch installations, checkpoints, and caches; only the separate
 reliability-audit package retains its worker state dictionaries as raw audit
 output.
 
+Configuration copies are read from the recorded Git commit and checked against
+the manifest's parsed configuration, so checkout line-ending settings cannot
+change the rebuilt container. Relative to the earlier local archives, all
+experimental record and historical source-snapshot entry hashes are retained.
+The standalone preprocessing config copy now uses its Git LF bytes instead of
+the previous working-copy CRLF bytes; its JSON content and canonical digest are
+unchanged. README content and full manifest coverage account for the other
+container changes. The earlier local archives remain preserved separately.
+
 ## Frozen graph scope
 
 The graph run is `posthoc_graph_parameterization_v1`, with 2 datasets, 10
