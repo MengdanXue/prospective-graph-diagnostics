@@ -8,7 +8,7 @@ import zipfile
 
 from scripts.package_diagnostic_artifacts import add_entry, readme, write_zip
 from scripts.verify_diagnostic_artifacts import file_sha256, verify_archive
-from scripts.check_revision_handoff import compare_preprocessing_summary
+from scripts.check_revision_handoff import compare_mlp_summary, compare_preprocessing_summary
 
 
 class DiagnosticArtifactPackagingTests(unittest.TestCase):
@@ -89,6 +89,14 @@ class DiagnosticArtifactPackagingTests(unittest.TestCase):
         rebuilt["source_run"]["source_commit"] = "different"
         with self.assertRaisesRegex(ValueError, "differs from tracked"):
             compare_preprocessing_summary(rebuilt, original)
+
+    def test_relocated_input_directory_does_not_hide_changed_results(self):
+        original = {"transform_reconstruction": {"data_root": "old"}, "accuracy": 0.5}
+        rebuilt = {"transform_reconstruction": {"data_root": "new"}, "accuracy": 0.5}
+        self.assertEqual(compare_mlp_summary(rebuilt, original, Path("new"))["original"], "old")
+        rebuilt["accuracy"] = 0.9
+        with self.assertRaisesRegex(ValueError, "MLP summary differs"):
+            compare_mlp_summary(rebuilt, original, Path("new"))
 
 
 if __name__ == "__main__":

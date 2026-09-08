@@ -77,6 +77,11 @@ The graph summarizer uses the later graph runner
 and independently checks the historical MLP control. No current runner is
 edited to imitate a historical fingerprint.
 
+The MLP summary's `transform_reconstruction.data_root` is a local directory
+name. The checker verifies that it names the supplied input directory and
+records its relocation; all other fields must match exactly, including data
+digests, transformed-feature hashes, selected trials and numerical results.
+
 Floating-point feature fingerprints are intentionally exact. A failed check
 must be investigated and recorded, not bypassed or treated as a training
 replication. Passing these reconstruction checks does not make the original
