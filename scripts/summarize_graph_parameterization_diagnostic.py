@@ -8,6 +8,7 @@ import hashlib
 import json
 import math
 import re
+import subprocess
 import sys
 from pathlib import Path
 from typing import Any, Mapping
@@ -47,6 +48,32 @@ def _load(path: Path) -> dict[str, Any]:
 def _require(ok: bool, where: str | Path, message: str) -> None:
     if not ok:
         raise ValueError(f"{message}: {where}")
+
+
+def _verify_historical_source(manifest: Mapping[str, Any], config_path: Path) -> dict[str, Any]:
+    """Verify a prior control run against the source commit recorded in its manifest.
+
+    The current MLP helper is intentionally allowed to evolve for this graph
+    diagnostic.  Historical controls therefore use their own recorded commit
+    and fingerprint rather than silently treating the current file as the old
+    executable.
+    """
+    source = manifest.get("source_commit")
+    _require(isinstance(source, str) and _COMMIT.fullmatch(source), "historical control manifest", "source_commit must be a full SHA")
+    fingerprint = manifest.get("source_fingerprint")
+    _require(isinstance(fingerprint, Mapping) and isinstance(fingerprint.get("files"), Mapping), "historical control manifest", "missing source fingerprint")
+    verified: dict[str, dict[str, Any]] = {}
+    for relative, expected in fingerprint["files"].items():
+        if relative == "config":
+            payload = config_path.read_bytes()
+        else:
+            completed = subprocess.run(["git", "show", f"{source}:{relative}"], cwd=ROOT, check=False, capture_output=True)
+            _require(completed.returncode == 0, relative, "historical source path is unavailable at recorded commit")
+            payload = completed.stdout
+        actual = hashlib.sha256(payload).hexdigest()
+        verified[relative] = {"expected_sha256": expected, "actual_sha256": actual, "verified": actual == expected}
+        _require(actual == expected, relative, "historical source fingerprint mismatch")
+    return {"source_commit": source, "files": verified, "verified": True}
 
 
 def _mean(values: list[float]) -> float:
@@ -234,7 +261,11 @@ def _controls(records: Mapping[tuple[str, str, str, int], dict[str, Any]], trans
             controls["preprocessing_280"][dataset][condition] = _control_stats(entries, feature_key="feature_hash_equal")
     mlp_config = _load(MLP_CONFIG)
     mlp_summary = __import__("scripts.summarize_mlp_optimization_diagnostic", fromlist=["_reconstruct_inputs", "_validate_manifest"])
-    mlp_manifest, _, _ = mlp_summary._validate_manifest(mlp_root, mlp_config, MLP_CONFIG)
+    # The previous MLP run is a frozen control.  Its manifest points to the
+    # pre-graph source commit, so verify that historical snapshot directly
+    # instead of comparing it to the current graph runner file.
+    mlp_manifest, _, _, _ = mlp_summary._validate_manifest(mlp_root, mlp_config, None)
+    historical_mlp_source = _verify_historical_source(mlp_manifest, MLP_CONFIG)
     _require(mlp_manifest["environment"] == manifest["environment"], mlp_root, "prior MLP environment differs")
     mlp_records, _, _ = mlp_summary._reconstruct_inputs(mlp_config, data_root, audit, mlp_root, mlp_manifest)
     for dataset in mlp_config["datasets"]:
@@ -248,6 +279,7 @@ def _controls(records: Mapping[tuple[str, str, str, int], dict[str, Any]], trans
                 entries.append({"seed": int(seed), "new_validation_accuracy": new_row["validation_accuracy"], "original_validation_accuracy": old_row["validation_accuracy"], "validation_accuracy_difference": float(new_row["validation_accuracy"]) - float(old_row["validation_accuracy"]), "new_validation_loss": new_row["validation_loss"], "original_validation_loss": old_row["validation_loss"], "validation_loss_difference": float(new_row["validation_loss"]) - float(old_row["validation_loss"]), "new_selected_trial_id": new_row["selected_trial_id"], "original_selected_trial_id": old_row["selected_trial_id"], "feature_hash_equal": old_row["data_provenance"]["transformed_feature_sha256"] == transformed_hashes[(dataset, int(seed), condition)]})
             _require(all(item["feature_hash_equal"] for item in entries), f"mlp/{dataset}/{condition}", "prior MLP and graph transformed feature hashes differ")
             controls["mlp_60"][dataset][condition] = _control_stats(entries, feature_key="feature_hash_equal")
+    controls["mlp_60"]["_source_verification"] = historical_mlp_source
     return controls
 
 
@@ -300,9 +332,12 @@ def render_markdown(summary: Mapping[str, Any]) -> str:
     lines += ["", "## Controls", "", "Control mismatch counts and magnitudes are disclosed for review; small metric drift is not silently treated as agreement.", "", "| Control group | Dataset | Condition | Accuracy mismatches | Max | Loss mismatches | Max | Trial mismatches | Feature-hash mismatches |", "|---|---|---|---:|---:|---:|---:|---:|---:|"]
     for group, datasets in summary["controls"].items():
         for dataset, conditions in datasets.items():
+            if str(dataset).startswith("_"):
+                continue
             for condition, item in conditions.items():
                 lines.append(f"| {group} | {dataset} | {condition} | {item['validation_accuracy_exact_mismatch_count']} | {item['validation_accuracy_max_absolute_difference']:.6g} | {item['validation_loss_exact_mismatch_count']} | {item['validation_loss_max_absolute_difference']:.6g} | {item['selected_trial_id_mismatch_count']} | {item['feature_hash_mismatch_count']} |")
     lines += ["", "## Integrity", "", f"- Config digest: `{summary['config_sha256']}`", f"- Source commit: `{summary['source_commit']}`", f"- Split bindings: {summary['split_bindings']}", "- Raw NPZ data, train-fitted transforms, transformed hashes, and train/validation class counts were reconstructed.", "- Public source visibility was not verified.", "- New test evaluations and test metrics are absent.", ""]
+    lines.insert(-1, "- The prior MLP control was verified against its historical source commit and fingerprint.")
     return "\n".join(lines)
 
 
