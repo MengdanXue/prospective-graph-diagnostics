@@ -70,7 +70,10 @@ summary field must match exactly; the newer validator's additional
 `source_run.validation` block is retained in the verification report rather
 than inserted into the historical result. The checker creates a detached
 historical MLP checkout from the supplied history because that run verifies
-its own executable bytes. The graph summarizer uses the later graph runner
+its own executable bytes. The MLP analysis script was added after execution;
+the checker copies that script from the delivered revision into the historical
+checkout and records its SHA-256, leaving all frozen runner files untouched.
+The graph summarizer uses the later graph runner
 and independently checks the historical MLP control. No current runner is
 edited to imitate a historical fingerprint.
 

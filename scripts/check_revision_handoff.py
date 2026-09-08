@@ -11,6 +11,7 @@ import argparse
 import json
 import os
 from pathlib import Path
+import shutil
 import subprocess
 import sys
 import zipfile
@@ -107,6 +108,12 @@ def main():
         run(["git", "clone", "--no-hardlinks", "--no-checkout", "--config", "core.autocrlf=false", "--config", "core.longpaths=true",
              str(ROOT), str(mlp_source)], ROOT, output / "mlp_clone.log")
         run(["git", "checkout", "--detach", mlp_commit], mlp_source, output / "mlp_checkout.log")
+        # The analysis was added after the execution commit. Use the delivered
+        # analysis with the untouched historical runner it authenticates.
+        mlp_analysis = ROOT / "scripts/summarize_mlp_optimization_diagnostic.py"
+        shutil.copyfile(mlp_analysis, mlp_source / "scripts" / mlp_analysis.name)
+        report["mlp_analysis_sha256"] = file_sha256(mlp_analysis)
+        report["mlp_runner_source_commit"] = mlp_commit
         mlp_out = output / "mlp_summary"
         run([python, "scripts/summarize_mlp_optimization_diagnostic.py", "--run-root", str(controls / "mlp"),
              "--data-root", str(data), "--preprocessing-root", str(controls / "preprocessing"),
