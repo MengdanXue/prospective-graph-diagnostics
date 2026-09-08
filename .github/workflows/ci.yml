@@ -30,6 +30,7 @@ jobs:
             tests.test_degree_preserving_shuffle \
             tests.test_public_release_builder \
             tests.test_tmlr_manuscript \
+            tests.test_training_diagnostic_manuscript \
             tests.test_portfolio_robustness \
             tests.test_preprocessing_sensitivity \
             tests.test_release_v2_entry \

@@ -14,6 +14,9 @@ A post-hoc sensitivity analysis restricts the graph action to each individual ar
 \paragraph{Architecture selection helps locate, rather than prove, a mismatch.}
 H2GCN, LINKX, and GPR-GNN are validation-selected within the graph portfolio in 95 of the 110 units, including every unit on PubMed and Coauthor-CS. This count describes graph-architecture selection, not 95 graph-versus-MLP victories. Four datasets account for 95.1\% of the combined rule's regret; their training-label homophily lies below the frozen threshold and the rule declines the graph action on all 40 units. This concentration is consistent with a mismatch between the fixed threshold and the portfolio it governs. It neither identifies a universal mechanism nor rules out alternative thresholds, non-monotone rules, richer diagnostics, or learned selectors.
 
+\paragraph{Training choices limit the interpretation.}
+Post-hoc raw-feature retraining on Roman-empire and Amazon-ratings substantially improves MLP test accuracy, but the graph portfolio remains the preferred action in the recorded comparisons. Further training/validation-only diagnostics recover normalized-feature MLP performance through a change of input parameterization and expose variability in repeated graph-model training. These checks constrain the size and interpretation of the graph--MLP gap; they do not independently confirm the portfolio findings or establish a new preprocessing method (Section~\ref{sec:preprocessing_sensitivity} and Appendix~\ref{app:training_diagnostics}).
+
 The paper offers three contributions:
 \begin{enumerate}
     \item \textbf{An empirical study of portfolio-dependent diagnostic value.} A frozen decision benchmark and explicitly post-hoc single-architecture comparisons show how the relative regret of an unchanged rule varies with the graph action. We report all six restrictions, all 63 nonempty candidate subsets, dataset exclusions, and a held-out threshold control, including results that favor the diagnostic over always-graph.
@@ -21,4 +24,4 @@ The paper offers three contributions:
     \item \textbf{Evidence separating graph signal from diagnostic value.} A degree-preserving intervention reduces GCN test accuracy by 45.5, 29.9, and 17.3 points on Cora, CiteSeer, and PubMed. This shows sensitivity to non-degree edge organization in those settings, without identifying homophily as the causal attribute.
 \end{enumerate}
 
-The original frozen comparison remains the confirmatory analysis. Portfolio restrictions and architecture-selection summaries are exploratory analyses of the same records; they motivate validation on independent datasets rather than replacing it.
+The original frozen comparison remains the confirmatory analysis. Portfolio restrictions and architecture-selection summaries are exploratory analyses of the same records. The separately run preprocessing and training diagnostics are also post-hoc; their test and validation results are reported separately. These analyses motivate validation on independent datasets rather than replacing it.

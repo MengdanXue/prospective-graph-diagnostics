@@ -1,0 +1,26 @@
+{
+  "schema_version": "1.0",
+  "run_id": "training_reproducibility_audit_v1",
+  "design_date": "2026-09-08",
+  "purpose": "Bounded post-hoc validation-only audit of independent-worker repeatability; does not replace the completed graph diagnostic or establish general causal attribution.",
+  "dataset": "Roman-empire",
+  "dataset_specification": {"filename": "roman_empire.npz", "shape": [22662, 300], "sha256": "a58ba741d123bf892fe5c872138d07463d75a2e9012360b8dd78ac2d4766d428"},
+  "training": {"hidden_channels": 64, "max_epochs": 500, "patience": 100, "weight_decay": 0.0005},
+  "trials": {"trial_001": {"learning_rate": 0.01, "dropout": 0.7}, "trial_003": {"learning_rate": 0.005, "dropout": 0.7}},
+  "groups": [
+    {"group_id": "linkx_normalized_trial001_cuda", "model": "LINKX", "condition": "normalize_features", "seed": 4, "trial_id": "trial_001", "backend": "cuda_default", "repeats": 3},
+    {"group_id": "linkx_normalized_trial003_cuda", "model": "LINKX", "condition": "normalize_features", "seed": 4, "trial_id": "trial_003", "backend": "cuda_default", "repeats": 3},
+    {"group_id": "linkx_normalized_trial001_deterministic", "model": "LINKX", "condition": "normalize_features", "seed": 4, "trial_id": "trial_001", "backend": "cuda_deterministic", "repeats": 3},
+    {"group_id": "linkx_normalized_trial003_deterministic", "model": "LINKX", "condition": "normalize_features", "seed": 4, "trial_id": "trial_003", "backend": "cuda_deterministic", "repeats": 3},
+    {"group_id": "linkx_raw_deterministic", "model": "LINKX", "condition": "raw", "seed": 4, "trial_id": "trial_001", "backend": "cuda_deterministic", "repeats": 2},
+    {"group_id": "linkx_centered_scaled_deterministic", "model": "LINKX", "condition": "normalize_centered_scaled", "seed": 4, "trial_id": "trial_001", "backend": "cuda_deterministic", "repeats": 2},
+    {"group_id": "mlp_normalized_deterministic", "model": "MLP", "condition": "normalize_features", "seed": 4, "trial_id": "trial_001", "backend": "cuda_deterministic", "repeats": 2},
+    {"group_id": "gat_normalized_seed9_deterministic", "model": "GAT", "condition": "normalize_features", "seed": 9, "trial_id": "trial_001", "backend": "cuda_deterministic", "repeats": 2},
+    {"group_id": "linkx_normalized_cpu_short", "model": "LINKX", "condition": "normalize_features", "seed": 4, "trial_id": "trial_001", "backend": "cpu", "repeats": 2, "max_epochs": 12}
+  ],
+  "expected_workers": 22,
+  "execution": {"independent_process_per_repeat": true, "sequential_workers": true, "torch_num_threads": 4, "cpu_max_epochs": 12, "failure_policy": "Record failure and continue all other frozen workers; no outcome-dependent expansion or replacement."},
+  "deterministic_backend": {"CUBLAS_WORKSPACE_CONFIG": ":4096:8", "set_environment_before_torch_import": true, "use_deterministic_algorithms": true, "cudnn_benchmark": false, "cudnn_deterministic": true, "allow_tf32": false},
+  "instrumentation": {"early_epochs": [0, 1, 2, 3, 4, 9, 11], "fixed_checkpoint_forward_repeats": 5, "save_initial_and_selected_state_dict": true, "hash_parameters_and_buffers": true, "hash_early_gradients_logits_rng_and_state": true, "save_complete_epoch_history": true, "test_evaluations": 0},
+  "interpretation": {"same_backend_repeatability_only": true, "cpu_gpu_equality_required": false, "different_seed_equality_required": false, "original_results_immutable": true, "direction_check": "Within seed4 and trial001, compare deterministic LINKX raw, normalized, centered-scaled validation outcomes descriptively; this is not the original four-trial selection or a full 10-seed rerun.", "limitations": "Instrumentation synchronizes CUDA for hashes and can change scheduling. Backend intervention bundles deterministic algorithms, CuBLAS and recorded cuDNN/TF32 settings; it cannot identify one universal kernel or mechanism."}
+}
