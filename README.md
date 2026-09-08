@@ -280,3 +280,8 @@ remaining claim limits. The submitted Neurocomputing source is preserved.
 
 The manuscript's three new numerical tables are checked against their JSON
 summaries by `tests.test_training_diagnostic_manuscript`, included in CI.
+
+The [handoff guide](docs/revision_handoff.md) is the entry point for the
+integrated source, manuscript, supplementary archives, and clean-checkout
+verification commands. It distinguishes record reconstruction from training
+replication and keeps the pending author review explicit.

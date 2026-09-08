@@ -57,7 +57,9 @@ def require(condition: bool, message: str) -> None:
 def add_entry(entries: dict[str, bytes], name: str, data: bytes) -> None:
     normalized = str(PurePosixPath(name))
     require(
-        normalized == name and not normalized.startswith("../") and normalized != ".",
+        normalized == name and not PurePosixPath(name).is_absolute()
+        and not any(part in (".", "..") for part in name.split("/"))
+        and "\\" not in name and ":" not in name,
         f"unsafe archive path: {name}",
     )
     require(normalized not in entries, f"duplicate archive path: {normalized}")
@@ -301,25 +303,55 @@ def hash_manifest(entries: dict[str, bytes], metadata: dict[str, Any]) -> bytes:
 
 
 def readme(package_name: str, package_kind: str) -> str:
-    controls = package_kind == "controls"
-    return f"""# {package_name}\n\nThis archive contains frozen JSON records and exact source/configuration provenance for the {package_kind} diagnostic. It deliberately excludes NPZ datasets, virtual environments, and generated caches; the reliability-audit package intentionally retains its worker state/log artifacts as raw output.\n\n## Verify the archive\n\n`hash_manifest.json` lists every archive entry except itself. After extraction, recompute each listed SHA-256 before using a record. The external `.sha256` file authenticates the ZIP byte stream.\n\n## Rebuild or inspect\n\nThe `run_manifest.json` and `complete.json` files are the authoritative scope and completion bindings. The records contain only the partitions declared by the manifest. The graph and MLP diagnostics bind `test_evaluations_after_selection` to zero; no test predictions are present in those packages.\n\nThe `source_snapshot/` tree is read directly from the commit recorded by the run manifest. Use a Git worktree at that commit, or copy the snapshot into a clean checkout preserving its relative paths, to inspect or run the frozen runner. Do not edit the current runner to chase a new hash. The archived source is the executable provenance for this record set.\n\nThe package does not include the two NPZ inputs. Obtain files named in the frozen config separately and verify their SHA-256 before a full reconstruction. A full summary rerun also needs the repository's frozen audit referenced by the summarizer and the analysis dependencies.\n\n{('The preprocessing control records are retained here as supplementary evidence. They intentionally report one post-selection test evaluation per record; this is disclosed in their manifest and is not part of the validation-only graph/MLP claim.' if controls else 'The graph package contains 420 records (2 datasets × 10 seeds × 7 models × 3 conditions), its run manifest, completion marker, frozen config, generated summary, and historical source snapshot.') }\n"""
+    scopes = {
+        "graph parameterization": "This package contains 420 completed graph/MLP records (2 datasets, 10 seeds, 7 models, 3 conditions) with zero test evaluations. The separate initial_attempt_198/ directory retains a failed attempt for audit history only; its 198 partial records are excluded from every completed-run summary.",
+        "supplementary controls": "This package contains 200 validation-only MLP records and 280 preprocessing control records. The preprocessing records have one post-selection test evaluation per record; the MLP records have zero. These scopes remain separate.",
+        "reliability audit": "This package contains 22 completed independent workers, with zero test evaluations. Worker state dictionaries and logits are retained as raw audit output. The originally untracked audit script is stored under audit/source_snapshot/working_tree_exact/ with its recorded digest; other source files come from the recorded Git commit.",
+    }
+    return f"""# {package_name}
+
+{scopes[package_kind]}
+
+## Verify
+
+`hash_manifest.json` covers every entry except itself, including this README.
+The adjacent `.sha256` file records the digest of the complete ZIP byte stream.
+Run `python scripts/verify_diagnostic_artifacts.py --assets-dir <assets>` from
+the accompanying source checkout before extracting the three archives.
+
+## Rebuild
+
+The run manifest, frozen configuration, completion marker, and source bindings
+record the executed scope. Historical source snapshots preserve the exact
+bytes used by each run. The accompanying source.bundle contains the public
+repository history, including those source commits and the current analysis
+code. See docs/revision_handoff.md in that checkout for the complete commands.
+
+NPZ inputs, virtual environments, and generated caches are excluded. Obtain the
+two NPZ files separately as described in the frozen configs and verify their
+SHA-256 digests for feature reconstruction. Archive integrity and audit-group
+summary checks do not require training or access to the NPZ inputs.
+"""
 
 
 def write_zip(path: Path, entries: dict[str, bytes], metadata: dict[str, Any]) -> dict[str, Any]:
     path.parent.mkdir(parents=True, exist_ok=True)
-    manifest = hash_manifest(entries, metadata)
+    digest_path = path.with_suffix(path.suffix + ".sha256")
+    if path.exists() or digest_path.exists():
+        raise FileExistsError(f"use a new output directory; refusing to replace {path}")
     all_entries = dict(entries)
-    all_entries["hash_manifest.json"] = manifest
     readme_data = readme(metadata["package_name"], metadata["package_kind"]).encode("utf-8")
-    all_entries["README_rebuild.md"] = readme_data
-    with zipfile.ZipFile(path, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=9) as archive:
+    add_entry(all_entries, "README_rebuild.md", readme_data)
+    add_entry(all_entries, "hash_manifest.json", hash_manifest(all_entries, metadata))
+    with zipfile.ZipFile(path, "x", compression=zipfile.ZIP_DEFLATED, compresslevel=9) as archive:
         for name in sorted(all_entries):
             info = zipfile.ZipInfo(name, ZIP_EPOCH)
             info.compress_type = zipfile.ZIP_DEFLATED
             info.external_attr = 0o100644 << 16
             archive.writestr(info, all_entries[name])
     digest = sha256(path.read_bytes())
-    path.with_suffix(path.suffix + ".sha256").write_text(f"{digest}  {path.name}\n", encoding="ascii")
+    with digest_path.open("x", encoding="ascii", newline="\n") as handle:
+        handle.write(f"{digest}  {path.name}\n")
     return {"path": str(path), "sha256": digest, "entries": len(all_entries), "bytes": path.stat().st_size}
 
 
