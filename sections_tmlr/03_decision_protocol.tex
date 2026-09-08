@@ -40,7 +40,7 @@ Selection and test & Validation accuracy descending, validation loss ascending, 
 \end{tabular}
 \end{table}
 
-The split is stratified 60/20/20 for train/validation/test and is regenerated deterministically for seeds 0--9. Every unit stores the source commit, canonical configuration digest, processed-data checksums, split identifier, four trial records, selected checkpoint, and environment provenance. The v1 and v2 JSON specifications differ only in the pre-outcome eligibility amendment described in Section~\ref{sec:prospective}; the later Squirrel amendment changes only the execution timeout.
+The split targets 60/20/20 for train/validation/test and is regenerated deterministically for seeds 0--9. Integer per-class floors and the requirement of at least one validation and two test examples make the realized proportions approximate, especially for small WebKB graphs; the actual counts are reported in the reproducibility summary. Every unit stores the source commit, canonical configuration digest, processed-data checksums, split identifier, four trial records, selected checkpoint, and environment provenance. The v1 and v2 JSON specifications differ only in the pre-outcome eligibility amendment described in Section~\ref{sec:prospective}; the later Squirrel amendment changes only the execution timeout.
 
 AI-assisted tools supported software review, test development, reproducibility checks, and editorial work but did not generate experimental data or make reporting decisions. All reported experiments were executed under the frozen protocol, and the author independently verified the code, artifacts, analyses, and manuscript claims.
 

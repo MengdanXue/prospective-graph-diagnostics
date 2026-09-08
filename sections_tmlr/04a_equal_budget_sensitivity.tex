@@ -98,3 +98,27 @@ Six architectures & 7.46 & 2.41 & 0.26 \\
 \end{table}
 
 Calibration lowers mean regret relative to the frozen rule in all seven rows, including from 7.46 to 2.41 points for the full portfolio, but still exceeds its always-graph regret of 0.26. It also improves slightly on always-graph for GPR-GNN, unlike the frozen threshold. These results argue against interpreting failure of the frozen cutoff as failure of every threshold. The control was designed after inspection of the original benchmark, its training folds overlap, and graph domains may be related. It is a stronger threshold baseline, not a representative comparison with all published diagnostic methods or evidence of stable external validity. We attach no new confirmatory significance claim to these post-hoc comparisons.
+
+\subsection{Feature Preprocessing Sensitivity}
+\label{sec:preprocessing_sensitivity}
+
+The frozen run applies PyG 2.7.0 \texttt{NormalizeFeatures} to every dataset on load. This transform subtracts the global minimum of the feature matrix and normalizes each row to sum to one, a convenient common choice that is not a neutral operation for the continuous features in the Heterophilous Graph Dataset. We therefore retrained all seven architectures for ten seeds on Roman-empire and Amazon-ratings under the frozen transform and under raw features, keeping the graph, splits, seeds, trial grid, checkpoint rule, and device paired. This is a post-hoc two-dataset sensitivity experiment; it does not replace the frozen 11-dataset benchmark or support a population-wide preprocessing claim.
+
+\begin{table}[t]
+\centering
+\caption{Post-hoc paired feature-preprocessing sensitivity on two heterophilous datasets. Values are mean test accuracy or full-set oracle regret in percentage points; graph targets are out of ten seeds. Each graph action still searches six architectures and 24 trials.}
+\label{tab:preprocessing_sensitivity}
+\small
+\begin{tabular}{@{}llrrrrr@{}}
+\toprule
+Dataset & Features & MLP & Graph & Graph--MLP & Combined regret & Graph targets \\
+\midrule
+Roman-empire & NormalizeFeatures & 16.71 & 42.16 & 25.45 & 25.45 & 10/10 \\
+Roman-empire & Raw & 66.19 & 80.96 & 14.77 & 14.77 & 10/10 \\
+Amazon-ratings & NormalizeFeatures & 36.76 & 53.06 & 16.30 & 16.30 & 10/10 \\
+Amazon-ratings & Raw & 41.35 & 53.17 & 11.82 & 11.82 & 10/10 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Raw features raise selected MLP accuracy by 49.48 points on Roman-empire and 4.59 points on Amazon-ratings, while the selected graph changes by 38.81 and 0.11 points, respectively. The graph portfolio remains the better action in all 20 paired units under both conditions, so always-graph and validation selection have zero regret in this restricted sensitivity set; the homophily rule still selects MLP because both datasets lie below $h_1=0.55$. The result shows that the frozen preprocessing choice materially changes the graph--MLP estimand on these two datasets. It does not show that normalization caused the full benchmark's negative result, because the comparison covers only two selected datasets and remains post-hoc.
