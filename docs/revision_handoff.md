@@ -8,12 +8,15 @@ that the author has already completed that review.
 
 ## Package layout and version
 
-- `manuscript/main_tmlr.pdf`: compiled revision for reading.
+- `output/pdf/main_tmlr.pdf`: compiled editorial revision for reading. The
+  earlier complete package used `manuscript/main_tmlr.pdf`.
 - `source.bundle`: Git history containing the integrated revision and every
   public-repository historical commit referenced by the supplementary runs.
 - `source.zip`: the same revision's tracked files for convenient inspection.
 - `assets/`: three diagnostic ZIPs and adjacent SHA-256 files.
-- `verification/`: test, manuscript-build, and clean-checkout reconstruction logs.
+- `verification/`: checks for the delivered revision. In the editorial package,
+  `previous-evidence/` retains the preceding reconstruction reports; version
+  metadata distinguishes those checks from the current manuscript checks.
 - `VERSION.json`: exact source commit and validation scope.
 - `SHA256SUMS.txt`: digests for the delivered files, excluding itself.
 
