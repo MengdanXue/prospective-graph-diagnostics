@@ -56,3 +56,10 @@ TMLR 官方标准强调可信证据以及对部分读者的研究价值，允许
 TMLR 不接受与作者已发表、已接受或在其他档案型同行评审渠道并行投稿的论文复用文字、图表或结果，也不接受会议扩展版。当前稿件仍在 Neurocomputing 审理时，本分支仅用于修订或条件性转投准备；被拒或正式撤回后再核对转投资格。若原稿被接受，不能默认把复用相同结果的分支作为第二篇 TMLR 论文。政策核对于 2026-09-07：[TMLR 原创性与并行投稿政策](https://jmlr.org/tmlr/editorial-policies.html)。本次没有执行撤稿、投稿或期刊通信。
 
 CI 现在从固定 SHA-256 的公开 v0.1.0 归档重建敏感性结果，并用固定版本 Tectonic 编译 TMLR 草稿、阻止未定义引用、重复标签和越界盒。AI 使用声明按本次修订范围保留。
+
+## 预处理敏感性结果
+
+针对评审提出的 `NormalizeFeatures` 适用性问题，已在独立的 post-hoc run 中对 Roman-empire 与 Amazon-ratings 重训 raw features 和 PyG 2.7.0 `NormalizeFeatures` 两种条件，保持相同十个 split、七个模型、四次 trial 和单次 test 评估。280 条选中模型记录全部完成并通过 scope/provenance 校验。
+
+结果显示 raw features 相对归一化使 Roman-empire 的 MLP 平均测试准确率提高 49.48 个百分点、graph 提高 38.81 个百分点；Amazon-ratings 的对应变化为 4.59 和 0.11 个百分点。两图在两种条件下都是 10/10 的 graph target，因此该敏感性集内 always-graph 与 validation selection regret 都为零，而 homophily 规则仍因 $h_1<0.55$ 选择 MLP。它证明冻结的预处理会改变这两个数据集上的 graph--MLP estimand，但不证明它单独造成了 11 数据集主结果，也不能作为独立数据集验证。摘要文件为 `results/diagnostic/route_a_prospective_v2/analysis/preprocessing_sensitivity.json`，设计与运行边界见 `docs/preprocessing_sensitivity_plan.md`。
+
