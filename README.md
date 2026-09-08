@@ -244,3 +244,11 @@ The plan includes execution and strict reconstruction commands. The preceding
 280-record integrity audit is stored in
 `results/diagnostic/route_a_prospective_v2/analysis/preprocessing_record_audit.json`;
 the prior scientific summary was reproduced exactly.
+
+The completed 200-record diagnostic and descriptive contrasts are under
+`results/diagnostic/posthoc_mlp_optimization_v1/analysis/`.
+The [interpretation and scope](docs/mlp_optimization_diagnostic_review.md) explain
+the direct prediction-distribution evidence and the joint scale/centering effect.
+All 40 original-parameterization controls reproduced their validation metrics and
+selected trials exactly. These validation-only results do not replace the frozen
+benchmark or establish graph-model or test-generalization claims.

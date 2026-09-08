@@ -9,6 +9,11 @@ ROOT = Path(__file__).resolve().parents[1]
 ALLOWED_RESULTS = {
     "results/diagnostic/route_a_prospective_v2/analysis/portfolio_robustness.json",
     "results/diagnostic/route_a_prospective_v2/analysis/preprocessing_sensitivity.json",
+    "results/diagnostic/route_a_prospective_v2/analysis/preprocessing_record_audit.json",
+    "results/diagnostic/posthoc_mlp_optimization_v1/analysis/mlp_optimization_diagnostic_summary.json",
+    "results/diagnostic/posthoc_mlp_optimization_v1/analysis/mlp_optimization_diagnostic_summary.md",
+    "results/diagnostic/posthoc_mlp_optimization_v1/analysis/mlp_optimization_validation.png",
+    "results/diagnostic/posthoc_mlp_optimization_v1/analysis/mlp_optimization_validation.svg",
     "results/diagnostic/route_a_degree_matched_v1/summary/summary.json",
     "results/diagnostic/route_a_prospective_v2/analysis/diagnostic_audit.json",
     "results/diagnostic/route_a_prospective_v2/analysis/equal_budget_sensitivity.json",
