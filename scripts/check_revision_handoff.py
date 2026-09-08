@@ -38,6 +38,21 @@ def run(command, cwd, log):
     require(process.returncode == 0, f"command failed; inspect {log}")
 
 
+def compare_preprocessing_summary(actual, expected):
+    # Later validators add audit metadata to this older published summary.
+    # Compare every original field exactly and retain the new validation in
+    # the verification report instead of rewriting the historical result.
+    comparable = json.loads(json.dumps(actual))
+    validation = comparable["source_run"].get("validation")
+    if "validation" not in expected["source_run"]:
+        require(isinstance(validation, dict) and validation.get("status") == "validated"
+                and validation.get("record_count") == 280 and validation.get("raw_npz_hashes_checked") is True,
+                "missing preprocessing reconstruction validation")
+        comparable["source_run"].pop("validation")
+    require(comparable == expected, "preprocessing summary differs from tracked result")
+    return validation
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--assets-dir", type=Path, required=True)
@@ -84,7 +99,7 @@ def main():
         run([python, "scripts/summarize_preprocessing_sensitivity.py", "--root", str(controls / "preprocessing"),
              "--data-root", str(data), "--output", str(pre_out)], ROOT, output / "preprocessing.log")
         expected_pre = ROOT / "results/diagnostic/route_a_prospective_v2/analysis/preprocessing_sensitivity.json"
-        require(load(pre_out) == load(expected_pre), "preprocessing summary differs from tracked result")
+        report["preprocessing_validation"] = compare_preprocessing_summary(load(pre_out), load(expected_pre))
         # The MLP summarizer verifies the executable bytes from its own run.
         # A historical checkout avoids substituting the later graph helper.
         mlp_source = output / "mlp_source"
