@@ -33,7 +33,8 @@ def main():
     args.output_root.mkdir(parents=True, exist_ok=True)
     plt.rcParams.update({"font.family": "DejaVu Sans", "font.size": 10,
                          "axes.spines.top": False, "axes.spines.right": False,
-                         "axes.spines.left": False, "svg.fonttype": "none"})
+                         "axes.spines.left": False, "svg.fonttype": "none",
+                         "svg.hashsalt": summary["config_sha256"]})
     fig, axes = plt.subplots(1, 2, figsize=(12.8, 5.0), sharey=True)
     positions = np.arange(len(CONDITIONS))
     for ax, dataset in zip(axes, ("Roman-empire", "Amazon-ratings")):
@@ -72,6 +73,9 @@ def main():
     fig.savefig(outputs[0], dpi=220, facecolor="white")
     fig.savefig(outputs[1], facecolor="white", metadata={"Date": None,
                 "Description": f"Validation-only MLP diagnostic; config SHA256 {summary['config_sha256']}"})
+    svg_text = outputs[1].read_text(encoding="utf-8")
+    outputs[1].write_text("\n".join(line.rstrip() for line in svg_text.splitlines()) + "\n",
+                          encoding="utf-8", newline="\n")
     plt.close(fig)
     print(json.dumps({"figures": [str(path) for path in outputs]}))
 
