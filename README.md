@@ -252,3 +252,31 @@ the direct prediction-distribution evidence and the joint scale/centering effect
 All 40 original-parameterization controls reproduced their validation metrics and
 selected trials exactly. These validation-only results do not replace the frozen
 benchmark or establish graph-model or test-generalization claims.
+
+### Revision package and bounded reliability audit (2026-09-08)
+
+The revision now integrates the preprocessing sensitivity in the main text and
+the 200-record MLP and 420-record architecture diagnoses in
+`sections_tmlr/10_training_diagnostics.tex`. These follow-up diagnoses use only
+training and validation labels. They are post-hoc evidence about the training
+protocol, not independent confirmation or a new preprocessing algorithm.
+
+A separately frozen 22-process audit reproduces large LINKX training variation
+under default CUDA from identical initial states and RNG states. The specified
+deterministic configuration gives identical histories and selected checkpoints
+within the tested repeat groups. This does not certify every historical run or
+all architectures. The [audit report](docs/graph_parameterization_nondeterminism_audit.md)
+and compact `results/diagnostic/training_reproducibility_audit_v1/analysis/audit_summary.json`
+record the exact scope. Full records, model states and historical source snapshots
+are distributed separately from compact Git results.
+
+The [artifact manifest](docs/diagnostic_artifact_manifest.md) describes the three
+local supplementary archives and their hashes. The
+[revision response pack](docs/revision_response_pack.md) contains ten anticipated
+reviewer concerns with evidence-backed English response drafts; these are internal
+preparation, not received reviews or correspondence. The
+[delivery note](docs/revision_delivery_2026-09-08.md) records the one-paper scope and
+remaining claim limits. The submitted Neurocomputing source is preserved.
+
+The manuscript's three new numerical tables are checked against their JSON
+summaries by `tests.test_training_diagnostic_manuscript`, included in CI.

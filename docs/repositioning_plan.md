@@ -59,6 +59,14 @@ CI 现在从固定 SHA-256 的公开 v0.1.0 归档重建敏感性结果，并用
 
 ## 预处理敏感性结果
 
-针对评审提出的 `NormalizeFeatures` 适用性问题，已在独立的 post-hoc run 中对 Roman-empire 与 Amazon-ratings 重训 raw features 和 PyG 2.7.0 `NormalizeFeatures` 两种条件，保持相同十个 split、七个模型、四次 trial 和单次 test 评估。280 条选中模型记录全部完成并通过 scope/provenance 校验。
+针对内部复核发现的 `NormalizeFeatures` 适用性问题，已在单独执行的 post-hoc run 中对 Roman-empire 与 Amazon-ratings 重训 raw features 和 PyG 2.7.0 `NormalizeFeatures` 两种条件，保持相同十个 split、七个模型、四次 trial 和单次 test 评估。280 条选中模型记录全部完成并通过 scope/provenance 校验。
 
 结果显示 raw features 相对归一化使 Roman-empire 的 MLP 平均测试准确率提高 49.48 个百分点、graph 提高 38.81 个百分点；Amazon-ratings 的对应变化为 4.59 和 0.11 个百分点。两图在两种条件下都是 10/10 的 graph target，因此该敏感性集内 always-graph 与 validation selection regret 都为零，而 homophily 规则仍因 $h_1<0.55$ 选择 MLP。它证明冻结的预处理会改变这两个数据集上的 graph--MLP estimand，但不证明它单独造成了 11 数据集主结果，也不能作为独立数据集验证。摘要文件为 `results/diagnostic/route_a_prospective_v2/analysis/preprocessing_sensitivity.json`，设计与运行边界见 `docs/preprocessing_sensitivity_plan.md`。
+
+## 2026-09-08 收尾决定
+
+当前交付目标固定为一篇论文的完整修订包。原投稿保留；`main_tmlr.tex` 作为内部修订入口，文件名不表示另行投稿。新增 200 条 MLP 和 420 条架构诊断以验证集证据纳入附录，不作为独立新算法论文。
+
+一轮事先固定的 22 进程审计已完成，实际复现默认 CUDA 下 LINKX 的大幅波动；指定确定性配置在所测重复组内实现训练历史与选中权重逐位一致。原始结果和失败尝试均保留，审计结果不替换原先四试验选点。原 770 条记录与新审计的硬件、CUDA 版本不同，不能外推其重复性结论。
+
+下一阶段以作者审阅整稿和实际审稿意见为依据。独立数据、代表性诊断方法和等资源实验仍是扩大主张的候选工作；完成当前修订包不自动触发这些实验。交付内容见 [修订交付说明](revision_delivery_2026-09-08.md)。

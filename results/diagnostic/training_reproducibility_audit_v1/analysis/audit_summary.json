@@ -1,0 +1,982 @@
+{
+  "config": {
+    "dataset": "Roman-empire",
+    "dataset_specification": {
+      "filename": "roman_empire.npz",
+      "sha256": "a58ba741d123bf892fe5c872138d07463d75a2e9012360b8dd78ac2d4766d428",
+      "shape": [
+        22662,
+        300
+      ]
+    },
+    "design_date": "2026-09-08",
+    "deterministic_backend": {
+      "CUBLAS_WORKSPACE_CONFIG": ":4096:8",
+      "allow_tf32": false,
+      "cudnn_benchmark": false,
+      "cudnn_deterministic": true,
+      "set_environment_before_torch_import": true,
+      "use_deterministic_algorithms": true
+    },
+    "execution": {
+      "cpu_max_epochs": 12,
+      "failure_policy": "Record failure and continue all other frozen workers; no outcome-dependent expansion or replacement.",
+      "independent_process_per_repeat": true,
+      "sequential_workers": true,
+      "torch_num_threads": 4
+    },
+    "expected_workers": 22,
+    "groups": [
+      {
+        "backend": "cuda_default",
+        "condition": "normalize_features",
+        "group_id": "linkx_normalized_trial001_cuda",
+        "model": "LINKX",
+        "repeats": 3,
+        "seed": 4,
+        "trial_id": "trial_001"
+      },
+      {
+        "backend": "cuda_default",
+        "condition": "normalize_features",
+        "group_id": "linkx_normalized_trial003_cuda",
+        "model": "LINKX",
+        "repeats": 3,
+        "seed": 4,
+        "trial_id": "trial_003"
+      },
+      {
+        "backend": "cuda_deterministic",
+        "condition": "normalize_features",
+        "group_id": "linkx_normalized_trial001_deterministic",
+        "model": "LINKX",
+        "repeats": 3,
+        "seed": 4,
+        "trial_id": "trial_001"
+      },
+      {
+        "backend": "cuda_deterministic",
+        "condition": "normalize_features",
+        "group_id": "linkx_normalized_trial003_deterministic",
+        "model": "LINKX",
+        "repeats": 3,
+        "seed": 4,
+        "trial_id": "trial_003"
+      },
+      {
+        "backend": "cuda_deterministic",
+        "condition": "raw",
+        "group_id": "linkx_raw_deterministic",
+        "model": "LINKX",
+        "repeats": 2,
+        "seed": 4,
+        "trial_id": "trial_001"
+      },
+      {
+        "backend": "cuda_deterministic",
+        "condition": "normalize_centered_scaled",
+        "group_id": "linkx_centered_scaled_deterministic",
+        "model": "LINKX",
+        "repeats": 2,
+        "seed": 4,
+        "trial_id": "trial_001"
+      },
+      {
+        "backend": "cuda_deterministic",
+        "condition": "normalize_features",
+        "group_id": "mlp_normalized_deterministic",
+        "model": "MLP",
+        "repeats": 2,
+        "seed": 4,
+        "trial_id": "trial_001"
+      },
+      {
+        "backend": "cuda_deterministic",
+        "condition": "normalize_features",
+        "group_id": "gat_normalized_seed9_deterministic",
+        "model": "GAT",
+        "repeats": 2,
+        "seed": 9,
+        "trial_id": "trial_001"
+      },
+      {
+        "backend": "cpu",
+        "condition": "normalize_features",
+        "group_id": "linkx_normalized_cpu_short",
+        "max_epochs": 12,
+        "model": "LINKX",
+        "repeats": 2,
+        "seed": 4,
+        "trial_id": "trial_001"
+      }
+    ],
+    "instrumentation": {
+      "early_epochs": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        9,
+        11
+      ],
+      "fixed_checkpoint_forward_repeats": 5,
+      "hash_early_gradients_logits_rng_and_state": true,
+      "hash_parameters_and_buffers": true,
+      "save_complete_epoch_history": true,
+      "save_initial_and_selected_state_dict": true,
+      "test_evaluations": 0
+    },
+    "interpretation": {
+      "cpu_gpu_equality_required": false,
+      "different_seed_equality_required": false,
+      "direction_check": "Within seed4 and trial001, compare deterministic LINKX raw, normalized, centered-scaled validation outcomes descriptively; this is not the original four-trial selection or a full 10-seed rerun.",
+      "limitations": "Instrumentation synchronizes CUDA for hashes and can change scheduling. Backend intervention bundles deterministic algorithms, CuBLAS and recorded cuDNN/TF32 settings; it cannot identify one universal kernel or mechanism.",
+      "original_results_immutable": true,
+      "same_backend_repeatability_only": true
+    },
+    "purpose": "Bounded post-hoc validation-only audit of independent-worker repeatability; does not replace the completed graph diagnostic or establish general causal attribution.",
+    "run_id": "training_reproducibility_audit_v1",
+    "schema_version": "1.0",
+    "training": {
+      "hidden_channels": 64,
+      "max_epochs": 500,
+      "patience": 100,
+      "weight_decay": 0.0005
+    },
+    "trials": {
+      "trial_001": {
+        "dropout": 0.7,
+        "learning_rate": 0.01
+      },
+      "trial_003": {
+        "dropout": 0.7,
+        "learning_rate": 0.005
+      }
+    }
+  },
+  "full_summary_bytes": 2537106,
+  "full_summary_sha256": "17af44a2535bfbcb6be62eb0b99ae9ae9a2b06c8ede7f4426805da30dad4475c",
+  "groups": [
+    {
+      "accuracy_range": 0.2681848406791687,
+      "backend": "cuda_default",
+      "best_epoch": [
+        3,
+        190,
+        4
+      ],
+      "condition": "normalize_features",
+      "epochs_completed": [
+        104,
+        291,
+        105
+      ],
+      "failure_count": 0,
+      "first_observed_early_divergence_epoch": {
+        "gradients": 0,
+        "post_step_state": 0,
+        "rng_before_train": null,
+        "train_logits_sha256": 0,
+        "validation_logits_sha256": 0
+      },
+      "group_id": "linkx_normalized_trial001_cuda",
+      "identical_histories": false,
+      "identical_initial_rng": true,
+      "identical_initial_states": true,
+      "identical_selected_states": false,
+      "max_fixed_checkpoint_logit_difference": 9.5367431640625e-06,
+      "max_fixed_checkpoint_prediction_disagreements": 0,
+      "model": "LINKX",
+      "repeats": 3,
+      "seed": 4,
+      "success_count": 3,
+      "trial_id": "trial_001",
+      "validation_accuracy": [
+        0.13840371370315552,
+        0.4065885543823242,
+        0.13862480223178864
+      ],
+      "validation_loss": [
+        2.8259987831115723,
+        4.744776725769043,
+        2.8131463527679443
+      ]
+    },
+    {
+      "accuracy_range": 0.14326775074005127,
+      "backend": "cuda_default",
+      "best_epoch": [
+        460,
+        176,
+        191
+      ],
+      "condition": "normalize_features",
+      "epochs_completed": [
+        500,
+        277,
+        292
+      ],
+      "failure_count": 0,
+      "first_observed_early_divergence_epoch": {
+        "gradients": 0,
+        "post_step_state": 0,
+        "rng_before_train": null,
+        "train_logits_sha256": 0,
+        "validation_logits_sha256": 0
+      },
+      "group_id": "linkx_normalized_trial003_cuda",
+      "identical_histories": false,
+      "identical_initial_rng": true,
+      "identical_initial_states": true,
+      "identical_selected_states": false,
+      "max_fixed_checkpoint_logit_difference": 1.52587890625e-05,
+      "max_fixed_checkpoint_prediction_disagreements": 0,
+      "model": "LINKX",
+      "repeats": 3,
+      "seed": 4,
+      "success_count": 3,
+      "trial_id": "trial_003",
+      "validation_accuracy": [
+        0.39995577931404114,
+        0.4264868497848511,
+        0.2832190990447998
+      ],
+      "validation_loss": [
+        3.823540449142456,
+        2.5070269107818604,
+        4.6932291984558105
+      ]
+    },
+    {
+      "accuracy_range": 0.0,
+      "backend": "cuda_deterministic",
+      "best_epoch": [
+        4,
+        4,
+        4
+      ],
+      "condition": "normalize_features",
+      "epochs_completed": [
+        105,
+        105,
+        105
+      ],
+      "failure_count": 0,
+      "first_observed_early_divergence_epoch": {
+        "gradients": null,
+        "post_step_state": null,
+        "rng_before_train": null,
+        "train_logits_sha256": null,
+        "validation_logits_sha256": null
+      },
+      "group_id": "linkx_normalized_trial001_deterministic",
+      "identical_histories": true,
+      "identical_initial_rng": true,
+      "identical_initial_states": true,
+      "identical_selected_states": true,
+      "max_fixed_checkpoint_logit_difference": 0.0,
+      "max_fixed_checkpoint_prediction_disagreements": 0,
+      "model": "LINKX",
+      "repeats": 3,
+      "seed": 4,
+      "success_count": 3,
+      "trial_id": "trial_001",
+      "validation_accuracy": [
+        0.13840371370315552,
+        0.13840371370315552,
+        0.13840371370315552
+      ],
+      "validation_loss": [
+        2.8110334873199463,
+        2.8110334873199463,
+        2.8110334873199463
+      ]
+    },
+    {
+      "accuracy_range": 0.0,
+      "backend": "cuda_deterministic",
+      "best_epoch": [
+        227,
+        227,
+        227
+      ],
+      "condition": "normalize_features",
+      "epochs_completed": [
+        328,
+        328,
+        328
+      ],
+      "failure_count": 0,
+      "first_observed_early_divergence_epoch": {
+        "gradients": null,
+        "post_step_state": null,
+        "rng_before_train": null,
+        "train_logits_sha256": null,
+        "validation_logits_sha256": null
+      },
+      "group_id": "linkx_normalized_trial003_deterministic",
+      "identical_histories": true,
+      "identical_initial_rng": true,
+      "identical_initial_states": true,
+      "identical_selected_states": true,
+      "max_fixed_checkpoint_logit_difference": 0.0,
+      "max_fixed_checkpoint_prediction_disagreements": 0,
+      "model": "LINKX",
+      "repeats": 3,
+      "seed": 4,
+      "success_count": 3,
+      "trial_id": "trial_003",
+      "validation_accuracy": [
+        0.42891886830329895,
+        0.42891886830329895,
+        0.42891886830329895
+      ],
+      "validation_loss": [
+        2.8704750537872314,
+        2.8704750537872314,
+        2.8704750537872314
+      ]
+    },
+    {
+      "accuracy_range": 0.0,
+      "backend": "cuda_deterministic",
+      "best_epoch": [
+        120,
+        120
+      ],
+      "condition": "raw",
+      "epochs_completed": [
+        221,
+        221
+      ],
+      "failure_count": 0,
+      "first_observed_early_divergence_epoch": {
+        "gradients": null,
+        "post_step_state": null,
+        "rng_before_train": null,
+        "train_logits_sha256": null,
+        "validation_logits_sha256": null
+      },
+      "group_id": "linkx_raw_deterministic",
+      "identical_histories": true,
+      "identical_initial_rng": true,
+      "identical_initial_states": true,
+      "identical_selected_states": true,
+      "max_fixed_checkpoint_logit_difference": 0.0,
+      "max_fixed_checkpoint_prediction_disagreements": 0,
+      "model": "LINKX",
+      "repeats": 2,
+      "seed": 4,
+      "success_count": 2,
+      "trial_id": "trial_001",
+      "validation_accuracy": [
+        0.6009286046028137,
+        0.6009286046028137
+      ],
+      "validation_loss": [
+        2.4255788326263428,
+        2.4255788326263428
+      ]
+    },
+    {
+      "accuracy_range": 0.0,
+      "backend": "cuda_deterministic",
+      "best_epoch": [
+        127,
+        127
+      ],
+      "condition": "normalize_centered_scaled",
+      "epochs_completed": [
+        228,
+        228
+      ],
+      "failure_count": 0,
+      "first_observed_early_divergence_epoch": {
+        "gradients": null,
+        "post_step_state": null,
+        "rng_before_train": null,
+        "train_logits_sha256": null,
+        "validation_logits_sha256": null
+      },
+      "group_id": "linkx_centered_scaled_deterministic",
+      "identical_histories": true,
+      "identical_initial_rng": true,
+      "identical_initial_states": true,
+      "identical_selected_states": true,
+      "max_fixed_checkpoint_logit_difference": 0.0,
+      "max_fixed_checkpoint_prediction_disagreements": 0,
+      "model": "LINKX",
+      "repeats": 2,
+      "seed": 4,
+      "success_count": 2,
+      "trial_id": "trial_001",
+      "validation_accuracy": [
+        0.5905372500419617,
+        0.5905372500419617
+      ],
+      "validation_loss": [
+        2.2474143505096436,
+        2.2474143505096436
+      ]
+    },
+    {
+      "accuracy_range": 0.0,
+      "backend": "cuda_deterministic",
+      "best_epoch": [
+        23,
+        23
+      ],
+      "condition": "normalize_features",
+      "epochs_completed": [
+        124,
+        124
+      ],
+      "failure_count": 0,
+      "first_observed_early_divergence_epoch": {
+        "gradients": null,
+        "post_step_state": null,
+        "rng_before_train": null,
+        "train_logits_sha256": null,
+        "validation_logits_sha256": null
+      },
+      "group_id": "mlp_normalized_deterministic",
+      "identical_histories": true,
+      "identical_initial_rng": true,
+      "identical_initial_states": true,
+      "identical_selected_states": true,
+      "max_fixed_checkpoint_logit_difference": 0.0,
+      "max_fixed_checkpoint_prediction_disagreements": 0,
+      "model": "MLP",
+      "repeats": 2,
+      "seed": 4,
+      "success_count": 2,
+      "trial_id": "trial_001",
+      "validation_accuracy": [
+        0.15144816040992737,
+        0.15144816040992737
+      ],
+      "validation_loss": [
+        2.620222806930542,
+        2.620222806930542
+      ]
+    },
+    {
+      "accuracy_range": 0.0,
+      "backend": "cuda_deterministic",
+      "best_epoch": [
+        492,
+        492
+      ],
+      "condition": "normalize_features",
+      "epochs_completed": [
+        500,
+        500
+      ],
+      "failure_count": 0,
+      "first_observed_early_divergence_epoch": {
+        "gradients": null,
+        "post_step_state": null,
+        "rng_before_train": null,
+        "train_logits_sha256": null,
+        "validation_logits_sha256": null
+      },
+      "group_id": "gat_normalized_seed9_deterministic",
+      "identical_histories": true,
+      "identical_initial_rng": true,
+      "identical_initial_states": true,
+      "identical_selected_states": true,
+      "max_fixed_checkpoint_logit_difference": 0.0,
+      "max_fixed_checkpoint_prediction_disagreements": 0,
+      "model": "GAT",
+      "repeats": 2,
+      "seed": 9,
+      "success_count": 2,
+      "trial_id": "trial_001",
+      "validation_accuracy": [
+        0.1397302746772766,
+        0.1397302746772766
+      ],
+      "validation_loss": [
+        2.6133463382720947,
+        2.6133463382720947
+      ]
+    },
+    {
+      "accuracy_range": 0.0,
+      "backend": "cpu",
+      "best_epoch": [
+        3,
+        3
+      ],
+      "condition": "normalize_features",
+      "epochs_completed": [
+        12,
+        12
+      ],
+      "failure_count": 0,
+      "first_observed_early_divergence_epoch": {
+        "gradients": null,
+        "post_step_state": null,
+        "rng_before_train": null,
+        "train_logits_sha256": null,
+        "validation_logits_sha256": null
+      },
+      "group_id": "linkx_normalized_cpu_short",
+      "identical_histories": true,
+      "identical_initial_rng": true,
+      "identical_initial_states": true,
+      "identical_selected_states": true,
+      "max_epochs": 12,
+      "max_fixed_checkpoint_logit_difference": 0.0,
+      "max_fixed_checkpoint_prediction_disagreements": 0,
+      "model": "LINKX",
+      "repeats": 2,
+      "seed": 4,
+      "success_count": 2,
+      "trial_id": "trial_001",
+      "validation_accuracy": [
+        0.13840371370315552,
+        0.13840371370315552
+      ],
+      "validation_loss": [
+        2.8289310932159424,
+        2.8289310932159424
+      ]
+    }
+  ],
+  "manifest": {
+    "argv": [
+      "scripts/audit_training_reproducibility.py",
+      "--config",
+      "configs/training_reproducibility_audit_v1.json",
+      "--data-root",
+      "../preprocessing-data",
+      "--output-root",
+      "../training-reproducibility-audit-v1"
+    ],
+    "config": {
+      "dataset": "Roman-empire",
+      "dataset_specification": {
+        "filename": "roman_empire.npz",
+        "sha256": "a58ba741d123bf892fe5c872138d07463d75a2e9012360b8dd78ac2d4766d428",
+        "shape": [
+          22662,
+          300
+        ]
+      },
+      "design_date": "2026-09-08",
+      "deterministic_backend": {
+        "CUBLAS_WORKSPACE_CONFIG": ":4096:8",
+        "allow_tf32": false,
+        "cudnn_benchmark": false,
+        "cudnn_deterministic": true,
+        "set_environment_before_torch_import": true,
+        "use_deterministic_algorithms": true
+      },
+      "execution": {
+        "cpu_max_epochs": 12,
+        "failure_policy": "Record failure and continue all other frozen workers; no outcome-dependent expansion or replacement.",
+        "independent_process_per_repeat": true,
+        "sequential_workers": true,
+        "torch_num_threads": 4
+      },
+      "expected_workers": 22,
+      "groups": [
+        {
+          "backend": "cuda_default",
+          "condition": "normalize_features",
+          "group_id": "linkx_normalized_trial001_cuda",
+          "model": "LINKX",
+          "repeats": 3,
+          "seed": 4,
+          "trial_id": "trial_001"
+        },
+        {
+          "backend": "cuda_default",
+          "condition": "normalize_features",
+          "group_id": "linkx_normalized_trial003_cuda",
+          "model": "LINKX",
+          "repeats": 3,
+          "seed": 4,
+          "trial_id": "trial_003"
+        },
+        {
+          "backend": "cuda_deterministic",
+          "condition": "normalize_features",
+          "group_id": "linkx_normalized_trial001_deterministic",
+          "model": "LINKX",
+          "repeats": 3,
+          "seed": 4,
+          "trial_id": "trial_001"
+        },
+        {
+          "backend": "cuda_deterministic",
+          "condition": "normalize_features",
+          "group_id": "linkx_normalized_trial003_deterministic",
+          "model": "LINKX",
+          "repeats": 3,
+          "seed": 4,
+          "trial_id": "trial_003"
+        },
+        {
+          "backend": "cuda_deterministic",
+          "condition": "raw",
+          "group_id": "linkx_raw_deterministic",
+          "model": "LINKX",
+          "repeats": 2,
+          "seed": 4,
+          "trial_id": "trial_001"
+        },
+        {
+          "backend": "cuda_deterministic",
+          "condition": "normalize_centered_scaled",
+          "group_id": "linkx_centered_scaled_deterministic",
+          "model": "LINKX",
+          "repeats": 2,
+          "seed": 4,
+          "trial_id": "trial_001"
+        },
+        {
+          "backend": "cuda_deterministic",
+          "condition": "normalize_features",
+          "group_id": "mlp_normalized_deterministic",
+          "model": "MLP",
+          "repeats": 2,
+          "seed": 4,
+          "trial_id": "trial_001"
+        },
+        {
+          "backend": "cuda_deterministic",
+          "condition": "normalize_features",
+          "group_id": "gat_normalized_seed9_deterministic",
+          "model": "GAT",
+          "repeats": 2,
+          "seed": 9,
+          "trial_id": "trial_001"
+        },
+        {
+          "backend": "cpu",
+          "condition": "normalize_features",
+          "group_id": "linkx_normalized_cpu_short",
+          "max_epochs": 12,
+          "model": "LINKX",
+          "repeats": 2,
+          "seed": 4,
+          "trial_id": "trial_001"
+        }
+      ],
+      "instrumentation": {
+        "early_epochs": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          9,
+          11
+        ],
+        "fixed_checkpoint_forward_repeats": 5,
+        "hash_early_gradients_logits_rng_and_state": true,
+        "hash_parameters_and_buffers": true,
+        "save_complete_epoch_history": true,
+        "save_initial_and_selected_state_dict": true,
+        "test_evaluations": 0
+      },
+      "interpretation": {
+        "cpu_gpu_equality_required": false,
+        "different_seed_equality_required": false,
+        "direction_check": "Within seed4 and trial001, compare deterministic LINKX raw, normalized, centered-scaled validation outcomes descriptively; this is not the original four-trial selection or a full 10-seed rerun.",
+        "limitations": "Instrumentation synchronizes CUDA for hashes and can change scheduling. Backend intervention bundles deterministic algorithms, CuBLAS and recorded cuDNN/TF32 settings; it cannot identify one universal kernel or mechanism.",
+        "original_results_immutable": true,
+        "same_backend_repeatability_only": true
+      },
+      "purpose": "Bounded post-hoc validation-only audit of independent-worker repeatability; does not replace the completed graph diagnostic or establish general causal attribution.",
+      "run_id": "training_reproducibility_audit_v1",
+      "schema_version": "1.0",
+      "training": {
+        "hidden_channels": 64,
+        "max_epochs": 500,
+        "patience": 100,
+        "weight_decay": 0.0005
+      },
+      "trials": {
+        "trial_001": {
+          "dropout": 0.7,
+          "learning_rate": 0.01
+        },
+        "trial_003": {
+          "dropout": 0.7,
+          "learning_rate": 0.005
+        }
+      }
+    },
+    "config_sha256": "80657f2f48fd589568d353cf268f3ed3c59008b9468463779cc3c0008cec80ea",
+    "python_executable": "C:\\Users\\john\\Documents\\Codex\\2026-09-07\\https-github-com-mengdanxue-prospective-graph\\work\\venv-gpu\\Scripts\\python.exe",
+    "run_id": "training_reproducibility_audit_v1",
+    "source_commit": "78a3efebf2f13e271149bceb01ebee1b03552afd",
+    "source_files_sha256": {
+      "experiments/prospective_data.py": "ca1d1e2d6030ee62301955cd7fd85abf134b7c3c64641e4a90634ecd61b2480c",
+      "experiments/prospective_models.py": "5d0a78d62972c3d3b9e55f998db3d4a4f4c43c0afef761f5c5b2d5eee81e3fc5",
+      "experiments/run_prospective_benchmark.py": "f55ff753b3071f5171c2243f291f02fb7cee6c0ddeea41d86733ba8e3e7d2d7f",
+      "results/diagnostic/route_a_prospective_v2/analysis/diagnostic_audit.json": "3c5aa160ac420536fd3f0be58b880fc99b3fe5912215a54d149e4cb62905b3bd",
+      "scripts/audit_training_reproducibility.py": "01d053007e1d450ec0728522b707de6cca93dec5b78faff3c0a5ff9d3037f69b",
+      "scripts/run_mlp_optimization_diagnostic.py": "551ef5a7612aebfcde73c2e41c5f65ac9368d397f721ebda95de9d441bdbee70",
+      "scripts/run_preprocessing_sensitivity.py": "73456ec353f38f54724f88d187bd9e2c90b95940260b28752135797bae44c897"
+    },
+    "source_worktree_status": "?? configs/training_reproducibility_audit_v1.json\n?? results/diagnostic/posthoc_graph_parameterization_v1/\n?? scripts/audit_training_reproducibility.py\n?? scripts/package_diagnostic_artifacts.py\n?? sections_tmlr/10_training_diagnostics.tex\n?? tests/test_training_reproducibility_audit.py",
+    "started_unix": 1788859723.7312288,
+    "test_evaluations": 0,
+    "workers": [
+      {
+        "backend": "cuda_default",
+        "condition": "normalize_features",
+        "group_id": "linkx_normalized_trial001_cuda",
+        "model": "LINKX",
+        "repeat": 0,
+        "repeats": 3,
+        "seed": 4,
+        "trial_id": "trial_001",
+        "worker_id": "linkx_normalized_trial001_cuda_repeat00"
+      },
+      {
+        "backend": "cuda_default",
+        "condition": "normalize_features",
+        "group_id": "linkx_normalized_trial001_cuda",
+        "model": "LINKX",
+        "repeat": 1,
+        "repeats": 3,
+        "seed": 4,
+        "trial_id": "trial_001",
+        "worker_id": "linkx_normalized_trial001_cuda_repeat01"
+      },
+      {
+        "backend": "cuda_default",
+        "condition": "normalize_features",
+        "group_id": "linkx_normalized_trial001_cuda",
+        "model": "LINKX",
+        "repeat": 2,
+        "repeats": 3,
+        "seed": 4,
+        "trial_id": "trial_001",
+        "worker_id": "linkx_normalized_trial001_cuda_repeat02"
+      },
+      {
+        "backend": "cuda_default",
+        "condition": "normalize_features",
+        "group_id": "linkx_normalized_trial003_cuda",
+        "model": "LINKX",
+        "repeat": 0,
+        "repeats": 3,
+        "seed": 4,
+        "trial_id": "trial_003",
+        "worker_id": "linkx_normalized_trial003_cuda_repeat00"
+      },
+      {
+        "backend": "cuda_default",
+        "condition": "normalize_features",
+        "group_id": "linkx_normalized_trial003_cuda",
+        "model": "LINKX",
+        "repeat": 1,
+        "repeats": 3,
+        "seed": 4,
+        "trial_id": "trial_003",
+        "worker_id": "linkx_normalized_trial003_cuda_repeat01"
+      },
+      {
+        "backend": "cuda_default",
+        "condition": "normalize_features",
+        "group_id": "linkx_normalized_trial003_cuda",
+        "model": "LINKX",
+        "repeat": 2,
+        "repeats": 3,
+        "seed": 4,
+        "trial_id": "trial_003",
+        "worker_id": "linkx_normalized_trial003_cuda_repeat02"
+      },
+      {
+        "backend": "cuda_deterministic",
+        "condition": "normalize_features",
+        "group_id": "linkx_normalized_trial001_deterministic",
+        "model": "LINKX",
+        "repeat": 0,
+        "repeats": 3,
+        "seed": 4,
+        "trial_id": "trial_001",
+        "worker_id": "linkx_normalized_trial001_deterministic_repeat00"
+      },
+      {
+        "backend": "cuda_deterministic",
+        "condition": "normalize_features",
+        "group_id": "linkx_normalized_trial001_deterministic",
+        "model": "LINKX",
+        "repeat": 1,
+        "repeats": 3,
+        "seed": 4,
+        "trial_id": "trial_001",
+        "worker_id": "linkx_normalized_trial001_deterministic_repeat01"
+      },
+      {
+        "backend": "cuda_deterministic",
+        "condition": "normalize_features",
+        "group_id": "linkx_normalized_trial001_deterministic",
+        "model": "LINKX",
+        "repeat": 2,
+        "repeats": 3,
+        "seed": 4,
+        "trial_id": "trial_001",
+        "worker_id": "linkx_normalized_trial001_deterministic_repeat02"
+      },
+      {
+        "backend": "cuda_deterministic",
+        "condition": "normalize_features",
+        "group_id": "linkx_normalized_trial003_deterministic",
+        "model": "LINKX",
+        "repeat": 0,
+        "repeats": 3,
+        "seed": 4,
+        "trial_id": "trial_003",
+        "worker_id": "linkx_normalized_trial003_deterministic_repeat00"
+      },
+      {
+        "backend": "cuda_deterministic",
+        "condition": "normalize_features",
+        "group_id": "linkx_normalized_trial003_deterministic",
+        "model": "LINKX",
+        "repeat": 1,
+        "repeats": 3,
+        "seed": 4,
+        "trial_id": "trial_003",
+        "worker_id": "linkx_normalized_trial003_deterministic_repeat01"
+      },
+      {
+        "backend": "cuda_deterministic",
+        "condition": "normalize_features",
+        "group_id": "linkx_normalized_trial003_deterministic",
+        "model": "LINKX",
+        "repeat": 2,
+        "repeats": 3,
+        "seed": 4,
+        "trial_id": "trial_003",
+        "worker_id": "linkx_normalized_trial003_deterministic_repeat02"
+      },
+      {
+        "backend": "cuda_deterministic",
+        "condition": "raw",
+        "group_id": "linkx_raw_deterministic",
+        "model": "LINKX",
+        "repeat": 0,
+        "repeats": 2,
+        "seed": 4,
+        "trial_id": "trial_001",
+        "worker_id": "linkx_raw_deterministic_repeat00"
+      },
+      {
+        "backend": "cuda_deterministic",
+        "condition": "raw",
+        "group_id": "linkx_raw_deterministic",
+        "model": "LINKX",
+        "repeat": 1,
+        "repeats": 2,
+        "seed": 4,
+        "trial_id": "trial_001",
+        "worker_id": "linkx_raw_deterministic_repeat01"
+      },
+      {
+        "backend": "cuda_deterministic",
+        "condition": "normalize_centered_scaled",
+        "group_id": "linkx_centered_scaled_deterministic",
+        "model": "LINKX",
+        "repeat": 0,
+        "repeats": 2,
+        "seed": 4,
+        "trial_id": "trial_001",
+        "worker_id": "linkx_centered_scaled_deterministic_repeat00"
+      },
+      {
+        "backend": "cuda_deterministic",
+        "condition": "normalize_centered_scaled",
+        "group_id": "linkx_centered_scaled_deterministic",
+        "model": "LINKX",
+        "repeat": 1,
+        "repeats": 2,
+        "seed": 4,
+        "trial_id": "trial_001",
+        "worker_id": "linkx_centered_scaled_deterministic_repeat01"
+      },
+      {
+        "backend": "cuda_deterministic",
+        "condition": "normalize_features",
+        "group_id": "mlp_normalized_deterministic",
+        "model": "MLP",
+        "repeat": 0,
+        "repeats": 2,
+        "seed": 4,
+        "trial_id": "trial_001",
+        "worker_id": "mlp_normalized_deterministic_repeat00"
+      },
+      {
+        "backend": "cuda_deterministic",
+        "condition": "normalize_features",
+        "group_id": "mlp_normalized_deterministic",
+        "model": "MLP",
+        "repeat": 1,
+        "repeats": 2,
+        "seed": 4,
+        "trial_id": "trial_001",
+        "worker_id": "mlp_normalized_deterministic_repeat01"
+      },
+      {
+        "backend": "cuda_deterministic",
+        "condition": "normalize_features",
+        "group_id": "gat_normalized_seed9_deterministic",
+        "model": "GAT",
+        "repeat": 0,
+        "repeats": 2,
+        "seed": 9,
+        "trial_id": "trial_001",
+        "worker_id": "gat_normalized_seed9_deterministic_repeat00"
+      },
+      {
+        "backend": "cuda_deterministic",
+        "condition": "normalize_features",
+        "group_id": "gat_normalized_seed9_deterministic",
+        "model": "GAT",
+        "repeat": 1,
+        "repeats": 2,
+        "seed": 9,
+        "trial_id": "trial_001",
+        "worker_id": "gat_normalized_seed9_deterministic_repeat01"
+      },
+      {
+        "backend": "cpu",
+        "condition": "normalize_features",
+        "group_id": "linkx_normalized_cpu_short",
+        "max_epochs": 12,
+        "model": "LINKX",
+        "repeat": 0,
+        "repeats": 2,
+        "seed": 4,
+        "trial_id": "trial_001",
+        "worker_id": "linkx_normalized_cpu_short_repeat00"
+      },
+      {
+        "backend": "cpu",
+        "condition": "normalize_features",
+        "group_id": "linkx_normalized_cpu_short",
+        "max_epochs": 12,
+        "model": "LINKX",
+        "repeat": 1,
+        "repeats": 2,
+        "seed": 4,
+        "trial_id": "trial_001",
+        "worker_id": "linkx_normalized_cpu_short_repeat01"
+      }
+    ]
+  },
+  "record_storage": "Full record JSON, histories, state dictionaries and logits are preserved in training_reproducibility_audit_v1.zip; this compact summary omits the embedded records array.",
+  "run_id": "training_reproducibility_audit_v1",
+  "success_count": 22,
+  "test_evaluations": 0,
+  "worker_count": 22
+}

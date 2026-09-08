@@ -5,8 +5,8 @@
 % remains main_neurocomputing.tex and its sections/ sources, which are left
 % untouched while that submission is under review.
 %
-% Format note: this draft uses the standard article class so that the class
-% swap to a target venue's style file is a one-line change. For a TMLR
+% Format note: this internal revision uses the standard article class.
+% A target venue conversion also requires its front matter and artifact rules. For a TMLR
 % submission, replace the documentclass and package block below with the
 % official tmlr.sty template (https://jmlr.org/tmlr/), which supplies its own
 % title block, abstract environment, and bibliography style.
@@ -66,7 +66,7 @@ A Frozen Graph-vs-MLP Decision Benchmark}
 \maketitle
 
 \begin{abstract}
-Simple graph statistics are often proposed as inexpensive guides to model selection, but their decision value must be evaluated against the models they select. We study graph-versus-MLP selection under a frozen protocol covering 11 datasets, ten seeds, seven architectures, and four tuning trials per architecture. Label-dependent graph statistics use training labels only, and validation selects configurations and architectures. The combined diagnostic attains 55.5\% selection accuracy at 68.2\% coverage and incurs 7.46 percentage points of full-set regret, compared with 0.26 for always-graph and 0.22 for validation selection. A post-hoc single-architecture sensitivity analysis changes the graph action while retaining the diagnostic's decisions and the same four-trial grid. The combined rule has lower descriptive mean regret than always-graph for GCN (1.74 versus 5.29 points) and GAT (2.08 versus 6.35), but higher regret for LINKX (7.99 versus 2.13). The other three restrictions also favor always-graph on mean regret. These comparisons match trial counts, not training time or FLOPs, and do not establish an architecture-independent ordering or out-of-dataset generalization. They show that the observed value of a fixed diagnostic changes with its candidate portfolio. Dataset-level inference limits confirmatory conclusions; non-significance is not evidence of equivalence. A separate degree-preserving intervention reduces GCN accuracy on three citation networks, distinguishing useful edge organization from reliable diagnostic decisions. We provide immutable unit-level artifacts and a reproducible evaluation protocol linking information boundaries, selection, abstention, regret, and dataset-level inference.
+Simple graph statistics can guide model selection only insofar as their decisions are useful for the candidate models. We evaluate graph-versus-MLP policies under a frozen protocol covering 11 datasets, ten seeds, seven architectures, and four trials per architecture. The graph action searches six architectures; MLP receives four trials. Label-dependent graph statistics use training labels only, and validation selects configurations and architectures. The combined diagnostic incurs 7.46 percentage points of full-set oracle-portfolio regret, compared with 0.26 for always-graph and 0.22 for validation selection. Post-hoc single-architecture restrictions retain the diagnostic's decisions but change its relative performance: Combined has lower descriptive mean regret than always-graph for GCN (1.74 versus 5.29) and GAT (2.08 versus 6.35), and higher regret for the other four architectures. Enumeration of all 63 candidate subsets and dataset exclusions delimit this observation; removing Cornell and Wisconsin eliminates the favorable ordering. Separate raw-feature retraining on two datasets substantially improves MLP performance, while the graph action remains preferred in those recorded comparisons. Validation-only follow-up diagnoses input-parameterization sensitivity and exposes graph-training variability. The findings therefore concern the evaluated models and training protocol, not universal diagnostic failure, equal-compute effects, or established generalization. Dataset-level inference does not establish superiority after the predeclared multiplicity correction; non-significance is not equivalence. We provide frozen records and a decision-evaluation protocol linking information boundaries, selection, abstention, regret, and dataset-level uncertainty.
 \end{abstract}
 
 \input{sections_tmlr/01_introduction}
@@ -81,15 +81,16 @@ Simple graph statistics are often proposed as inexpensive guides to model select
 \appendix
 % Keep table numbering continuous to avoid duplicate appendix labels and anchors.
 \input{sections_tmlr/09_reproducibility_appendix}
+\input{sections_tmlr/10_training_diagnostics}
 \input{sections/06_fixed_degree_analysis}
 
 \section*{Data and code availability}
 \begin{sloppypar}
-The current experiment code, frozen configurations, compact deterministic audits, and figure-generation scripts are available at \url{https://github.com/MengdanXue/prospective-graph-diagnostics}. A path-redacted archive of the immutable unit-level records is preserved in the versioned v0.1.0 release at \url{https://github.com/MengdanXue/prospective-graph-diagnostics/releases/tag/v0.1.0}. Historical exploratory outputs are separated from the confirmatory artifacts. The public repository is a fresh publication snapshot with file digests and execution-provenance mappings; it does not expose the complete history of the private predecessor repository.
+The frozen benchmark code, configurations, and compact audits are available at \url{https://github.com/MengdanXue/prospective-graph-diagnostics}. A path-redacted archive of its immutable unit-level records is preserved in the versioned v0.1.0 release at \url{https://github.com/MengdanXue/prospective-graph-diagnostics/releases/tag/v0.1.0}. The additional post-hoc preprocessing and training records, source snapshots, and integrity manifests accompany this revision package; they are separate from the v0.1.0 benchmark archive, and this draft does not imply that they have already been publicly released. Historical exploratory outputs are separated from the confirmatory artifacts. The public repository is a publication snapshot with file digests and execution-provenance mappings; it does not expose the complete history of the private predecessor repository.
 \end{sloppypar}
 
 \section*{Declaration of generative AI and AI-assisted technologies in the writing process}
-During the preparation of this work, the author used OpenAI Codex to assist with software review, test development, reproducibility checks, and language and structural editing. The author independently verified all code, experimental artifacts, statistical results, references, and manuscript content and takes full responsibility for the work.
+During the preparation of this work, the author used OpenAI Codex to assist with software review, test development, reproducibility checks, and language and structural editing. The author is responsible for the scientific judgments and for verifying the code, experimental artifacts, statistical results, references, and manuscript content before submission, and takes responsibility for the work.
 
 \bibliographystyle{plainnat}
 \bibliography{references}

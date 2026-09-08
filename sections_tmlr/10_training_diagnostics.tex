@@ -1,0 +1,98 @@
+\section{Post-Hoc Training and Input-Parameterization Diagnostics}
+\label{app:training_diagnostics}
+
+The raw-feature sensitivity in Section~\ref{sec:preprocessing_sensitivity} raises a narrower question: does the poor normalized-feature baseline reflect an unavoidable lack of predictive information, or can the same normalized information support better performance under a different input parameterization? We investigate this question on the same two datasets. These experiments were designed after inspecting the earlier results. They use training and validation labels only, make no new test evaluations, and are not independent confirmation of the benchmark or of a new preprocessing method.
+
+\subsection{Design and Information Scope}
+
+Let $X$ be the raw feature matrix, $N$ the result of the unchanged PyG \texttt{NormalizeFeatures} transform, and $T$ the training-node index set. For a feature matrix $Z$, define
+\[
+  \mu_T(Z)=\frac{1}{|T|}\sum_{i\in T}Z_i,
+  \qquad
+  R_T(Z)=\sqrt{\frac{1}{|T|d}\sum_{i\in T}\|Z_i-\mu_T(Z)\|_2^2}.
+\]
+The added scale is the single scalar $a=R_T(X)/R_T(N)$, rather than a per-feature standardization. We compare $X$, $N$, $aN$, $N-\mu_T(N)$, and $a(N-\mu_T(N))$. The added mean and scale are fitted using training features without labels and then applied to all nodes. The underlying $N$ retains the frozen transductive transform, including its global feature-matrix minimum; the claim of training-only fitting applies to the added affine statistics. The approximate scales are 531 on Roman-empire and 376 on Amazon-ratings.
+
+The first stage trains MLP under all five conditions and two weight decays, $5\times10^{-4}$ and zero. Two datasets, ten existing seeds, and four trials per condition give 200 selected records and 800 trials. The second stage retains raw, normalized, and centered-scaled inputs, fixes weight decay at $5\times10^{-4}$, and trains all seven original architectures: 420 selected records and 1,680 trials. Both stages retain hidden width 64, the original learning-rate/dropout grid, at most 500 epochs, patience 100, and the validation selection rule. Validation is used for both checkpoint/trial selection and these descriptive summaries; it is not an unbiased estimate of held-out test performance. The ten paired seeds reuse the same two datasets and do not provide ten independent dataset replications.
+
+\subsection{MLP Diagnosis}
+
+\begin{table}[ht]
+\centering
+\caption{Post-hoc MLP input diagnosis at weight decay $5\times10^{-4}$. Entries are mean validation accuracy in percent, with sample standard deviation across ten seeds. These are selected validation results, not test results or population confidence intervals.}
+\label{tab:mlp_parameterization}
+\small
+\begin{tabular}{@{}lrr@{}}
+\toprule
+Input & Roman-empire & Amazon-ratings \\
+\midrule
+Raw $X$ & $66.44\pm0.46$ & $41.84\pm0.50$ \\
+Normalized $N$ & $16.75\pm4.20$ & $36.80\pm0.00$ \\
+Scaled $aN$ & $41.25\pm1.61$ & $36.80\pm0.01$ \\
+Centered $N-\mu_T(N)$ & $20.60\pm4.57$ & $36.80\pm0.00$ \\
+Centered-scaled $a(N-\mu_T(N))$ & $66.45\pm0.44$ & $42.65\pm0.69$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Centering and scaling together recover approximately raw-feature MLP validation accuracy on Roman-empire and exceed it descriptively on Amazon-ratings (Table~\ref{tab:mlp_parameterization}). On Amazon-ratings, the normalized model predicts the training majority class for every validation node in all ten seeds, both with the original weight decay and with zero weight decay. Centering or scaling alone does not resolve this behavior under the original regularization, whereas their combination removes constant validation predictions in all ten seeds. On Roman-empire, five normalized-feature seeds predict only the majority class; the other five must not be described as constant predictors.
+
+For nonzero $a$, the map from $N$ to $a(N-\mu_T(N))$ is invertible in exact arithmetic. An MLP with a biased first affine layer can represent the same functions under this change by reparameterizing that layer. The observed recovery therefore supports sensitivity of the finite training and selection procedure to input parameterization; it does not establish that new label information was added. It also does not identify a unique cause among optimization, regularization, activation dynamics, and early stopping, or assert equivalence between raw features and $N$. Removing weight decay alone is insufficient. Even where zero weight decay improves centered-scaled Amazon-ratings validation accuracy, its validation cross-entropy increases, so the result does not identify one universally preferable regularization setting.
+
+\subsection{Extension to the Evaluated Architectures}
+
+\begin{table}[ht]
+\centering
+\caption{The completed post-hoc architecture diagnosis: mean selected-checkpoint validation accuracy in percent over ten seeds, at weight decay $5\times10^{-4}$. N is \texttt{NormalizeFeatures}; CS is training-fitted centering and scalar scaling of N. Seed-level contrasts and standard deviations accompany the artifact. Values describe one completed training run and inherit the reproducibility limitations discussed below.}
+\label{tab:graph_parameterization}
+\small
+\begin{tabular}{@{}lrrrrrr@{}}
+\toprule
+& \multicolumn{3}{c}{Roman-empire} & \multicolumn{3}{c}{Amazon-ratings} \\
+\cmidrule(lr){2-4}\cmidrule(l){5-7}
+Model & Raw & N & CS & Raw & N & CS \\
+\midrule
+MLP & 66.44 & 16.75 & 66.45 & 41.84 & 36.80 & 42.65 \\
+GCN & 50.93 & 20.45 & 50.71 & 43.76 & 36.80 & 44.52 \\
+GAT & 46.15 & 15.11 & 42.53 & 44.36 & 36.80 & 44.21 \\
+GraphSAGE & 78.36 & 21.34 & 78.51 & 47.09 & 36.80 & 48.93 \\
+H2GCN & 81.21 & 28.34 & 81.07 & 46.69 & 36.91 & 47.56 \\
+LINKX & 60.54 & 43.34 & 60.40 & 54.10 & 53.61 & 54.21 \\
+GPR-GNN & 70.61 & 13.97 & 70.42 & 45.87 & 36.80 & 46.35 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+In the completed run, CS exceeds N in each of the 140 dataset--architecture--seed pairs (Table~\ref{tab:graph_parameterization}). This consistency is a descriptive property of these dependent observations, not a new significance or generalization claim. Relative to raw features, the change is architecture-dependent: Roman-empire GAT is 3.62 percentage points worse on average under CS, with lower accuracy in all ten paired seeds. We consequently do not propose CS as a universal improvement. We also do not combine these validation metrics with earlier test accuracies to construct a new graph--MLP test gap. The first-layer reparameterization argument for MLP is not a proof of functional equivalence for every graph architecture.
+
+\subsection{Record Integrity and Training Reproducibility}
+\label{app:training_reproducibility}
+
+The completed records bind the raw-file hashes, split identifiers, transformed-feature hashes, training recipe, and executable source fingerprints. MLP control selections reproduce across stages, with later replay metrics differing at most at floating-point scale. Graph retraining is less stable: Roman-empire LINKX under N at seed 4 has validation accuracy 24.70\% in the earlier preprocessing run and 49.39\% in the completed architecture diagnosis, despite matching transformed inputs. The source snapshots and both original results are retained. Thus matching feature hashes and validating the record schema do not establish repeatable training outcomes.
+
+The initial architecture-diagnosis attempt stopped when a GAT checkpoint replay did not exactly match its recorded selection metric. A fresh run records the metric used for selection separately from the metric obtained when replaying the selected checkpoint. This resolves the accounting ambiguity and preserves the selection rule, but does not itself resolve training variability. The failed attempt is not silently merged into the completed 420-record run.
+
+We then froze a bounded audit of 22 independent processes on Roman-empire. The core comparison repeats LINKX at normalized-input seed 4 for trials 001 and 003, each three times under default CUDA and three times under a deterministic CUDA configuration. Trial 001 uses learning rate 0.01 and dropout 0.7; trial 003 uses learning rate 0.005 and dropout 0.7. Each retains the original 500-epoch cap and patience 100. The deterministic configuration sets \texttt{CUBLAS\_WORKSPACE\_CONFIG=:4096:8} before importing PyTorch, enables deterministic algorithms, disables cuDNN benchmarking and TF32, and enables cuDNN determinism. We preserve initial and selected model states including buffers, random-state hashes, early logits and gradients, complete epoch histories, and repeated inference from each selected checkpoint.
+
+\begin{table}[ht]
+\centering
+\caption{Independent-process LINKX audit on Roman-empire, normalized inputs, seed 4. Each row contains three repetitions of one fixed trial, not three different seeds or repeated four-trial model selection. Accuracy is the selected validation metric. Exact history and selected-state agreement is assessed within each row.}
+\label{tab:training_reproducibility}
+\small
+\begin{tabular}{@{}llrl@{}}
+\toprule
+Trial & Backend configuration & Validation range (\%) & Histories/states identical \\
+\midrule
+001 & Default CUDA & 13.84--40.66 & No \\
+003 & Default CUDA & 28.32--42.65 & No \\
+001 & Deterministic CUDA & 13.84--13.84 & Yes \\
+003 & Deterministic CUDA & 42.89--42.89 & Yes \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+All 22 processes complete without test evaluation. In each default-CUDA core group, initial model states and random states agree, but logits, gradients, and updated weights already differ at epoch zero. Selected validation accuracy spans 26.82 and 14.33 percentage points for the two trials (Table~\ref{tab:training_reproducibility}). Under deterministic CUDA, each three-process group has identical full training histories and selected-state hashes. Two-process deterministic controls also agree exactly for LINKX raw and CS inputs, MLP normalized inputs, and GAT normalized inputs at seed 9; two 12-epoch CPU LINKX controls agree within the CPU setting. Repeated inference from the selected checkpoints and reconstruction of the saved model produce no class-prediction disagreements in this audit. Default CUDA still shows logit differences up to $1.53\times10^{-5}$ on fixed-checkpoint repeated inference, whereas the deterministic and CPU comparisons are exact.
+
+The audit directly reproduces large training variability in the selected real-data condition and shows that the specified deterministic configuration removes it in the tested repeats. Repeatability does not ensure good optimization: deterministic trial 001 still has only 13.84\% validation accuracy. At seed 4 with that fixed trial, raw and CS LINKX accuracies are 60.09\% and 59.05\%, preserving the direction of the normalized-input deficit for that limited comparison. These are not replacements for the original four-trial selections or a rerun of all ten seeds. The backend intervention combines several settings, and trajectory hashing synchronizes CUDA and may affect scheduling. The original 770 benchmark records used an RTX 3070 Laptop GPU and PyTorch's CUDA 12.6 build; the added diagnoses and audit use an RTX 5060 and the CUDA 12.8 build. The original records do not include the detailed deterministic-backend flags recorded by this audit. The new audit therefore does not identify a unique kernel, explain every historical discrepancy, certify the original 11-dataset training runs, or establish stable effect sizes for all 420 diagnosis records.
+
+These diagnostics strengthen the case for inspecting baseline training and reporting the complete preprocessing protocol. They do not replace the frozen benchmark, establish a new algorithm, or certify robust effect sizes across backends and unseen datasets. The main decision-evaluation claim remains tied to the recorded protocol; stronger claims about preprocessing or model ranking require additional independent evidence.
