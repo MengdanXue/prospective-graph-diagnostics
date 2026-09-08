@@ -2,13 +2,13 @@
 import argparse
 import json
 import math
-from collections import defaultdict
 from pathlib import Path
 import sys
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 from scripts.summarize_equal_budget_sensitivity import select_by_validation
+from scripts.validate_preprocessing_records import validate_preprocessing_run
 
 MODELS = ("MLP", "GCN", "GAT", "GraphSAGE", "H2GCN", "LINKX", "GPR-GNN")
 GRAPH = MODELS[1:]
@@ -19,25 +19,17 @@ def mean(values):
     return math.fsum(values) / len(values)
 
 
-def summarize(root, audit):
-    records = defaultdict(dict)
-    for path in root.glob("records/*/*/*/seed_*.json"):
-        row = json.loads(path.read_text(encoding="utf-8"))
-        if row.get("status") != "success":
-            raise ValueError(f"non-success record: {path}")
-        records[(row["preprocessing"], row["dataset"], int(row["seed"]))][row["model"]] = row
-    expected = {("normalize_features" if c == "normalize_features" else "raw", u["dataset"], int(u["seed"]))
-                for c in ("normalize_features", "raw") for u in audit["units"]
-                if u["dataset"] in ("Roman-empire", "Amazon-ratings")}
-    if set(records) != expected or any(set(v) != set(MODELS) for v in records.values()):
-        raise ValueError("record scope does not match the configured 280 model records")
+def summarize(root, audit, *, data_root=None):
+    verified = validate_preprocessing_run(root, audit=audit, data_root=data_root)
+    records = verified["records"]
     audit_units = {(u["dataset"], int(u["seed"])): u for u in audit["units"]}
     manifest = json.loads((root / "run_manifest.json").read_text(encoding="utf-8"))
     complete = json.loads((root / "complete.json").read_text(encoding="utf-8"))
     out = {"schema_version": "1.0", "analysis_status": "post_hoc_paired_sensitivity",
            "source_run": {"run_id": manifest["run_id"], "source_commit": manifest["source_commit"],
                           "config_sha256": manifest["config_sha256"], "environment": manifest["environment"],
-                          "raw_record_count": complete["expected_records"], "scope_verified": True},
+                          "raw_record_count": complete["expected_records"], "scope_verified": True,
+                          "validation": verified["metadata"]},
            "datasets": {}, "conditions": {}, "paired_differences": {}}
     for condition in ("normalize_features", "raw"):
         all_units = []
@@ -86,9 +78,10 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--root", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--data-root", type=Path, help="Also verify local raw NPZ file checksums")
     args = parser.parse_args()
     audit = json.loads((ROOT / "results/diagnostic/route_a_prospective_v2/analysis/diagnostic_audit.json").read_text())
-    result = summarize(args.root, audit)
+    result = summarize(args.root, audit, data_root=args.data_root)
     with args.output.open("x", encoding="utf-8", newline="\n") as handle:
         handle.write(json.dumps(result, indent=2, sort_keys=True, allow_nan=False) + "\n")
     for condition, row in result["conditions"].items():

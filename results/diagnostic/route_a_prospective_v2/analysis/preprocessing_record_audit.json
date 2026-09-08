@@ -1,0 +1,100 @@
+{
+  "independent_input_reconstruction": {
+    "groups": [
+      {
+        "checked_records": 70,
+        "condition": "normalize_features",
+        "dataset": "Roman-empire",
+        "feature_sha256": "2a7ec66095e52385313f4bc18d00e93a3caa4046da47be2761846517881b7f91",
+        "split_ids_verified": 10
+      },
+      {
+        "checked_records": 70,
+        "condition": "raw",
+        "dataset": "Roman-empire",
+        "feature_sha256": "01eb128241adc3b32c46de6dd9b73a8d9d7d7a317db467f52c01b9c6e1b456b5",
+        "split_ids_verified": 10
+      },
+      {
+        "checked_records": 70,
+        "condition": "normalize_features",
+        "dataset": "Amazon-ratings",
+        "feature_sha256": "e9b781ffc53bcd8ff5704b2a4e3259784989c6606e333e8eb6c0d87ef51f328e",
+        "split_ids_verified": 10
+      },
+      {
+        "checked_records": 70,
+        "condition": "raw",
+        "dataset": "Amazon-ratings",
+        "feature_sha256": "25a04546032057a38dd1b409dce05b460863db98ff6ba1210f6de8b2086ba3e5",
+        "split_ids_verified": 10
+      }
+    ],
+    "scope": "NPZ raw SHA, feature hash reconstruction, original split IDs, original graph statistics",
+    "status": "verified",
+    "test_evaluations": 0,
+    "total_records": 280
+  },
+  "record_validation": {
+    "config_sha256": "e8c7fdfb29f16afbb92e3dc92c5a39d1c166eaf1f53cb56da1868966088e3d27",
+    "environment": {
+      "cuda_available": true,
+      "cuda_device": "NVIDIA GeForce RTX 5060 Laptop GPU",
+      "cuda_runtime": "12.8",
+      "device": "cuda",
+      "numpy": "2.3.5",
+      "platform": "Windows-11-10.0.26200-SP0",
+      "python": "3.12.14",
+      "scikit_learn": "1.7.1",
+      "scipy": "1.16.1",
+      "torch": "2.9.1+cu128",
+      "torch_geometric": "2.7.0"
+    },
+    "public_source_visibility_note": "source existence and public archival visibility are outside this local record audit",
+    "public_source_visibility_verified": false,
+    "raw_npz_hashes_checked": true,
+    "raw_provenance_check": "record raw_filename/raw_sha256 compared with trusted config",
+    "record_count": 280,
+    "run_id": "posthoc_preprocessing_v1",
+    "schema_version": "1.0",
+    "scope": {
+      "conditions": [
+        "normalize_features",
+        "raw"
+      ],
+      "datasets": [
+        "Roman-empire",
+        "Amazon-ratings"
+      ],
+      "models": [
+        "MLP",
+        "GCN",
+        "GAT",
+        "GraphSAGE",
+        "H2GCN",
+        "LINKX",
+        "GPR-GNN"
+      ],
+      "seeds": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ]
+    },
+    "source_commit": "aee552e5063a82cf87e2e01373a7136dac09c70e",
+    "split_bindings": 20,
+    "status": "validated",
+    "transformed_feature_check": "digest consistency checked within each dataset/condition; NPZ feature hashes were not reconstructed",
+    "transformed_feature_digest_groups": 4,
+    "uniform_environment": true,
+    "uniform_source_commit": true
+  },
+  "summary_reproduction": "Every pre-existing summary field and scientific value reproduced exactly; new metadata only."
+}

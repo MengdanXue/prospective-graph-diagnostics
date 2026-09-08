@@ -234,3 +234,13 @@ It retrains raw features and PyG 2.7.0 `NormalizeFeatures` on the same ten split
 and seven-model grid for Roman-empire and Amazon-ratings. The committed summary
 records its config digest, runtime, complete scope, paired seed differences, and
 per-condition outcomes.
+
+The follow-up MLP optimization diagnostic is specified in
+[`docs/mlp_optimization_diagnostic_plan.md`](docs/mlp_optimization_diagnostic_plan.md).
+It crosses five fixed feature transformations with two weight-decay settings on
+the same two datasets and ten seeds, and records selected-checkpoint train and
+validation prediction distributions. It performs zero new test evaluations.
+The plan includes execution and strict reconstruction commands. The preceding
+280-record integrity audit is stored in
+`results/diagnostic/route_a_prospective_v2/analysis/preprocessing_record_audit.json`;
+the prior scientific summary was reproduced exactly.
