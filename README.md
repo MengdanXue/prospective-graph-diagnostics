@@ -227,3 +227,10 @@ Undefined references/citations, duplicate labels and overfull boxes fail the job
 underfull spacing warnings are allowed. This supplements, rather than replaces,
 visual review. The draft's publication status and remaining independent-validation
 limits are documented in `docs/repositioning_plan.md`.
+
+The post-hoc preprocessing sensitivity is summarized in
+`results/diagnostic/route_a_prospective_v2/analysis/preprocessing_sensitivity.json`.
+It retrains raw features and PyG 2.7.0 `NormalizeFeatures` on the same ten splits
+and seven-model grid for Roman-empire and Amazon-ratings. The committed summary
+records its config digest, runtime, complete scope, paired seed differences, and
+per-condition outcomes.
