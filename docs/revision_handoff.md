@@ -28,7 +28,7 @@ not rewritten when packaging changes.
 From the extracted handoff directory:
 
 ```text
-git clone --config core.autocrlf=false source.bundle source
+git clone --config core.autocrlf=false --config core.longpaths=true source.bundle source
 cd source
 git rev-parse HEAD
 ```

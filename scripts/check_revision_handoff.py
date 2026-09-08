@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 from pathlib import Path
 import subprocess
 import sys
@@ -50,7 +51,12 @@ def main():
     for name, folder in zip(ARCHIVES, ("graph_archive", "controls_archive", "audit_archive")):
         target = output / folder
         with zipfile.ZipFile(args.assets_dir / name) as archive:
-            archive.extractall(target)  # All names and entry digests verified above.
+            # Historical commit snapshots can exceed Windows' legacy 260-char
+            # path limit even when the handoff directory itself is ordinary.
+            extraction_path = str(target)
+            if os.name == "nt" and not extraction_path.startswith("\\\\?\\"):
+                extraction_path = "\\\\?\\" + extraction_path
+            archive.extractall(extraction_path)  # Entry names and digests verified above.
         roots.append(target)
     graph, controls, audit_root = roots[0] / "graph", roots[1], roots[2] / "audit"
     for prefix, count in ((graph, 420), (controls / "mlp", 200), (controls / "preprocessing", 280)):
@@ -83,7 +89,7 @@ def main():
         # A historical checkout avoids substituting the later graph helper.
         mlp_source = output / "mlp_source"
         mlp_commit = load(controls / "mlp/run_manifest.json")["source_commit"]
-        run(["git", "clone", "--no-hardlinks", "--no-checkout", "--config", "core.autocrlf=false",
+        run(["git", "clone", "--no-hardlinks", "--no-checkout", "--config", "core.autocrlf=false", "--config", "core.longpaths=true",
              str(ROOT), str(mlp_source)], ROOT, output / "mlp_clone.log")
         run(["git", "checkout", "--detach", mlp_commit], mlp_source, output / "mlp_checkout.log")
         mlp_out = output / "mlp_summary"
