@@ -207,7 +207,9 @@ def _unit_rows(records: Mapping[tuple[str, str, str, int], dict[str, Any]], conf
     units = []
     for condition, dataset, model, seed in sorted(records, key=lambda key: (key[1], key[3], key[2], key[0])):
         row = records[(condition, dataset, model, seed)]
-        units.append({"dataset": dataset, "seed": seed, "model": model, "condition": condition, "selected_trial_id": row["selected_trial_id"], "validation_accuracy": row["validation_accuracy"], "validation_loss": row["validation_loss"], "train": row["partitions"]["train"], "validation": row["partitions"]["validation"]})
+        selection_accuracy = float(row.get("selection_validation_accuracy", row["validation_accuracy"]))
+        selection_loss = float(row.get("selection_validation_loss", row["validation_loss"]))
+        units.append({"dataset": dataset, "seed": seed, "model": model, "condition": condition, "selected_trial_id": row["selected_trial_id"], "selection_validation_accuracy": selection_accuracy, "selection_validation_loss": selection_loss, "validation_accuracy": row["validation_accuracy"], "validation_loss": row["validation_loss"], "selection_minus_reported_validation_accuracy": selection_accuracy - float(row["validation_accuracy"]), "selection_minus_reported_validation_loss": selection_loss - float(row["validation_loss"]), "train": row["partitions"]["train"], "validation": row["partitions"]["validation"]})
     return units
 
 

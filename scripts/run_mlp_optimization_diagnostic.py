@@ -264,8 +264,12 @@ def run_validation_unit(
         "preprocessing": condition,
         "regularization": regularization,
         "weight_decay": float(weight_decay),
-        "validation_accuracy": float(selected["validation_accuracy"]),
-        "validation_loss": float(selected["validation_loss"]),
+        # CUDA graph propagation can be nondeterministic across replays. Keep
+        # checkpoint-selection metrics separate from final replay metrics.
+        "selection_validation_accuracy": float(selected["validation_accuracy"]),
+        "selection_validation_loss": float(selected["validation_loss"]),
+        "validation_accuracy": float(partitions["validation"]["accuracy"]),
+        "validation_loss": float(partitions["validation"]["loss"]),
         "selected_trial_id": selected["trial_id"],
         "trials": trial_rows,
         "partitions": partitions,
