@@ -8,6 +8,7 @@ import zipfile
 
 from scripts.package_diagnostic_artifacts import add_entry, readme, write_zip
 from scripts.verify_diagnostic_artifacts import file_sha256, verify_archive
+from scripts.check_revision_handoff import compare_preprocessing_summary
 
 
 class DiagnosticArtifactPackagingTests(unittest.TestCase):
@@ -75,6 +76,19 @@ class DiagnosticArtifactPackagingTests(unittest.TestCase):
         self.assertIn("one post-selection test evaluation", controls)
         self.assertIn("22 completed independent workers", audit)
         self.assertNotIn("420 completed", audit)
+
+    def test_historical_summary_accepts_only_the_added_validation_metadata(self):
+        original = {"source_run": {"source_commit": "recorded"}, "accuracy": 0.5}
+        rebuilt = {"source_run": {"source_commit": "recorded", "validation": {
+            "status": "validated", "record_count": 280, "raw_npz_hashes_checked": True}}, "accuracy": 0.5}
+        self.assertEqual(compare_preprocessing_summary(rebuilt, original)["record_count"], 280)
+        rebuilt["accuracy"] = 0.9
+        with self.assertRaisesRegex(ValueError, "differs from tracked"):
+            compare_preprocessing_summary(rebuilt, original)
+        rebuilt["accuracy"] = 0.5
+        rebuilt["source_run"]["source_commit"] = "different"
+        with self.assertRaisesRegex(ValueError, "differs from tracked"):
+            compare_preprocessing_summary(rebuilt, original)
 
 
 if __name__ == "__main__":

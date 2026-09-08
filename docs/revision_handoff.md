@@ -65,7 +65,10 @@ python scripts/check_revision_handoff.py --assets-dir ../assets --data-root ../i
 
 This additionally reconstructs raw-data checksums, train-fitted transforms,
 feature hashes and partition bindings, then compares the preprocessing, MLP
-and graph summaries with the tracked results. The checker creates a detached
+and graph summaries with the tracked results. Every original preprocessing
+summary field must match exactly; the newer validator's additional
+`source_run.validation` block is retained in the verification report rather
+than inserted into the historical result. The checker creates a detached
 historical MLP checkout from the supplied history because that run verifies
 its own executable bytes. The graph summarizer uses the later graph runner
 and independently checks the historical MLP control. No current runner is
