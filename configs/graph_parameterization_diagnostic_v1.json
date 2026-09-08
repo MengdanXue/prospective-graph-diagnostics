@@ -1,0 +1,60 @@
+{
+  "schema_version": "1.0",
+  "run_id": "posthoc_graph_parameterization_v1",
+  "analysis_status": "post_hoc_validation_only_transfer_diagnostic",
+  "design_date": "2026-09-08",
+  "datasets": {
+    "Roman-empire": {
+      "filename": "roman_empire.npz",
+      "shape": [22662, 300],
+      "sha256": "a58ba741d123bf892fe5c872138d07463d75a2e9012360b8dd78ac2d4766d428",
+      "source_url": "https://raw.githubusercontent.com/yandex-research/heterophilous-graphs/main/data/roman_empire.npz"
+    },
+    "Amazon-ratings": {
+      "filename": "amazon_ratings.npz",
+      "shape": [24492, 300],
+      "sha256": "4c3a3e3b9d9f6cba0fede4625a00aad8c5721c1a36ed771367f446763241c7dd",
+      "source_url": "https://raw.githubusercontent.com/yandex-research/heterophilous-graphs/main/data/amazon_ratings.npz"
+    }
+  },
+  "conditions": ["raw", "normalize_features", "normalize_centered_scaled"],
+  "regularization": {"wd_5e-4": 0.0005},
+  "seeds": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+  "models": ["MLP", "GCN", "GAT", "GraphSAGE", "H2GCN", "LINKX", "GPR-GNN"],
+  "training": {
+    "hidden_channels": 64,
+    "max_epochs": 500,
+    "patience": 100,
+    "weight_decay": 0.0005,
+    "trials": [
+      {"learning_rate": 0.01, "dropout": 0.5},
+      {"learning_rate": 0.01, "dropout": 0.7},
+      {"learning_rate": 0.005, "dropout": 0.5},
+      {"learning_rate": 0.005, "dropout": 0.7}
+    ],
+    "selection_order": ["validation_accuracy_desc", "validation_loss_asc", "trial_id_asc"],
+    "test_evaluations_after_selection": 0
+  },
+  "transform": {
+    "implementation": "reuse fit_transform_features from frozen MLP diagnostic without alteration",
+    "normalization": "unchanged PyG NormalizeFeatures on the feature matrix",
+    "fit_partition": "train_features_only",
+    "statistics_dtype": "float64",
+    "output_dtype": "float32",
+    "scale": "one scalar: sqrt(mean((raw_train - mean(raw_train, axis=0))**2)) / sqrt(mean((normalized_train - mean(normalized_train, axis=0))**2))",
+    "centering": "subtract normalized train column means from every node",
+    "epsilon": 1e-12
+  },
+  "split": {"train": 0.6, "validation": 0.2, "test": 0.2},
+  "expected_records": 420,
+  "expected_trials": 1680,
+  "evaluation_partitions": ["train", "validation"],
+  "resource_budget": {
+    "execution": "one local CUDA worker, all cells rerun",
+    "approximate_training_hours": [2, 3],
+    "basis": "observed 280-record preprocessing run took 1.305 summed unit-hours; third condition may train longer",
+    "scope_rule": "complete fixed scope; no outcome-dependent expansion or favorable subset reporting"
+  },
+  "pairing": "within each architecture, same raw data, original split, seed, training grid, runtime and device across all three newly trained inputs",
+  "inference": "descriptive per-dataset per-architecture validation contrasts; composite transfer study, no population/test claim or universal optimization-only mechanism claim"
+}
