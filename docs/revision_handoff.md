@@ -1,10 +1,17 @@
 # Revision handoff and reproduction
 
-This is the internal, venue-neutral revision dated 2026-09-08. Its entry point
-is `main_tmlr.tex`; the filename does not indicate a TMLR submission. The
-submitted Neurocomputing sources remain separate. Author review and any venue
-conversion follow the actual editorial status; the package does not attest
-that the author has already completed that review.
+The 2026-09-09 freeze prepares the internal revision in the official anonymous
+TMLR format. Its entry point is `main_tmlr.tex`; neither its filename nor the
+template's standard review header indicates that a submission has occurred.
+The submitted Neurocomputing sources remain separate. Author review and any
+formal submission follow the actual editorial status; the package does not
+attest that the author has completed that review.
+
+See [the submission-freeze guide](submission_freeze_2026-09-09.md) for the
+anonymous review supplement, full author archive, final LODO clarification,
+and explicit experiment stop condition. The instructions below describe the
+complete author archive; Git-dependent or checkpoint-dependent reconstruction
+cannot be performed from the reduced anonymous review supplement alone.
 
 ## Package layout and version
 

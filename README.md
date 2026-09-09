@@ -158,7 +158,8 @@ git rev-parse HEAD:results/diagnostic/route_a_degree_matched_v1/summary/summary.
 
 ### Post-hoc portfolio analysis
 
-`main_tmlr.tex` and `sections_tmlr/` contain a separate venue-neutral draft:
+`main_tmlr.tex` and `sections_tmlr/` contain a separate revision, now prepared
+in the official anonymous TMLR format. It has not been submitted:
 **Diagnostic Utility Depends on the Model Portfolio: A Frozen Graph-vs-MLP
 Decision Benchmark**. It preserves the original submitted manuscript and frozen
 execution files. The additional architecture-selection and single-architecture
