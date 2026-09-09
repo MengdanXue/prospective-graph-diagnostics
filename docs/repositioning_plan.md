@@ -36,7 +36,7 @@ exact two-sided sign-flip 的 p 值下限为 `2^(1-k)`，k 为非零数据集配
 
 TMLR 官方标准强调可信证据以及对部分读者的研究价值，允许通过收窄主张解决证据缺口。这为论文定位提供参考，不产生录用保证或可校准的评分。参考：https://jmlr.org/tmlr/acceptance-criteria.html （核对日期 2026-09-07）。
 
-当前 `main_tmlr.tex` 是后续版本的 venue-neutral 草稿，不表示已经提交 TMLR。若使用匿名评审模板，仍需完成模板及匿名 artifact 链接的转换。保持当前投稿与后续准备的状态准确。
+当前 `main_tmlr.tex` 已于 2026-09-09 转为官方 TMLR 匿名格式，并配套制作匿名补充 ZIP，不表示已经提交 TMLR。作者最终审阅仍待本人完成；保持当前投稿与后续准备的状态准确。
 
 ## 重建与验证
 

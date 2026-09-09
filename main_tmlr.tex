@@ -1,30 +1,10 @@
-% ============================================================
-% Repositioned entry point (venue-neutral draft).
-%
-% This file is NOT the Neurocomputing submission. The submitted manuscript
-% remains main_neurocomputing.tex and its sections/ sources, which are left
-% untouched while that submission is under review.
-%
-% Format note: this internal revision uses the standard article class.
-% A target venue conversion also requires its front matter and artifact rules. For a TMLR
-% submission, replace the documentclass and package block below with the
-% official tmlr.sty template (https://jmlr.org/tmlr/), which supplies its own
-% title block, abstract environment, and bibliography style.
-%
-% Content differences from main_neurocomputing.tex:
-%   - new title and abstract leading with observed portfolio dependence;
-%   - rewritten introduction and contribution list (sections_tmlr/01);
-%   - added attainable-resolution disclosure in the results (sections_tmlr/04);
-%   - post-hoc portfolio sensitivity and a scoped mismatch interpretation;
-%   - rewritten conclusion ending on the delivered protocol (sections_tmlr/08);
-%   - new winning-architecture table (sections_tmlr/09);
-%   - the fixed-degree analysis is moved from the body to the appendix.
-% Unchanged sections are shared with the submitted version.
-% ============================================================
+% Anonymous TMLR-format preparation. Not submitted; author review remains pending.
+\documentclass[10pt]{article}
+\makeatletter
+\def\input@path{{templates/tmlr/}}
+\makeatother
+\usepackage{tmlr}
 
-\documentclass[11pt]{article}
-
-\usepackage[margin=1in]{geometry}
 \usepackage{amsmath,amssymb,amsfonts,amsthm}
 \usepackage{array}
 \usepackage{booktabs}
@@ -33,7 +13,6 @@
 \usepackage{textcomp}
 \usepackage{xcolor}
 \usepackage{url}
-\usepackage[round,numbers]{natbib}
 \usepackage[hidelinks]{hyperref}
 
 \graphicspath{{code/figures/}{figures/}}
@@ -49,14 +28,6 @@
 \title{Diagnostic Utility Depends on the Model Portfolio:\\
 A Frozen Graph-vs-MLP Decision Benchmark}
 
-% ANONYMITY: TMLR reviews are anonymized. Before submitting there, replace the
-% author line below with the template's anonymous author block, and replace the
-% two repository URLs in the "Data and code availability" section with an
-% anonymized artifact link (for example an anonymous.4open.science mirror).
-% Both URLs currently contain the author's GitHub account name and would
-% de-anonymize the submission. The public repository and the v0.1.0 release
-% predate submission and are permitted as preprint-style artifacts, but the
-% manuscript itself should not name them during an anonymized review.
 \author{Anonymous Author(s)}
 
 \date{}
@@ -78,21 +49,20 @@ Graph diagnostics are useful for model selection when their decisions improve on
 \input{sections_tmlr/07_discussion}
 \input{sections_tmlr/08_conclusion}
 
+\section*{Data and code availability}
+The anonymous supplement provides source code, configurations, compact result summaries, and the retained unit-level records supporting this manuscript. Its manifest distinguishes unchanged files from copies with identifying path metadata removed. Large checkpoint tensors and the complete Git history remain in the author archive and are omitted from the review supplement; this omission limits independent checkpoint replay from that supplement. The original confirmatory records and later post-hoc diagnostics remain separate, and the supplement does not represent a new experiment or a new test-set evaluation. Historical exploratory outputs are separate from the confirmatory artifacts.
+
+\section*{Declaration of generative AI and AI-assisted technologies in the writing process}
+During the preparation of this work, the author used OpenAI Codex to assist with code development and review, experiment execution, test development, reproducibility checks, analysis, and language and structural editing. Reported numerical results come from executed programs and retained experimental artifacts. The author retains responsibility for the scientific judgments, reporting decisions, and all manuscript content. This internal revision remains subject to the author's final review of the code, artifacts, statistical results, references, and text before submission.
+
+\bibliographystyle{templates/tmlr/tmlr}
+\bibliography{references}
+
+\clearpage
 \appendix
 % Keep table numbering continuous to avoid duplicate appendix labels and anchors.
 \input{sections_tmlr/09_reproducibility_appendix}
 \input{sections_tmlr/10_training_diagnostics}
 \input{sections/06_fixed_degree_analysis}
-
-\section*{Data and code availability}
-\begin{sloppypar}
-The frozen benchmark code, configurations, and compact audits are available at \url{https://github.com/MengdanXue/prospective-graph-diagnostics}. A path-redacted archive of its immutable unit-level records is preserved in the versioned v0.1.0 release at \url{https://github.com/MengdanXue/prospective-graph-diagnostics/releases/tag/v0.1.0}. The additional post-hoc preprocessing and training records, source snapshots, and integrity manifests accompany this revision package; they are separate from the v0.1.0 benchmark archive, and this draft does not imply that they have already been publicly released. Historical exploratory outputs are separated from the confirmatory artifacts. The public repository is a publication snapshot with file digests and execution-provenance mappings; it does not expose the complete history of the private predecessor repository.
-\end{sloppypar}
-
-\section*{Declaration of generative AI and AI-assisted technologies in the writing process}
-During the preparation of this work, the author used OpenAI Codex to assist with code development and review, experiment execution, test development, reproducibility checks, analysis, and language and structural editing. Reported numerical results come from executed programs and retained experimental artifacts. The author retains responsibility for the scientific judgments, reporting decisions, and all manuscript content. This internal revision remains subject to the author's final review of the code, artifacts, statistical results, references, and text before submission.
-
-\bibliographystyle{plainnat}
-\bibliography{references}
 
 \end{document}
