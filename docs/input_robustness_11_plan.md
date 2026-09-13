@@ -228,7 +228,11 @@ observations. Hardware availability alone is not a successful preflight.
 
 Measure setup, transform, adjacency preparation, synchronized training-step and
 evaluation-forward times, worker RSS, system available RAM, allocated/reserved
-CUDA peaks and disk reserve. Project a conservative no-early-stopping runtime:
+CUDA peaks and disk reserve. Worker RSS means the sum across the entire owned
+process tree, including a Windows virtual-environment launcher, the real Python
+interpreter and subprocesses. Include Windows resident-memory high-water marks;
+terminate the entire owned tree on a cap. Launcher-only measurements cannot pass
+acceptance. Project a conservative no-early-stopping runtime:
 for each model/trial/condition/dataset use the maximum repeat's mean synchronized
 epoch time, multiply by 500 epochs and ten seeds, then add conservative setup
 allowances. For each dataset/condition, multiply maximum measured transform/setup
@@ -245,6 +249,20 @@ shrink the scientific scope to fit. A resource-only amendment may be proposed
 from timing/memory evidence without inspecting new comparative outcomes; it must
 be documented, committed, tested and reported before using it. A timeout ends
 the attempt as incomplete, not as a satisfactory reduced experiment.
+
+### Preflight instrumentation correction, 2026-09-14
+
+The first bounded attempt from `602b2f0` revealed that the Windows environment's
+launcher spawned a separate Python interpreter. Launcher-only RSS understated
+the worker footprint, so that attempt was stopped and its probes, logs and
+explicit stop record were retained. It provides no valid resource acceptance.
+Before a fresh attempt, the monitor was corrected to include and terminate the
+whole owned process tree. Tests exercise a real child interpreter as well as
+Windows high-water accounting and rejection of launcher-only artifacts. The
+dataset/seed/model/grid/two-condition specification and resource ceilings are
+unchanged. The replacement preflight uses a new output directory after tests,
+commit and remote synchronization; it does not reuse stopped probe weights or
+select a favorable probe subset.
 
 ## Failure, immutable writes and recovery
 

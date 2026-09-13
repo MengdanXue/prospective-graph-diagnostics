@@ -105,6 +105,52 @@ def resolved_budget(config):
                for key in ("max_worker_rss", "min_system_available", "max_cuda_allocated", "max_cuda_reserved", "min_disk_free")}}
 
 
+def process_tree_memory(process, psutil):
+    """Include venv launchers, their real interpreters, and any subprocesses.
+
+    Sum resident/high-water values conservatively, even when libraries are shared.
+    Windows' peak_wset catches allocations shorter than the sampling interval.
+    """
+    try:
+        processes = [process, *process.children(recursive=True)]
+    except psutil.NoSuchProcess:
+        return {"rss_bytes": 0, "high_water_bytes": 0, "process_ids": []}
+    rss = high_water = 0
+    seen = []
+    for child in processes:
+        try:
+            memory = child.memory_info()
+            rss += memory.rss
+            high_water += max(memory.rss, getattr(memory, "peak_wset", 0))
+            seen.append(child.pid)
+        except psutil.NoSuchProcess:
+            continue
+    return {"rss_bytes": rss, "high_water_bytes": high_water, "process_ids": seen}
+
+
+def terminate_process_tree(process, psutil):
+    """Stop only this owned Popen worker and every known descendant."""
+    try:
+        root = psutil.Process(process.pid)
+        descendants = root.children(recursive=True)
+    except psutil.NoSuchProcess:
+        return
+    # Suspend the interpreters as well as the Windows venv launcher so none can
+    # create another descendant while the termination list is being acted on.
+    targets = [root, *descendants]
+    for target in targets:
+        try:
+            target.suspend()
+        except psutil.NoSuchProcess:
+            pass
+    for target in reversed(targets):
+        try:
+            target.kill()
+        except psutil.NoSuchProcess:
+            pass
+    psutil.wait_procs(targets, timeout=10)
+
+
 def workers(config):
     return [{"dataset": dataset, "condition": condition, "repeat": repeat,
              "worker_id": f"{dataset}__{condition}__repeat{repeat:02d}"}
@@ -487,6 +533,8 @@ def summarize(config, directory, jobs):
                                    - worker_compute[worker["worker_id"]]) for worker in group)
                 setup_estimate += (transform_setup + overhead) * 70 + h2_setup * 10
     for job in jobs:
+        if job.get("memory_scope") != "owned_worker_process_tree_sum_including_windows_high_water" or not job.get("observed_process_ids"):
+            failures.append({"worker": job["worker_id"], "reason": "missing complete process-tree memory instrumentation"})
         if job["returncode"] != 0 or job.get("stop_reason"):
             failures.append({"worker": job["worker_id"], "reason": job.get("stop_reason") or "worker failed"})
         if job.get("peak_rss_bytes", float("inf")) > budget["max_worker_rss_bytes"]:
@@ -569,17 +617,16 @@ def main():
         log_path = output / "logs" / f"{worker['worker_id']}.log"
         log_path.parent.mkdir(parents=True, exist_ok=True)
         worker_started, peak_rss, stop_reason = time.perf_counter(), 0, None
+        observed_process_ids = set()
         with log_path.open("x", encoding="utf-8") as log:
             verify_source_binding(manifest, config, args.binding)
             process = subprocess.Popen(command, cwd=ROOT, env=backend_environment(), stdout=log, stderr=subprocess.STDOUT,
                                        creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
             monitored = psutil.Process(process.pid)
             while process.poll() is None:
-                try:
-                    memory = monitored.memory_info()
-                    peak_rss = max(peak_rss, memory.rss, getattr(memory, "peak_wset", 0))
-                except psutil.NoSuchProcess:
-                    break
+                memory = process_tree_memory(monitored, psutil)
+                peak_rss = max(peak_rss, memory["rss_bytes"], memory["high_water_bytes"])
+                observed_process_ids.update(memory["process_ids"])
                 if peak_rss > budget["max_worker_rss_bytes"]:
                     stop_reason = "worker RSS ceiling exceeded"
                 elif psutil.virtual_memory().available < budget["min_system_available_bytes"]:
@@ -589,16 +636,14 @@ def main():
                 elif time.perf_counter() - started > budget["preflight_total_wall_seconds"]:
                     stop_reason = "preflight total wall cap exceeded"
                 if stop_reason:
-                    process.terminate()
-                    try:
-                        process.wait(timeout=10)
-                    except subprocess.TimeoutExpired:
-                        process.kill()
+                    terminate_process_tree(process, psutil)
                     break
                 time.sleep(0.25)
             returncode = process.wait()
         job = {**worker, "returncode": returncode, "stop_reason": stop_reason,
-               "wall_seconds": time.perf_counter() - worker_started, "peak_rss_bytes": peak_rss}
+               "wall_seconds": time.perf_counter() - worker_started, "peak_rss_bytes": peak_rss,
+               "memory_scope": "owned_worker_process_tree_sum_including_windows_high_water",
+               "observed_process_ids": sorted(observed_process_ids)}
         jobs.append(job)
         write_exclusive(output / "jobs" / f"{worker['worker_id']}.json", job)
         print(json.dumps(job), flush=True)

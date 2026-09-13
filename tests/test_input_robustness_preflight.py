@@ -11,6 +11,7 @@ import json
 from pathlib import Path
 import tempfile
 import unittest
+from types import SimpleNamespace
 from unittest.mock import patch
 
 import torch
@@ -29,6 +30,44 @@ def write_fixture(path, value):
 
 
 class ProbeContractTests(unittest.TestCase):
+    def test_memory_monitor_includes_real_interpreter_descendants_and_windows_high_water(self):
+        import psutil
+        interpreter = SimpleNamespace(pid=2, memory_info=lambda: SimpleNamespace(rss=4000, peak_wset=8000))
+        helper = SimpleNamespace(pid=3, memory_info=lambda: SimpleNamespace(rss=500))
+        launcher = SimpleNamespace(pid=1, children=lambda recursive: [interpreter, helper],
+                                   memory_info=lambda: SimpleNamespace(rss=100, peak_wset=150))
+        measured = preflight.process_tree_memory(launcher, psutil)
+        self.assertEqual(measured["rss_bytes"], 4600)
+        self.assertEqual(measured["high_water_bytes"], 8650)
+        self.assertEqual(measured["process_ids"], [1, 2, 3])
+
+    def test_owned_subprocess_tree_is_measured_and_fully_stopped(self):
+        import subprocess
+        import sys
+        import time
+        import psutil
+        with tempfile.TemporaryDirectory() as temporary:
+            marker = Path(temporary) / "child.pid"
+            child_code = "import os,time,pathlib; allocation=bytearray(32*1024**2); pathlib.Path(" + repr(str(marker)) + ").write_text(str(os.getpid())); time.sleep(30)"
+            parent_code = "import subprocess,sys; subprocess.Popen([sys.executable, '-c', " + repr(child_code) + "]).wait()"
+            process = subprocess.Popen([sys.executable, "-c", parent_code],
+                                       creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
+            child_pid = None
+            try:
+                deadline = time.monotonic() + 10
+                while not marker.exists() and time.monotonic() < deadline:
+                    time.sleep(0.05)
+                self.assertTrue(marker.exists(), "owned subprocess fixture failed to start")
+                child_pid = int(marker.read_text())
+                measured = preflight.process_tree_memory(psutil.Process(process.pid), psutil)
+                self.assertIn(child_pid, measured["process_ids"])
+                self.assertGreaterEqual(measured["rss_bytes"], 32 * 1024**2)
+            finally:
+                preflight.terminate_process_tree(process, psutil)
+                process.wait(timeout=10)
+            if child_pid is not None and psutil.pid_exists(child_pid):
+                self.assertEqual(psutil.Process(child_pid).status(), psutil.STATUS_ZOMBIE)
+
     def test_checkpoint_callback_runs_each_step_and_matches_recorded_state(self):
         snapshots = []
 
@@ -242,7 +281,9 @@ class SummaryAcceptanceTests(unittest.TestCase):
                            "h2_preparation_seconds": 0.0}
                     write_fixture(folder / "probes" / model / f"trial_{index:03d}.json", row)
             self.jobs.append({**worker, "returncode": 0, "stop_reason": None,
-                              "wall_seconds": 0.1, "peak_rss_bytes": 1024})
+                              "wall_seconds": 0.1, "peak_rss_bytes": 1024,
+                              "memory_scope": "owned_worker_process_tree_sum_including_windows_high_water",
+                              "observed_process_ids": [123]})
 
     def summary(self):
         return preflight.summarize(self.config, self.directory, self.jobs)
@@ -290,6 +331,11 @@ class SummaryAcceptanceTests(unittest.TestCase):
 
     def test_duplicate_job_ids_cannot_replace_missing_worker_identity(self):
         self.jobs[-1] = copy.deepcopy(self.jobs[0])
+        self.assert_rejected()
+
+    def test_launcher_only_memory_record_cannot_be_accepted(self):
+        self.jobs[0].pop("memory_scope")
+        self.jobs[0].pop("observed_process_ids")
         self.assert_rejected()
 
     def test_missing_worker_completion_is_not_success(self):
