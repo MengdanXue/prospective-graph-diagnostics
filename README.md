@@ -27,6 +27,14 @@ Formal training has not started. Selection loss, portfolio reversals and
 calibration under the new paired records remain unassessed; the next stage must
 resolve the execution and compute-budget plan before formal recording and analysis.
 
+The next [fixed H2GCN CPU performance round](docs/h2gcn_performance_diagnostic_plan.md)
+uses the two timing-ranked fixtures, both input conditions, three thread counts
+and two checkpoint storage treatments. Its 48 fresh workers and 480 short steps
+separate setup, compute, static-buffer copies and recording overhead. It produces
+no held-out scores or formal records. Any proposed formal budget change requires
+user confirmation after the measured recommendation; the original caps and
+disabled formal switch remain in effect.
+
 ## Main results
 
 The prospective benchmark contains 11 datasets, 10 seeds, seven architectures, 770 selected-model records, and 110 diagnostic records whose label-dependent graph statistics use training labels only. Every architecture receives the same four-trial grid, but the total portfolio budgets are asymmetric: the graph action selects among six architectures (24 trials), whereas the feature-only action contains one MLP architecture (four trials). The target requires the selected graph model to beat the selected MLP by more than one percentage point. The estimand therefore concerns these fixed operational portfolios, not an equal-total-compute family comparison.
