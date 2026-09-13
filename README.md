@@ -4,6 +4,19 @@ This repository accompanies the manuscript **A Prospective Evaluation of Simple 
 
 The answer under the frozen protocol is negative. Graph structure can be highly predictive, but the evaluated low-dimensional diagnostics do not reliably characterize when it is useful.
 
+## Current extension: design and resource preflight
+
+The [September 13 post-hoc plan](docs/input_robustness_11_plan.md) prepares a paired
+eleven-dataset comparison of the original `NormalizeFeatures` input and the
+existing train-fitted centering/scaling candidate. Both conditions will retrain
+all seven architectures, ten seeds and four trials per model: 1,540 selected
+records and 6,160 trials. The [fixed configuration](configs/input_robustness_11_v1.json)
+currently disables formal training. Data binding and short resource/repeatability
+probes are separate evidence with no validation/test scores; they are not new
+selection, portfolio or calibration results. Commit `8847de6` and all earlier
+results remain preserved. The candidate is not designated universally optimal,
+and the extension is not an independent confirmatory validation.
+
 ## Main results
 
 The prospective benchmark contains 11 datasets, 10 seeds, seven architectures, 770 selected-model records, and 110 diagnostic records whose label-dependent graph statistics use training labels only. Every architecture receives the same four-trial grid, but the total portfolio budgets are asymmetric: the graph action selects among six architectures (24 trials), whereas the feature-only action contains one MLP architecture (four trials). The target requires the selected graph model to beat the selected MLP by more than one percentage point. The estimand therefore concerns these fixed operational portfolios, not an equal-total-compute family comparison.
