@@ -2,6 +2,14 @@
 
 Design date: 2026-09-13. Configuration: [input_robustness_11_v1.json](../configs/input_robustness_11_v1.json).
 
+Execution update, 2026-09-14: the [measured acceptance report](input_robustness_11_preflight_report.md)
+records all 44 workers and 616 repeat pairs complete, with data binding,
+short-repeat fingerprints and memory within the fixed requirements. The formal
+time-budget gate did not pass: the conservative estimate is 12.910 days versus
+seven days, and both Squirrel/H2GCN model units exceed their two-hour cap.
+The scientific configuration below remains unchanged. No formal run or new
+selection/calibration analysis has started; resource planning is the next gate.
+
 ## Purpose and stage boundary
 
 The question is whether the original selection-loss findings, dependence on the

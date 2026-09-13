@@ -1,0 +1,268 @@
+{
+  "acceptance_validation": {
+    "ci_scope_note": "runner_validation_before_preflight refers to measured execution commit d542795; the acceptance commit receives its own subsequent CI run.",
+    "log_filename": "acceptance-full-tests.log",
+    "log_sha256": "8970d73781dbad31a92cef359b2d0f5884f0e8bf147aec4b445327e48ea43132",
+    "passed": 242,
+    "scope": "complete local suite including five published-acceptance evidence checks",
+    "seconds": 66.727,
+    "tests": 242
+  },
+  "actual_preflight_wall_seconds": 1328.2111148999538,
+  "analysis_status": "post_hoc_training_recipe_robustness",
+  "base_preserved_commit": "8847de65822552558144c4a472fd53fae4f021a0",
+  "checks": {
+    "all_probe_execution_success": true,
+    "data_and_all_train_diagnostics_bound": true,
+    "formal_launch_authorized": false,
+    "formal_model_unit_time_budget": false,
+    "formal_total_time_budget": false,
+    "host_and_cuda_memory_within_caps": true,
+    "short_repeat_fingerprints_match": true
+  },
+  "config_sha256": "55657a1cf20521333fd4120b48e12d904fc13a4b41a06c7f2f20a3fd658496ef",
+  "counts": {
+    "bound_splits": 110,
+    "datasets": 11,
+    "formal_records": 0,
+    "independent_workers": 44,
+    "matching_paired_cells": 616,
+    "probes": 1232,
+    "test_evaluations": 0,
+    "training_steps": 3696,
+    "validation_evaluations": 0
+  },
+  "data_binding_sha256": "01c2a5692a1c3c00fa9e6d27657ee6ad5347a559ad81a7fd41ae1962efc61ab7",
+  "dataset_profiles": [
+    {
+      "dataset": "Cora",
+      "matching_cells": 56,
+      "max_cuda_allocated_bytes": 178782720,
+      "max_cuda_reserved_bytes": 186646528,
+      "max_process_tree_bytes": 1952456704,
+      "paired_cells": 56,
+      "training_projection_seconds_with_factor_two_excluding_setup": 17552.116666338407
+    },
+    {
+      "dataset": "CiteSeer",
+      "matching_cells": 56,
+      "max_cuda_allocated_bytes": 358720512,
+      "max_cuda_reserved_bytes": 369098752,
+      "max_process_tree_bytes": 2065211392,
+      "paired_cells": 56,
+      "training_projection_seconds_with_factor_two_excluding_setup": 18908.598332782276
+    },
+    {
+      "dataset": "PubMed",
+      "matching_cells": 56,
+      "max_cuda_allocated_bytes": 368914432,
+      "max_cuda_reserved_bytes": 394264576,
+      "max_process_tree_bytes": 2342694912,
+      "paired_cells": 56,
+      "training_projection_seconds_with_factor_two_excluding_setup": 88694.9063333062
+    },
+    {
+      "dataset": "Wisconsin",
+      "matching_cells": 56,
+      "max_cuda_allocated_bytes": 82949632,
+      "max_cuda_reserved_bytes": 94371840,
+      "max_process_tree_bytes": 1845497856,
+      "paired_cells": 56,
+      "training_projection_seconds_with_factor_two_excluding_setup": 10648.000000898417
+    },
+    {
+      "dataset": "Cornell",
+      "matching_cells": 56,
+      "max_cuda_allocated_bytes": 79194624,
+      "max_cuda_reserved_bytes": 94371840,
+      "max_process_tree_bytes": 1844236288,
+      "paired_cells": 56,
+      "training_projection_seconds_with_factor_two_excluding_setup": 10620.043998157296
+    },
+    {
+      "dataset": "Chameleon",
+      "matching_cells": 56,
+      "max_cuda_allocated_bytes": 721049088,
+      "max_cuda_reserved_bytes": 736100352,
+      "max_process_tree_bytes": 2073853952,
+      "paired_cells": 56,
+      "training_projection_seconds_with_factor_two_excluding_setup": 70456.40733325854
+    },
+    {
+      "dataset": "Squirrel",
+      "matching_cells": 56,
+      "max_cuda_allocated_bytes": 3526695936,
+      "max_cuda_reserved_bytes": 3565158400,
+      "max_process_tree_bytes": 3319844864,
+      "paired_cells": 56,
+      "training_projection_seconds_with_factor_two_excluding_setup": 418059.63166523725
+    },
+    {
+      "dataset": "Actor",
+      "matching_cells": 56,
+      "max_cuda_allocated_bytes": 358502912,
+      "max_cuda_reserved_bytes": 362807296,
+      "max_process_tree_bytes": 2367938560,
+      "paired_cells": 56,
+      "training_projection_seconds_with_factor_two_excluding_setup": 150185.0783332096
+    },
+    {
+      "dataset": "Roman-empire",
+      "matching_cells": 56,
+      "max_cuda_allocated_bytes": 244122624,
+      "max_cuda_reserved_bytes": 301989888,
+      "max_process_tree_bytes": 2227884032,
+      "paired_cells": 56,
+      "training_projection_seconds_with_factor_two_excluding_setup": 31369.366667349823
+    },
+    {
+      "dataset": "Amazon-ratings",
+      "matching_cells": 56,
+      "max_cuda_allocated_bytes": 384082944,
+      "max_cuda_reserved_bytes": 413138944,
+      "max_process_tree_bytes": 2332798976,
+      "paired_cells": 56,
+      "training_projection_seconds_with_factor_two_excluding_setup": 80753.63000020539
+    },
+    {
+      "dataset": "Coauthor-CS",
+      "matching_cells": 56,
+      "max_cuda_allocated_bytes": 6043020800,
+      "max_cuda_reserved_bytes": 6048186368,
+      "max_process_tree_bytes": 3614765056,
+      "paired_cells": 56,
+      "training_projection_seconds_with_factor_two_excluding_setup": 163688.51599884994
+    }
+  ],
+  "formal_scope_unchanged": {
+    "conditions": [
+      "normalize_features",
+      "normalize_centered_scaled"
+    ],
+    "datasets": [
+      "Cora",
+      "CiteSeer",
+      "PubMed",
+      "Wisconsin",
+      "Cornell",
+      "Chameleon",
+      "Squirrel",
+      "Actor",
+      "Roman-empire",
+      "Amazon-ratings",
+      "Coauthor-CS"
+    ],
+    "models": [
+      "MLP",
+      "GCN",
+      "GAT",
+      "GraphSAGE",
+      "H2GCN",
+      "LINKX",
+      "GPR-GNN"
+    ],
+    "seeds": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9
+    ],
+    "selected_records": 1540,
+    "trials": 6160
+  },
+  "limitations": [
+    "Three steps at seed zero are a short repeatability/resource check, not full-length training certification.",
+    "The 12.91-day projection assumes all 500 epochs and a factor-two safety allowance; it is not an observed full-run duration or guaranteed bound.",
+    "The scientific condition was selected post hoc; no new independent confirmatory claim."
+  ],
+  "measured_execution_commit": "d5427952a2e5ec915b3a183b23b4fb2b9dfcee13",
+  "memory": {
+    "peak_cuda_allocated_bytes": 6043020800,
+    "peak_cuda_reserved_bytes": 6048186368,
+    "peak_process_tree_bytes": 3614765056
+  },
+  "next_gate": "Resolve the H2GCN CPU execution/time-budget plan using timing and memory only; then commit/test the formal runner, full-record validator and new-record analysis adapter before a separate formal launch.",
+  "phase": "design_resource_preflight_only",
+  "preserved_stopped_attempt": {
+    "archive_bytes": 625903,
+    "archive_filename": "input-robustness-11-preflight-stopped-v1.zip",
+    "archive_sha256": "8b36457f49837c16b6c7ccf689d6f60a583a0a84ff2e430401b1141fb2e766dd",
+    "complete_workers": 3,
+    "probes": 84,
+    "reason": "launcher-only RSS instrumentation; stopped and excluded from acceptance",
+    "source_commit": "602b2f041f9d440bc24a27f92081ac5776fcc96c"
+  },
+  "resource_profile_sha256": "31168a93a594f521269bd88aa93e29600394fd3987a62d0e22dcacb1f97a13f4",
+  "retained_preflight_archive": {
+    "archive_bytes": 11312434,
+    "archive_file_count": 1411,
+    "archive_filename": "input-robustness-11-preflight-v2.zip",
+    "archive_sha256": "84183024ce7e03196a38de7790fd080d711b559812d3385536e2d747152e9b5c",
+    "formal_records": 0,
+    "independent_bitwise_repeat_pairs_verified": 616,
+    "inventory_complete_coverage_except_self": true,
+    "inventory_entries_verified": 1410,
+    "overall_preflight_status": "BLOCKED_TIME_BUDGET",
+    "probe_heldout_score_field_checks_passed": 1232,
+    "probe_phase_and_identity_checks_passed": 1232,
+    "probe_zero_heldout_counter_checks_passed": 1232,
+    "source_stable_before_and_after_archive": true,
+    "storage": "retained author artifact; compact acceptance and resource profile are versioned in this branch",
+    "successful_probes_verified": 1232,
+    "successful_worker_jobs_verified": 44,
+    "verification_filename": "preflight-v2-archive-verification.json",
+    "verification_sha256": "fb4d440f1e5901d0626970d6807e00961e025889d9cb183c68b3b14b24d396ea",
+    "worker_completions_verified": 44,
+    "zip_crc_passed": true,
+    "zip_entry_sha256_and_size_matches_source": 1411
+  },
+  "run_id": "posthoc_input_robustness_11_v1",
+  "runner_validation_before_preflight": {
+    "ci_conclusion": "success",
+    "ci_job_count": 3,
+    "ci_run_id": 34768554546,
+    "commit": "d5427952a2e5ec915b3a183b23b4fb2b9dfcee13",
+    "passed": 237,
+    "seconds": 71.786,
+    "tests": 237
+  },
+  "schema_version": "1.0",
+  "scientific_claim_status": {
+    "calibration": "not_yet_evaluated_on_new_formal_records",
+    "portfolio_reversal": "not_yet_evaluated_on_new_formal_records",
+    "selection_loss": "not_yet_evaluated_on_new_formal_records"
+  },
+  "status": "blocked_by_formal_time_budget",
+  "time_projection": {
+    "conservative_seconds": 1115455.589565707,
+    "failed_gates": [
+      {
+        "condition": "normalize_features",
+        "dataset": "Squirrel",
+        "model": "H2GCN",
+        "reason": "estimated four-trial unit exceeds wall cap"
+      },
+      {
+        "condition": "normalize_centered_scaled",
+        "dataset": "Squirrel",
+        "model": "H2GCN",
+        "reason": "estimated four-trial unit exceeds wall cap"
+      },
+      {
+        "reason": "conservative full-run estimate exceeds total wall cap"
+      }
+    ],
+    "formal_model_unit_cap_seconds": 7200,
+    "formal_total_cap_seconds": 604800,
+    "formula": "2 * (sum(max_repeat_mean_epoch_seconds) * 500 * 10 + sum(max_transform_setup + max_worker_nontraining_overhead) * 70 + sum(max_H2_preparation) * 10)",
+    "h2gcn_training_seconds_with_factor_two": 896304.5366649749,
+    "limitations": "Three-step seed-0 probe, not a long-run guarantee; safety factor covers unmeasured selection/checkpoint/diagnostic overhead.",
+    "setup_allowance_before_safety_factor_seconds": 27259.64711805689
+  }
+}

@@ -17,6 +17,16 @@ selection, portfolio or calibration results. Commit `8847de6` and all earlier
 results remain preserved. The candidate is not designated universally optimal,
 and the extension is not an independent confirmatory validation.
 
+The [September 14 acceptance report](docs/input_robustness_11_preflight_report.md)
+records complete binding of all 110 splits, 1,232 successful short probes and
+616 matching repeat pairs. Peak process-tree memory was 3.367 GiB and peak CUDA
+reserved memory was 5.633 GiB, within the fixed caps. The **formal time-budget
+gate failed**: the frozen conservative projection is 12.910 days against seven
+days, with Squirrel/H2GCN also exceeding the per-model-unit projection cap.
+Formal training has not started. Selection loss, portfolio reversals and
+calibration under the new paired records remain unassessed; the next stage must
+resolve the execution and compute-budget plan before formal recording and analysis.
+
 ## Main results
 
 The prospective benchmark contains 11 datasets, 10 seeds, seven architectures, 770 selected-model records, and 110 diagnostic records whose label-dependent graph statistics use training labels only. Every architecture receives the same four-trial grid, but the total portfolio budgets are asymmetric: the graph action selects among six architectures (24 trials), whereas the feature-only action contains one MLP architecture (four trials). The target requires the selected graph model to beat the selected MLP by more than one percentage point. The estimand therefore concerns these fixed operational portfolios, not an equal-total-compute family comparison.
