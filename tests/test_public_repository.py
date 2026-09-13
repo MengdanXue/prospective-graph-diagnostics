@@ -7,6 +7,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 ALLOWED_RESULTS = {
+    "results/diagnostic/posthoc_input_robustness_11_v1/preflight/data_binding.json",
+    "results/diagnostic/posthoc_input_robustness_11_v1/preflight/data_binding_stage1.json",
     "results/diagnostic/route_a_prospective_v2/analysis/portfolio_robustness.json",
     "results/diagnostic/route_a_prospective_v2/analysis/preprocessing_sensitivity.json",
     "results/diagnostic/route_a_prospective_v2/analysis/preprocessing_record_audit.json",
