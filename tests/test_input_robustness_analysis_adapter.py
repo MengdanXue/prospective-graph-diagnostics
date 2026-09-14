@@ -7,8 +7,8 @@ import tempfile
 import unittest
 
 from scripts.input_robustness_analysis_adapter import (
-    STRATEGIES, adapt_records, enumerate_graph_portfolios, fit_threshold,
-    leave_one_dataset_out,
+    STRATEGIES, adapt_records, enumerate_graph_portfolios, evaluate_strategy,
+    fit_threshold, leave_one_dataset_out,
 )
 from scripts.input_robustness_formal_records import CONDITIONS, GRAPH_MODELS
 
@@ -59,3 +59,36 @@ class AnalysisAdapterTests(unittest.TestCase):
         records = [record for record in records if record["model"] != "H2GCN"]
         with self.assertRaises(ValueError):
             adapt_records(records)
+
+    def test_strategy_actions_abstention_coverage_and_loss_match_frozen_evaluator(self):
+        from experiments.evaluate_diagnostics import fixed_decisions, score_method
+        rows = [
+            {"dataset": "A", "seed": 0, "split_id": "a", "graph_model": "GCN",
+             "graph_validation": 0.60, "mlp_validation": 0.55, "graph_test": 0.80,
+             "mlp_test": 0.60, "homophily": 0.40, "mean_degree": 7.0, "delta_h": -0.01},
+            {"dataset": "B", "seed": 0, "split_id": "b", "graph_model": "GCN",
+             "graph_validation": 0.50, "mlp_validation": 0.55, "graph_test": 0.40,
+             "mlp_test": 0.70, "homophily": None, "mean_degree": None, "delta_h": None},
+        ]
+        expected_units = []
+        for row in rows:
+            unit = {"dataset": row["dataset"], "seed": row["seed"], "split_id": row["split_id"],
+                    "selected_mlp": "MLP", "selected_graph": "GCN",
+                    "selected_mlp_validation": row["mlp_validation"],
+                    "selected_graph_validation": row["graph_validation"],
+                    "selected_mlp_test": row["mlp_test"], "selected_graph_test": row["graph_test"],
+                    "test_gap": row["graph_test"] - row["mlp_test"],
+                    "target_action": "graph" if row["graph_test"] - row["mlp_test"] > 0.01 else "mlp",
+                    "homophily": row["homophily"], "mean_degree": row["mean_degree"],
+                    "delta_h": row["delta_h"]}
+            unit["decisions"] = fixed_decisions(unit)
+            expected_units.append(unit)
+        for strategy in ("degree_only", "homophily_plus_degree", "two_hop_only", "historical_combined"):
+            expected = score_method(expected_units, strategy)
+            observed = evaluate_strategy(rows, strategy)
+            self.assertEqual(observed["covered"], expected["covered"])
+            self.assertEqual(observed["abstained"], expected["abstained"])
+            self.assertAlmostEqual(observed["coverage"], expected["coverage"])
+            self.assertAlmostEqual(observed["full_set_mean_regret"], expected["full_set_mean_regret"])
+            self.assertEqual([item["action"] for item in observed["outcomes"]],
+                             [unit["decisions"][strategy]["action"] for unit in expected_units])

@@ -8,10 +8,13 @@ from pathlib import Path
 import tempfile
 import unittest
 
+import torch
+
 from scripts.input_robustness_formal_records import (
     CONDITIONS, GRAPH_MODELS, MODELS, DuplicateRecordError, FormalRecordError,
     FormalRecordWriter, build_record, expected_keys,
 )
+from scripts.input_robustness_checkpoint_store import save_checkpoint
 from scripts.validate_input_robustness_formal_records import validate_complete_run, validate_run
 
 
@@ -42,7 +45,7 @@ class FormalRecordFixtureTests(unittest.TestCase):
                            "fit_statistics_sha256": ("f" if condition == CONDITIONS[0] else "0") * 64}
                 diagnostics = {"homophily": 0.4 if dataset == "Cora" else 0.7,
                                "mean_degree": 3.0 if dataset == "Cora" else 1.0,
-                               "two_hop_agreement": 0.6 if condition == CONDITIONS[0] else 0.3,
+                               "delta_h": 0.1 if condition == CONDITIONS[0] else -0.1,
                                "historical_action": "graph" if dataset == "Actor" else "mlp"}
                 for model in MODELS:
                     trials = []
@@ -50,8 +53,16 @@ class FormalRecordFixtureTests(unittest.TestCase):
                         trials.append({"trial_id": f"trial_{index:03d}", "configuration": configuration,
                                        "validation_accuracy": 0.55 + 0.02 * index + (0.01 if model != "MLP" else 0),
                                        "validation_loss": 0.8 - 0.01 * index})
-                    checkpoints = [{"trial_id": f"trial_{index:03d}", "path": f"checkpoints/trial_{index:03d}.pt",
-                                   "sha256": (chr(65 + index) * 64), "bytes": 128 + index, "saved": True} for index in range(4)]
+                    checkpoint_root = self.root / "checkpoints" / condition / dataset / model / "seed_000"
+                    checkpoints = []
+                    for index in range(4):
+                        checkpoint = save_checkpoint(
+                            checkpoint_root, f"trial_{index:03d}",
+                            {"weight": torch.tensor([float(index + 1)])},
+                        )
+                        checkpoint["path"] = (Path("checkpoints") / condition / dataset / model /
+                                               "seed_000" / checkpoint["path"]).as_posix()
+                        checkpoints.append(checkpoint)
                     self.records.append(build_record(
                         run_id=self.manifest["run_id"], dataset=dataset, condition=condition,
                         model=model, seed=0, split_id=binding["split_id"], source_commit="a" * 40,

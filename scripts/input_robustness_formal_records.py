@@ -96,6 +96,11 @@ def _finite_number(value: Any, label: str) -> float:
     return result
 
 
+def _optional_finite_number(value: Any, label: str) -> None:
+    if value is not None:
+        _finite_number(value, label)
+
+
 def _require_hash(value: Any, label: str) -> str:
     if not isinstance(value, str) or len(value) != 64:
         raise FormalRecordError(f"{label} must be a SHA-256 hex digest")
@@ -215,8 +220,8 @@ def validate_record(record: Mapping[str, Any], *, expected: Mapping[str, Any] | 
     diagnostics = record["diagnostics"]
     if not isinstance(diagnostics, Mapping):
         raise FormalRecordError("train-only diagnostics are required")
-    for field in ("homophily", "mean_degree", "two_hop_agreement"):
-        _finite_number(diagnostics.get(field), f"diagnostics.{field}")
+    for field in ("homophily", "mean_degree", "delta_h"):
+        _optional_finite_number(diagnostics.get(field), f"diagnostics.{field}")
 
 
 def build_record(*, run_id: str, dataset: str, condition: str, model: str, seed: int,
@@ -285,6 +290,10 @@ class FormalRecordWriter:
 
     def write_record(self, record: Mapping[str, Any]) -> Path:
         validate_record(record, expected=self.manifest, synthetic=self.synthetic)
+        if not self.synthetic:
+            from scripts.input_robustness_checkpoint_store import verify_checkpoint
+            for checkpoint in record["checkpoint_manifest"]:
+                verify_checkpoint(self.root, checkpoint)
         dataset, condition, model, seed = record_key(record)
         path = self.root / "records" / condition / dataset / model / f"seed_{seed:03d}.json"
         _exclusive_json(path, record)
@@ -313,7 +322,10 @@ class FormalRecordWriter:
 
 def run_formal_model_unit(*, writer: FormalRecordWriter, core_runner: Callable[..., Mapping[str, Any]] | None = None,
                           launch_authorized: bool, formal_training_enabled: bool,
-                          checkpoint_manifest: Sequence[Mapping[str, Any]], **runner_kwargs: Any) -> dict[str, Any]:
+                          checkpoint_manifest: Sequence[Mapping[str, Any]] | None = None,
+                          transform_binding: Mapping[str, Any] | None = None,
+                          diagnostics: Mapping[str, Any] | None = None,
+                          **runner_kwargs: Any) -> dict[str, Any]:
     """Run one existing-core unit only after the explicit formal launch gate.
 
     ``core_runner`` is the existing ``run_model_unit`` in production and a
@@ -323,13 +335,59 @@ def run_formal_model_unit(*, writer: FormalRecordWriter, core_runner: Callable[.
     """
     if launch_authorized is not True or formal_training_enabled is not True:
         raise FormalRecordError("formal model execution is locked until formal launch authorization")
-    if core_runner is None:
-        # Keep the established training implementation as the production
-        # default; tests inject a fixed runner and therefore never train.
-        from experiments.run_prospective_benchmark import run_model_unit
-        core_runner = run_model_unit
-    record = dict(core_runner(**runner_kwargs))
-    record["checkpoint_manifest"] = [dict(item) for item in checkpoint_manifest]
+    using_default_core = core_runner is None
+    if using_default_core:
+        # Keep the public benchmark runner frozen; the formal adapter calls
+        # the same trial/model primitives through its checkpoint-aware layer.
+        from scripts.input_robustness_training_core import run_model_unit_with_checkpoints
+        core_runner = run_model_unit_with_checkpoints
+    if "checkpoint_dir" not in runner_kwargs and all(key in runner_kwargs for key in ("condition", "dataset", "model_id", "seed")):
+        runner_kwargs["checkpoint_dir"] = (
+            writer.root / "checkpoints" / str(runner_kwargs["condition"]) /
+            str(runner_kwargs["dataset"]) / str(runner_kwargs["model_id"]) /
+            f"seed_{int(runner_kwargs['seed']):03d}"
+        )
+    call_kwargs = dict(runner_kwargs)
+    if using_default_core:
+        call_kwargs.pop("condition", None)
+        call_kwargs.pop("data_binding_sha256", None)
+        call_kwargs.pop("transform_binding", None)
+        call_kwargs.pop("diagnostics", None)
+    record = dict(core_runner(**call_kwargs))
+    if "condition" not in record and "condition" in runner_kwargs:
+        record["condition"] = runner_kwargs["condition"]
+    if "data_binding_sha256" not in record and "data_binding_sha256" in runner_kwargs:
+        record["data_binding_sha256"] = runner_kwargs["data_binding_sha256"]
+    if transform_binding is not None:
+        record["transform_binding"] = dict(transform_binding)
+    elif "transform_binding" in runner_kwargs:
+        record["transform_binding"] = dict(runner_kwargs["transform_binding"])
+    if diagnostics is not None:
+        record["diagnostics"] = dict(diagnostics)
+    elif "diagnostics" in runner_kwargs:
+        record["diagnostics"] = dict(runner_kwargs["diagnostics"])
+    manifests = checkpoint_manifest if checkpoint_manifest is not None else record.get("checkpoint_manifest")
+    if not isinstance(manifests, Sequence):
+        raise FormalRecordError("formal core must return four checkpoint manifests")
+    normalized = []
+    checkpoint_dir = runner_kwargs.get("checkpoint_dir")
+    checkpoint_prefix = Path()
+    if checkpoint_dir is not None:
+        try:
+            checkpoint_prefix = Path(checkpoint_dir).resolve().relative_to(writer.root.resolve())
+        except ValueError as exc:
+            raise FormalRecordError("checkpoint_dir must be inside the formal output root") from exc
+    for item in manifests:
+        row = dict(item)
+        path = row.get("path")
+        if isinstance(path, str):
+            path_obj = Path(path)
+            if checkpoint_prefix and not path_obj.is_absolute():
+                row["path"] = (checkpoint_prefix / path_obj).as_posix()
+            elif not path_obj.is_absolute() and not path.replace("\\", "/").startswith("checkpoints/"):
+                row["path"] = f"checkpoints/{path}"
+        normalized.append(row)
+    record["checkpoint_manifest"] = normalized
     record["checkpoint_mode"] = "original_full_state_copy"
     record["checkpoint_complete"] = True
     record["record_complete"] = True
@@ -337,6 +395,55 @@ def run_formal_model_unit(*, writer: FormalRecordWriter, core_runner: Callable[.
     record["test_evaluation"] = {"selected_trial_id": record.get("selected_trial_id"), "count": 1}
     record["execution_mode"] = "formal"
     record["formal_training_enabled"] = True
+    writer.write_record(record)
+    return record
+
+
+def run_rehearsal_model_unit(*, writer: FormalRecordWriter,
+                             core_runner: Callable[..., Mapping[str, Any]] | None = None,
+                             condition: str, diagnostics: Mapping[str, Any],
+                             **runner_kwargs: Any) -> dict[str, Any]:
+    """Execute the real training core for a synthetic fixture in isolation.
+
+    This path never sets either formal launch flag and writes only to a writer
+    explicitly created with ``synthetic=True``.  It still performs all four
+    trials, persists/reloads checkpoints through the core's checkpoint sink,
+    and exercises record validation and summary generation.
+    """
+    if not writer.synthetic:
+        raise FormalRecordError("rehearsal output must use a synthetic writer")
+    if condition not in CONDITIONS:
+        raise FormalRecordError("unknown approved condition")
+    if core_runner is None:
+        from scripts.input_robustness_training_core import run_model_unit_with_checkpoints
+        core_runner = run_model_unit_with_checkpoints
+    runner_kwargs = dict(runner_kwargs)
+    runner_kwargs.setdefault("checkpoint_dir", writer.root / "checkpoints" / condition /
+                            str(runner_kwargs.get("dataset")) / str(runner_kwargs.get("model_id")) /
+                            f"seed_{int(runner_kwargs.get('seed', 0)):03d}")
+    call_kwargs = dict(runner_kwargs)
+    call_kwargs.pop("condition", None)
+    call_kwargs.pop("data_binding_sha256", None)
+    call_kwargs.pop("diagnostics", None)
+    core_record = dict(core_runner(**call_kwargs))
+    manifests = core_record.get("checkpoint_manifest")
+    if not isinstance(manifests, Sequence) or len(manifests) != 4:
+        raise FormalRecordError("real core did not return four persisted checkpoints")
+    prefix = Path(runner_kwargs["checkpoint_dir"]).resolve().relative_to(writer.root.resolve())
+    manifests = [{**dict(item), "path": (prefix / str(item["path"])).as_posix()} for item in manifests]
+    record = build_record(
+        run_id=str(core_record["run_id"]), dataset=str(core_record["dataset"]), condition=condition,
+        model=str(core_record["model"]), seed=int(core_record["seed"]), split_id=str(core_record["split_id"]),
+        source_commit=str(core_record["source_commit"]), config_sha256=str(core_record["config_sha256"]),
+        data_binding_sha256=str(core_record.get("data_binding_sha256", "c" * 64)),
+        environment=core_record["environment"], transform_binding={
+            "dataset": str(core_record["dataset"]), "condition": condition, "seed": int(core_record["seed"]),
+            "split_id": str(core_record["split_id"]), "transformed_feature_sha256": "d" * 64,
+            "fit_statistics_sha256": "e" * 64,
+        }, training_configuration=core_record["training_configuration"], trials=core_record["trials"],
+        test_accuracy=float(core_record["test_accuracy"]), checkpoint_manifest=manifests,
+        diagnostics=diagnostics, synthetic=True, duration_seconds=float(core_record.get("duration_seconds", 0.0)),
+    )
     writer.write_record(record)
     return record
 
@@ -358,7 +465,8 @@ class FormalUnitRunner:
     def run(self, *, attempt_id: str, unit_id: str, estimated_seconds: float,
             launch_authorized: bool, formal_training_enabled: bool,
             core_runner: Callable[..., Mapping[str, Any]] | None = None,
-            checkpoint_manifest: Sequence[Mapping[str, Any]], **runner_kwargs: Any) -> tuple[dict[str, Any], dict[str, Any]]:
+            checkpoint_manifest: Sequence[Mapping[str, Any]] | None = None,
+            **runner_kwargs: Any) -> tuple[dict[str, Any], dict[str, Any]]:
         if launch_authorized is not True or formal_training_enabled is not True:
             raise FormalRecordError("formal model execution is locked until formal launch authorization")
         self.ledger.begin_attempt(

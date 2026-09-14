@@ -11,6 +11,7 @@ condition and portfolio.
 from __future__ import annotations
 
 import itertools
+import json
 import math
 from collections import defaultdict
 from pathlib import Path
@@ -19,6 +20,11 @@ from typing import Any, Iterable, Mapping, Sequence
 from scripts.input_robustness_formal_records import (
     CONDITIONS, GRAPH_MODELS, STRATEGIES, THRESHOLDS, FormalRecordError,
     record_key, select_trial,
+)
+from experiments.evaluate_diagnostics import (
+    fixed_decisions as frozen_fixed_decisions,
+    score_method as frozen_score_method,
+    PRACTICAL_MARGIN as FROZEN_PRACTICAL_MARGIN,
 )
 
 
@@ -69,90 +75,105 @@ def _portfolio_rows(units: Mapping[tuple[str, int], Mapping[str, Mapping[str, An
         graph = _selected_model(models[name] for name in portfolio)
         mlp = models["MLP"]
         diagnostics = graph.get("diagnostics", {})
-        # Diagnostics are train-only and copied across model records.  Require
-        # the values needed by a strategy rather than silently inventing them.
-        for field in ("homophily", "mean_degree", "two_hop_agreement"):
+        # Diagnostics are train-only and copied across model records.  These
+        # names and semantics are the frozen evaluator's input contract.
+        for field in ("homophily", "mean_degree", "delta_h"):
             value = diagnostics.get(field)
-            if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(float(value)):
+            if value is not None and (isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(float(value))):
                 raise FormalRecordError(f"missing/non-finite train-only diagnostic {field} in {dataset}/{seed}")
-        historical = diagnostics.get("historical_action", "mlp")
-        if historical not in ("graph", "mlp", "abstain"):
-            raise FormalRecordError("historical_action must be graph, mlp, or abstain")
         rows.append({
-            "dataset": dataset, "seed": seed, "portfolio": tuple(portfolio),
+            "dataset": dataset, "seed": seed, "split_id": str(graph["split_id"]),
+            "portfolio": tuple(portfolio),
             "graph_model": graph["model"], "graph_validation": float(graph["validation_accuracy"]),
             "mlp_validation": float(mlp["validation_accuracy"]),
             "graph_test": float(graph["test_accuracy"]), "mlp_test": float(mlp["test_accuracy"]),
-            "homophily": float(diagnostics["homophily"]), "mean_degree": float(diagnostics["mean_degree"]),
-            "two_hop_agreement": float(diagnostics["two_hop_agreement"]),
-            "historical_action": historical,
+            "homophily": None if diagnostics["homophily"] is None else float(diagnostics["homophily"]),
+            "mean_degree": None if diagnostics["mean_degree"] is None else float(diagnostics["mean_degree"]),
+            "delta_h": None if diagnostics["delta_h"] is None else float(diagnostics["delta_h"]),
         })
     return rows
 
 
-def _action(strategy: str, row: Mapping[str, Any], *, degree_threshold: float = 2.0,
-            homophily_threshold: float = 0.5, two_hop_threshold: float = 0.5,
-            practical_margin: float = PRACTICAL_MARGIN) -> str:
-    if strategy == "always_graph":
-        return "graph"
-    if strategy == "always_mlp":
-        return "mlp"
-    if strategy == "degree_only":
-        return "graph" if row["mean_degree"] >= degree_threshold else "mlp"
-    if strategy == "historical_combined":
-        return "mlp" if row["historical_action"] == "abstain" else row["historical_action"]
-    if strategy == "homophily_only":
-        return "graph" if row["homophily"] >= homophily_threshold else "mlp"
-    if strategy == "homophily_plus_degree":
-        return "graph" if row["homophily"] >= homophily_threshold and row["mean_degree"] >= degree_threshold else "mlp"
-    if strategy == "two_hop_only":
-        return "graph" if row["two_hop_agreement"] >= two_hop_threshold else "mlp"
-    if strategy == "validation_selection":
-        return "graph" if row["graph_validation"] - row["mlp_validation"] > practical_margin else "mlp"
-    if strategy == "random_50_50":
-        return "random"
-    raise FormalRecordError(f"unknown analysis strategy: {strategy}")
+def _frozen_units(rows: Sequence[Mapping[str, Any]], *, practical_margin: float) -> list[dict[str, Any]]:
+    """Convert adapter rows to the exact frozen evaluator unit contract."""
+    units = []
+    for row in rows:
+        graph_test = float(row["graph_test"])
+        mlp_test = float(row["mlp_test"])
+        unit = {
+            "dataset": str(row["dataset"]),
+            "seed": int(row["seed"]),
+            "split_id": str(row.get("split_id", f"{row['dataset']}-seed-{row['seed']}")),
+            "selected_mlp": "MLP",
+            "selected_graph": str(row["graph_model"]),
+            "selected_mlp_validation": float(row["mlp_validation"]),
+            "selected_graph_validation": float(row["graph_validation"]),
+            "selected_mlp_test": mlp_test,
+            "selected_graph_test": graph_test,
+            "test_gap": graph_test - mlp_test,
+            "target_action": "graph" if graph_test - mlp_test > practical_margin else "mlp",
+            "homophily": row["homophily"],
+            "mean_degree": row["mean_degree"],
+            "delta_h": row["delta_h"],
+        }
+        unit["decisions"] = frozen_fixed_decisions(unit)
+        units.append(unit)
+    if not units:
+        raise FormalRecordError("cannot evaluate an empty strategy stratum")
+    return units
 
 
-def evaluate_strategy(rows: Sequence[Mapping[str, Any]], strategy: str, *, degree_threshold: float = 2.0,
-                      homophily_threshold: float = 0.5, two_hop_threshold: float = 0.5,
+def evaluate_strategy(rows: Sequence[Mapping[str, Any]], strategy: str, *,
+                      degree_threshold: float | None = None,
+                      homophily_threshold: float | None = None,
+                      two_hop_threshold: float | None = None,
                       practical_margin: float = PRACTICAL_MARGIN) -> dict[str, Any]:
+    """Score using the frozen evaluator; threshold arguments are compatibility-only."""
     if strategy not in STRATEGIES:
         raise FormalRecordError(f"strategy is not predeclared: {strategy}")
+    if practical_margin != FROZEN_PRACTICAL_MARGIN:
+        raise FormalRecordError("the adapter must use the frozen practical margin of 0.01")
+    units = _frozen_units(rows, practical_margin=practical_margin)
+    scored = dict(frozen_score_method(units, strategy))
     outcomes = []
-    for row in rows:
-        graph_test, mlp_test = float(row["graph_test"]), float(row["mlp_test"])
-        oracle = max(graph_test, mlp_test)
-        target = "graph" if graph_test - mlp_test > practical_margin else "mlp"
-        action = _action(strategy, row, degree_threshold=degree_threshold,
-                         homophily_threshold=homophily_threshold,
-                         two_hop_threshold=two_hop_threshold,
-                         practical_margin=practical_margin)
-        if action == "random":
-            regret = oracle - 0.5 * (graph_test + mlp_test)
-            accuracy = 0.5 if graph_test != mlp_test else 1.0
-        else:
-            realized = graph_test if action == "graph" else mlp_test
-            regret = oracle - realized
-            accuracy = float(action == target)
-        outcomes.append({"dataset": row["dataset"], "seed": row["seed"], "action": action,
-                         "target": target, "regret": regret, "accuracy": accuracy})
-    if not outcomes:
-        raise FormalRecordError("cannot evaluate an empty strategy stratum")
     by_dataset: dict[str, list[dict[str, Any]]] = defaultdict(list)
-    for item in outcomes:
+    for unit in units:
+        decision = unit["decisions"][strategy]
+        action = decision["action"]
+        effective = "mlp" if action == "abstain" else action
+        if action == "expected_random":
+            regret = 0.5 * (
+                max(unit["selected_mlp_test"], unit["selected_graph_test"]) - unit["selected_mlp_test"]
+                + max(unit["selected_mlp_test"], unit["selected_graph_test"]) - unit["selected_graph_test"]
+            )
+            accuracy = 0.5
+        else:
+            oracle = max(unit["selected_mlp_test"], unit["selected_graph_test"])
+            realized = unit["selected_graph_test"] if effective == "graph" else unit["selected_mlp_test"]
+            regret = float(oracle - realized)
+            accuracy = float(effective == unit["target_action"])
+        item = {"dataset": unit["dataset"], "seed": unit["seed"], "action": action,
+                "effective_action": effective, "target": unit["target_action"],
+                "confidence": decision["confidence"], "regret": regret, "accuracy": accuracy}
+        outcomes.append(item)
         by_dataset[item["dataset"]].append(item)
-    return {
-        "strategy": strategy, "units": len(outcomes), "coverage": 1.0,
-        "mean_regret_pp": 100.0 * _mean(item["regret"] for item in outcomes),
-        "selection_accuracy": _mean(item["accuracy"] for item in outcomes),
+    scored.update({
+        "strategy": strategy,
+        "units": len(units),
+        "mean_regret_pp": 100.0 * float(scored["full_set_mean_regret"]),
         "actions": {action: sum(item["action"] == action for item in outcomes)
-                    for action in ("graph", "mlp", "random")},
-        "datasets": {dataset: {"units": len(items), "mean_regret_pp": 100.0 * _mean(i["regret"] for i in items),
-                               "selection_accuracy": _mean(i["accuracy"] for i in items)}
-                     for dataset, items in sorted(by_dataset.items())},
+                    for action in ("graph", "mlp", "abstain", "expected_random")},
+        "datasets": {
+            dataset: {
+                "units": len(items),
+                "mean_regret_pp": 100.0 * _mean(item["regret"] for item in items),
+                "selection_accuracy": _mean(item["accuracy"] for item in items),
+            }
+            for dataset, items in sorted(by_dataset.items())
+        },
         "outcomes": outcomes,
-    }
+    })
+    return scored
 
 
 def _threshold_loss(rows: Sequence[Mapping[str, Any]], threshold: float, feature: str) -> float:
@@ -193,6 +214,8 @@ def adapt_records(records: Sequence[Mapping[str, Any]], *, conditions: Sequence[
                   practical_margin: float = PRACTICAL_MARGIN) -> dict[str, Any]:
     if tuple(conditions) != CONDITIONS:
         raise FormalRecordError("the adapter requires the two approved conditions in config order")
+    if practical_margin != FROZEN_PRACTICAL_MARGIN:
+        raise FormalRecordError("the adapter must use the frozen practical margin of 0.01")
     results: dict[str, Any] = {}
     for condition in conditions:
         units = _units(records, condition)
@@ -231,6 +254,13 @@ def adapt_records(records: Sequence[Mapping[str, Any]], *, conditions: Sequence[
 
 def adapt_validated_root(root: Path, *, synthetic: bool = False) -> dict[str, Any]:
     from scripts.validate_input_robustness_formal_records import validate_complete_run
-    validated = validate_complete_run(root, synthetic=synthetic)
+    config_path = None
+    binding_path = None
+    if not synthetic:
+        repo_root = Path(__file__).resolve().parents[1]
+        config_path = repo_root / "configs" / "input_robustness_11_v2.json"
+        config = json.loads(config_path.read_text(encoding="utf-8"))
+        binding_path = repo_root / str(config["bound_input_source"]["path"])
+    validated = validate_complete_run(root, synthetic=synthetic, config_path=config_path,
+                                      data_binding_path=binding_path)
     return adapt_records(validated["records"])
-
