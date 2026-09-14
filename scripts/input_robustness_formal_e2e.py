@@ -34,6 +34,7 @@ class _PowerBackend:
     def close_handle(self, handle): pass
     def register_notification(self, callback): self.callback = callback; return 2
     def unregister_notification(self, registration): pass
+    def emit(self, code): self.callback(code)
 
 
 class _PauseAfterBoundary(FormalExecutionController):
@@ -50,6 +51,32 @@ class _EmergencyAtBoundary(FormalExecutionController):
             self.request_emergency_stop()
 
 
+class _SuspendEmergencyAtBoundary(_EmergencyAtBoundary):
+    def _monitor(self):
+        super()._monitor()
+        if self.monitor_samples == 2:
+            self.power_watcher._backend.emit(4)
+
+
+class _InjectedLedgerStop:
+    """Testing proxy that injects a durable-stop observation, never a reset."""
+    def __init__(self, ledger, stop_after=3):
+        self.ledger, self.stop_after, self.poll_count = ledger, stop_after, 0
+
+    def poll(self, *, force=False):
+        self.poll_count += 1
+        snapshot = self.ledger.poll(force=force)
+        if self.poll_count >= self.stop_after:
+            snapshot = dict(snapshot)
+            snapshot["must_stop"] = True
+            snapshot["stop_reasons"] = list(dict.fromkeys(
+                list(snapshot.get("stop_reasons", [])) + ["injected_ledger_stop"]))
+        return snapshot
+
+    def __getattr__(self, name):
+        return getattr(self.ledger, name)
+
+
 def _sha(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
@@ -61,7 +88,7 @@ def _write_json(path: Path, value: Any) -> None:
 
 def _authority(ledger_path: Path, config_sha: str, binding_sha: str, commit: str, phase: str):
     authority = {"approval_sha256": "2" * 64, "proposal_sha256": "3" * 64, "scope_sha256": "4" * 64}
-    ledger = BudgetLedger.create(ledger_path, authority=authority, monitor_gap_seconds=999999)
+    ledger = BudgetLedger.create(ledger_path, authority=authority, monitor_gap_seconds=5)
     gate = {"ci_receipt_file_sha256": "e" * 64, "review_record_sha256": "f" * 64,
             "ci_receipt": {"commit": commit, "run_id": 17, "status": "completed",
                            "conclusion": "success", "jobs": [
@@ -130,7 +157,8 @@ def _units(*, root: Path, config: dict[str, Any], config_path: Path, binding_pat
                                              "transformed_feature_sha256": "d" * 64 if condition == CONDITIONS[0] else "f" * 64,
                                              "fit_statistics_sha256": "e" * 64 if condition == CONDITIONS[0] else "0" * 64},
                       "diagnostics": {"homophily": 0.4 if dataset == "Cora" else 0.7,
-                                      "mean_degree": 3.0 if dataset == "Cora" else 1.0, "delta_h": 0.1}})
+                                      "mean_degree": 3.0 if dataset == "Cora" else 1.0, "delta_h": 0.1},
+                              **({"worker_sleep_seconds": 6.0} if index == 0 else {})})
                 index += 1
     return units
 
@@ -146,10 +174,38 @@ def _writer(root: Path, *, config_path: Path, binding_path: Path, config: dict[s
         config_path=config_path, data_binding_path=binding_path)
 
 
-def _controller(controller_cls, writer, ledger, phase, units):
+def _controller(controller_cls, writer, ledger, phase, units, *, power_request=None, power_watcher=None):
     return controller_cls(writer=writer, ledger=ledger, phase_id=phase,
-                          power_request=TaskPowerRequest(_PowerBackend()),
-                          power_watcher=PowerEventWatcher(_PowerBackend()))
+                          power_request=power_request or TaskPowerRequest(_PowerBackend()),
+                          power_watcher=power_watcher or PowerEventWatcher(_PowerBackend()))
+
+
+def _review_and_reopen(ledger, *, commit: str, config: dict[str, Any], binding_path: Path,
+                       writer, unit: dict[str, Any]):
+    """Close/review the interrupted attempt, then retry the same unit on one ledger."""
+    before = ledger.snapshot()
+    ledger.close_attempt("attempt000", outcome="external_interruption",
+                         reason="isolated emergency stop under outer guardian")
+    provenance = {"source_commit": commit, "config_sha256": digest(config),
+                  "data_binding_sha256": _sha(binding_path),
+                  "source_files": {"formal_entry.py": "d" * 64}, "environment": {"device": "cpu"}}
+    ledger.review_external_interruption(
+        "input_robustness_formal_unit000", provenance=provenance,
+        review_receipt={"all_existing_records_validated": True,
+                        "external_interruption_cause_confirmed": True,
+                        "no_unresolved_failure_artifacts": True,
+                        "review_record_sha256": "1" * 64},
+    )
+    retry_unit = {**unit, "attempt_id": "attempt001"}
+    retry_unit.pop("worker_sleep_seconds", None)
+    retry = _controller(FormalExecutionController, writer, ledger, "isolated-emergency", [retry_unit])
+    retry_result = retry.run_units([retry_unit], launch_authorized=True,
+                                   formal_training_enabled=True, finalize=False)
+    after = ledger.snapshot()
+    if retry_result["status"] != "completed" or after["charged_seconds"]["formal"] <= before["charged_seconds"]["formal"]:
+        raise RuntimeError("same-ledger interruption review/reopen did not preserve cumulative charging")
+    return {"before": before, "after": after, "retry": retry_result,
+            "reviewed": True, "same_unit_id": retry_unit["unit_id"]}
 
 
 def run(output: Path, *, launch_config: Path, receipt_path: Path) -> dict[str, Any]:
@@ -163,12 +219,20 @@ def run(output: Path, *, launch_config: Path, receipt_path: Path) -> dict[str, A
     normal_writer = _writer(output / "formal-records", config_path=config_path,
                             binding_path=binding_path, config=config, commit=commit)
     normal_ledger = _authority(output / "normal-ledger", digest(config), _sha(binding_path), commit, "isolated-normal")
-    normal = _controller(FormalExecutionController, normal_writer, normal_ledger, "isolated-normal", units)
-    normal_result = normal.run_units(units, launch_authorized=True, formal_training_enabled=True)
+    native_power = TaskPowerRequest()
+    native_watcher = PowerEventWatcher()
+    normal = FormalExecutionController(writer=normal_writer, ledger=normal_ledger,
+                                       phase_id="isolated-normal", power_request=native_power,
+                                       power_watcher=native_watcher)
+    normal_result = normal.run_units(
+        units, launch_authorized=True, formal_training_enabled=True,
+        post_stage=lambda: adapt_validated_root(
+            normal_writer.root, config_path=config_path, data_binding_path=binding_path),
+    )
     scope = expected_keys(datasets=FIXTURE_DATASETS, conditions=CONDITIONS, models=MODELS, seeds=(0,))
     validated = validate_complete_run(normal_writer.root, expected_keys=scope, config_path=config_path,
                                       data_binding_path=binding_path)
-    analysis = adapt_validated_root(normal_writer.root, config_path=config_path, data_binding_path=binding_path)
+    analysis = normal_result["stage_result"]
 
     pause_writer = _writer(output / "pause-records", config_path=config_path, binding_path=binding_path,
                            config=config, commit=commit)
@@ -179,16 +243,25 @@ def run(output: Path, *, launch_config: Path, receipt_path: Path) -> dict[str, A
     emergency_writer = _writer(output / "emergency-records", config_path=config_path,
                                binding_path=binding_path, config=config, commit=commit)
     emergency_ledger = _authority(output / "emergency-ledger", digest(config), _sha(binding_path), commit, "isolated-emergency")
-    emergency = _controller(_EmergencyAtBoundary, emergency_writer, emergency_ledger, "isolated-emergency", units)
+    emergency_backend = _PowerBackend()
+    emergency_watcher = PowerEventWatcher(emergency_backend)
+    emergency_view = _InjectedLedgerStop(emergency_ledger)
+    emergency = _controller(_SuspendEmergencyAtBoundary, emergency_writer, emergency_view,
+                            "isolated-emergency", units,
+                            power_watcher=emergency_watcher)
     emergency_result = emergency.run_units(units, launch_authorized=True, formal_training_enabled=True, finalize=False)
     if pause_result["status"] != "paused" or emergency_result["status"] != "emergency_stopped":
         raise RuntimeError("pause/emergency controller evidence did not reach the expected boundary")
     if not emergency_ledger._state["attempts"]["attempt000"]["outcome"] == "open":
         raise RuntimeError("emergency stop did not preserve the unfinished attempt")
+    reopen = _review_and_reopen(emergency_ledger, commit=commit, config=config,
+                                binding_path=binding_path, writer=emergency_writer,
+                                unit=units[0])
 
     log_path = output / "formal-e2e.log.json"
     _write_json(log_path, {"normal": normal_result, "pause": pause_result,
-                           "emergency": emergency_result, "analysis": analysis})
+                           "emergency": emergency_result, "review_and_reopen": reopen,
+                           "analysis": analysis})
     artifacts = []
     for path in sorted(normal_writer.root.rglob("*")):
         if path.is_file():
@@ -208,7 +281,17 @@ def run(output: Path, *, launch_config: Path, receipt_path: Path) -> dict[str, A
                "checkpoint_reload_verified": True, "monitor_samples": normal_result["monitor_samples"],
                "pause_control_verified": pause_result["status"] == "paused",
                "emergency_stop_verified": emergency_result["status"] == "emergency_stopped",
-               "cumulative_budget_verified": len(normal_result["units"]) == len(FIXTURE_DATASETS) * len(MODELS) * 2,
+               "ledger_stop_injection_verified": "injected_ledger_stop" in emergency_result["failure"],
+               "suspend_event_injection_verified": any(
+                   "suspend" in str(event.get("event", "")) for event in emergency_result["power_watcher"]["events"]),
+               "cumulative_budget_verified": (len(normal_result["units"]) == len(FIXTURE_DATASETS) * len(MODELS) * 2
+                                               and reopen["reviewed"] and reopen["same_unit_id"] == units[0]["unit_id"]),
+               "monitor_gap_seconds": 5, "long_workload_seconds": 6,
+               "native_power_interface_verified": (native_power.snapshot()["acquired"]
+                                                     and native_power.snapshot()["released"]
+                                                     and native_watcher.snapshot()["registered"]
+                                                     and native_watcher.snapshot()["stopped"]),
+               "simulated_power_injection_verified": True,
                "analysis_verified": analysis["analysis_status"] == "post_hoc_two_condition_adapter",
                "research_results_created": {"validation_evaluations": 0, "test_evaluations": 0, "formal_records": 0},
                "isolated_fixture": True}
