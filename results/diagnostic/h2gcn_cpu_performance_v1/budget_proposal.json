@@ -1,0 +1,182 @@
+{
+  "accounting": {
+    "all_attempts_cumulative_per_unit_batch_subbudget_and_total": true,
+    "batch_clock_reset_on_retry": false,
+    "calendar_time_separately_reported": true,
+    "historical_v1_v2_and_performance_round_separately_reported": true,
+    "live_process_wall_including_suspend_counts": true,
+    "paused_without_live_worker_counts": false,
+    "software_tests_and_ci_wait_count": false,
+    "subbudgets_inside_total_not_additive": true,
+    "unit_clock_reset_on_retry": false,
+    "unused_reserves_auto_transfer": false
+  },
+  "basis": {
+    "completion_within_budget_guaranteed": false,
+    "use_two_dataset_speedup_extrapolation": false,
+    "v2_acceptance_file_sha256": "8f14e97126eed6ee8b6d60603872d6025bcf944b63bc1c7447094f763259ff1a",
+    "v2_conservative_seconds": 1115455.589565707,
+    "v2_resource_acceptance_wall_seconds": 1328.2111148999538
+  },
+  "batching": {
+    "active_workers": 1,
+    "advance_automatically_only_after_later_formal_launch": true,
+    "completion_requires_both_conditions_validated": true,
+    "order": [
+      "dataset_config_order",
+      "seed_0_to_9",
+      "model_config_order",
+      "condition_config_order"
+    ],
+    "paired_batches": 770,
+    "resume_missing_partner_before_next_batch": true,
+    "trials_per_unit": 4,
+    "units_per_batch": 2
+  },
+  "budget_change_authorized": false,
+  "diagnostic_summary_file_sha256": "faf78e5dcd0d90ca0c7351097440d833ba9507dc84b39f3bbea9455a09a34b0d",
+  "formal_launch_authorized": false,
+  "formal_training_enabled": false,
+  "later_gates": [
+    "explicit_user_confirmation_of_this_proposal",
+    "tested_suspend_and_cumulative_budget_enforcement",
+    "complete_fixed_all_eleven_resource_acceptance",
+    "formal_record_layer_validator_analysis_adapter_tested",
+    "committed_and_pushed_same_sha_ci_success_receipt_saved",
+    "independent_formal_launch_record"
+  ],
+  "memory_caps": {
+    "max_cuda_allocated_gib": 6,
+    "max_cuda_reserved_gib": 6,
+    "max_worker_rss_gib": 8,
+    "min_disk_free_gib": 20,
+    "min_system_available_gib": 4
+  },
+  "next_action": "Present the complete proposal for user confirmation; do not activate caps or formal training.",
+  "parent_config": "configs/input_robustness_11_v1.json",
+  "parent_config_file_sha256": "a5166c63414a67fcf7a695bd797059984365e08cadb221ce3b7066d19845c087",
+  "parent_source_preserved_commit": "8847de65822552558144c4a472fd53fae4f021a0",
+  "proposal_id": "input_robustness_11_budget_proposal_v1",
+  "proposal_only": true,
+  "proposed_caps_seconds": {
+    "coordination_validation_analysis_subbudget": 7200,
+    "formal_all_attempts_subbudget": 1368000,
+    "four_trial_unit_all_attempts": 28800,
+    "paired_batch_all_attempts": 57600,
+    "resource_acceptance_subbudget": 7200,
+    "total_cumulative": 1382400
+  },
+  "recommendation": "retain_current_implementation_and_revise_budget",
+  "retained_h2_execution": {
+    "checkpoint_mode": "original_full_state_copy",
+    "device": "cpu",
+    "threads": 4
+  },
+  "schema_version": "1.0",
+  "scope": {
+    "conditions": [
+      "normalize_features",
+      "normalize_centered_scaled"
+    ],
+    "datasets": [
+      "Cora",
+      "CiteSeer",
+      "PubMed",
+      "Wisconsin",
+      "Cornell",
+      "Chameleon",
+      "Squirrel",
+      "Actor",
+      "Roman-empire",
+      "Amazon-ratings",
+      "Coauthor-CS"
+    ],
+    "expected_records": 1540,
+    "expected_trials": 6160,
+    "models": [
+      "MLP",
+      "GCN",
+      "GAT",
+      "GraphSAGE",
+      "H2GCN",
+      "LINKX",
+      "GPR-GNN"
+    ],
+    "seeds": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9
+    ]
+  },
+  "status": "AWAITING_USER_CONFIRMATION",
+  "stop_resume": {
+    "admission_rule": "Before a first attempt or whole-unit restart, compare the unchanged four-trial no-score time estimate with remaining cumulative unit, paired-batch, formal-subbudget and total budgets. Insufficient estimated headroom stops for user amendment; sufficient estimated headroom is not a guarantee.",
+    "automatic_retries": 0,
+    "cap_enforcement_requires_os_scheduler": "Nominal caps may be exceeded while the machine suspends; stop and preserve observed overshoot when monitoring resumes.",
+    "epoch_optimizer_resume_implemented": false,
+    "failure_categories": [
+      "time_cap",
+      "oom",
+      "memory_or_disk_reserve",
+      "nonfinite",
+      "unsupported_deterministic_operation",
+      "correctness_or_repeatability",
+      "source_or_data_mismatch",
+      "record_corruption",
+      "write_conflict"
+    ],
+    "first_limit_wins": true,
+    "insufficient_remaining_budget_requires_user_amendment": true,
+    "no_outcome_based_scope_or_budget_changes": true,
+    "provenance_change_requires_new_reviewed_execution_record": true,
+    "resume_requires": [
+      "identical_config_digest",
+      "identical_source_commit_and_file_hashes",
+      "identical_environment_and_device",
+      "identical_data_split_and_transform_bindings",
+      "validation_of_every_existing_record_before_new_work",
+      "no_unresolved_failure_artifacts"
+    ],
+    "resume_unit": "Whole completed and validated model units are skipped read-only; interrupted attempts are preserved and all four trials restart with the same seed.",
+    "stop_owned_process_tree": true,
+    "suspend_or_monitor_gap": "Stop and review; never automatically discount elapsed wall time or continue."
+  },
+  "training_rules_unchanged": {
+    "max_epochs": 500,
+    "patience": 100,
+    "selection_order": [
+      "validation_accuracy_desc",
+      "validation_loss_asc",
+      "trial_id_asc"
+    ],
+    "trials": [
+      {
+        "dropout": 0.5,
+        "learning_rate": 0.01
+      },
+      {
+        "dropout": 0.7,
+        "learning_rate": 0.01
+      },
+      {
+        "dropout": 0.5,
+        "learning_rate": 0.005
+      },
+      {
+        "dropout": 0.7,
+        "learning_rate": 0.005
+      }
+    ]
+  },
+  "unchanged_effective_caps_seconds": {
+    "formal_total": 604800,
+    "four_trial_unit": 7200
+  }
+}

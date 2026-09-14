@@ -27,13 +27,18 @@ Formal training has not started. Selection loss, portfolio reversals and
 calibration under the new paired records remain unassessed; the next stage must
 resolve the execution and compute-budget plan before formal recording and analysis.
 
-The next [fixed H2GCN CPU performance round](docs/h2gcn_performance_diagnostic_plan.md)
-uses the two timing-ranked fixtures, both input conditions, three thread counts
-and two checkpoint storage treatments. Its 48 fresh workers and 480 short steps
-separate setup, compute, static-buffer copies and recording overhead. It produces
-no held-out scores or formal records. Any proposed formal budget change requires
-user confirmation after the measured recommendation; the original caps and
-disabled formal switch remain in effect.
+The [fixed H2GCN CPU performance round](docs/h2gcn_performance_diagnostic_report.md)
+stopped after eight of 48 planned workers completed; the ninth exceeded the time
+cap across a system standby interval, and 39 were never launched. Both Squirrel
+inputs have measurements, but Actor and all fresh repeats remain unavailable.
+Four checkpoint-mode pairs matched exactly; two available one-thread comparisons
+exceeded the frozen cross-thread tolerance. No optimization qualified, and the
+recommendation is to retain the current implementation and revise the budget.
+The [pending budget proposal](docs/input_robustness_11_budget_proposal.md) specifies
+384 cumulative hours, eight hours per complete four-trial unit, and 770 paired
+batches capped at 16 hours each, with cumulative stop/resume rules. It requires
+explicit user confirmation. There are zero held-out scores or formal records;
+the original caps and disabled formal switch remain in effect.
 
 ## Main results
 
