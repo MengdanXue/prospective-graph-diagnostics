@@ -7,6 +7,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 ALLOWED_RESULTS = {
+    "results/diagnostic/posthoc_input_robustness_11_v2/budget_authorization.json",
     "results/diagnostic/h2gcn_cpu_performance_v1/summary.json",
     "results/diagnostic/h2gcn_cpu_performance_v1/budget_proposal.json",
     "results/diagnostic/h2gcn_cpu_performance_v1/source_ci_receipt.json",

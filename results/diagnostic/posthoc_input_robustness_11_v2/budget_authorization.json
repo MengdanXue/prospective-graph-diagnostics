@@ -1,0 +1,124 @@
+{
+  "schema_version": "1.0",
+  "authorization_id": "input_robustness_11_budget_authorization_v2",
+  "run_id": "posthoc_input_robustness_11_v2",
+  "analysis_status": "post_hoc_training_recipe_robustness",
+  "status": "RESOURCE_BUDGET_AUTHORIZED_FORMAL_LAUNCH_CLOSED",
+  "authorization_date": "2026-09-14",
+  "timezone": "Asia/Shanghai",
+  "authority": "explicit user confirmation in this task",
+  "authority_summary": "User confirmed the complete 384-hour resource proposal. Subsequent steering limits authorization to resource work, requires temporary task-scoped idle-sleep prevention with cleanup, distinguishes whole-model normal pause from emergency stop, and requires formal-launch acceptance before training.",
+  "budget_change_authorized": true,
+  "resource_acceptance_authorized": true,
+  "formal_launch_authorized": false,
+  "formal_training_enabled": false,
+  "historical_proposal_preserved": true,
+  "approved_proposal": {
+    "path": "results/diagnostic/h2gcn_cpu_performance_v1/budget_proposal.json",
+    "sha256": "dd938857e560d45e17dbb5626e22acea2388c7ce4d9a934edfa3e3f3941d400b",
+    "proposal_id": "input_robustness_11_budget_proposal_v1",
+    "source_commit": "11e12eb8900ed78e6e0f43d078e4da3d51dc75a8",
+    "saved_ci": {
+      "run_id": 34794703258,
+      "commit": "11e12eb8900ed78e6e0f43d078e4da3d51dc75a8",
+      "status": "completed",
+      "conclusion": "success",
+      "successful_jobs": 3,
+      "url": "https://github.com/MengdanXue/prospective-graph-diagnostics/actions/runs/34794703258",
+      "receipt_filename": "ci-h2-report-34794703258.json",
+      "receipt_sha256": "d9798032fac8429c1ac3fcd2aeb9e80c07c092f0020b2ddea2c25235da88e434"
+    }
+  },
+  "authorized_config": "configs/input_robustness_11_v2.json",
+  "preserved_original_source_commit": "8847de65822552558144c4a472fd53fae4f021a0",
+  "approved_caps_seconds": {
+    "total_cumulative": 1382400,
+    "resource_acceptance_subbudget": 7200,
+    "coordination_validation_analysis_subbudget": 7200,
+    "formal_all_attempts_subbudget": 1368000,
+    "four_trial_unit_all_attempts": 28800,
+    "paired_batch_all_attempts": 57600
+  },
+  "retained_h2_execution": {
+    "device": "cpu",
+    "threads": 4,
+    "checkpoint_mode": "original_full_state_copy"
+  },
+  "scope": {
+    "datasets": [
+      "Cora",
+      "CiteSeer",
+      "PubMed",
+      "Wisconsin",
+      "Cornell",
+      "Chameleon",
+      "Squirrel",
+      "Actor",
+      "Roman-empire",
+      "Amazon-ratings",
+      "Coauthor-CS"
+    ],
+    "conditions": [
+      "normalize_features",
+      "normalize_centered_scaled"
+    ],
+    "models": [
+      "MLP",
+      "GCN",
+      "GAT",
+      "GraphSAGE",
+      "H2GCN",
+      "LINKX",
+      "GPR-GNN"
+    ],
+    "seeds": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9
+    ],
+    "expected_records": 1540,
+    "expected_trials": 6160,
+    "paired_batches": 770,
+    "trials_per_model_unit": 4,
+    "scientific_recipe": "unchanged from input_robustness_11_v1.json"
+  },
+  "current_resource_acceptance_scope": {
+    "fresh_workers": 44,
+    "model_trial_probes": 1232,
+    "paired_cells": 616,
+    "training_steps": 3696,
+    "probe_seed": 0,
+    "steps_per_trial": 3,
+    "validation_evaluations": 0,
+    "test_evaluations": 0,
+    "formal_records": 0,
+    "worker_wall_cap_seconds": 1200,
+    "whole_phase_cumulative_cap_seconds": 7200
+  },
+  "updated_runtime_control_authorization": {
+    "task_scoped_power_request_required": true,
+    "release_power_request_on_every_exit": true,
+    "permanent_system_power_policy_change_authorized": false,
+    "normal_pause": "stop new dispatch; finish and save the current whole model unit with all four original trials, then exit",
+    "emergency_stop": "stop owned processes and preserve the unfinished attempt",
+    "suspend_wake_or_clock_gap": "stop and preserve evidence; no automatic continuation",
+    "latest_normal_pause_rule_supersedes_historical_immediate_stop_wording": true,
+    "no_epoch_resume_claim": true,
+    "no_770_individual_batch_approvals_required_after_a_later_accepted_formal_launch": true
+  },
+  "outstanding_gates": [
+    "actual reliability and fixed all-eleven resource acceptance",
+    "formal record layer and complete-record validator",
+    "new-record analysis adapter",
+    "tests commit push same-sha successful CI receipt",
+    "independent formal-launch checks and acceptance report before training"
+  ],
+  "no_claim_of_completed_acceptance": true
+}
