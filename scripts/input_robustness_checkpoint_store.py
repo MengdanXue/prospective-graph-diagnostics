@@ -24,9 +24,18 @@ def state_sha256(state: Mapping[str, Any]) -> str:
         value = state[name]
         if not isinstance(name, str) or not isinstance(value, torch.Tensor):
             raise CheckpointStoreError("checkpoint state must contain tensor values")
-        tensor = value.detach().cpu().contiguous()
+        tensor = value.detach().cpu()
+        # H2GCN retains sparse adjacency buffers in its original state dict.
+        # Preserve their layout in the digest while hashing a deterministic
+        # dense byte representation; calling contiguous() directly on a sparse
+        # tensor is unsupported by PyTorch.
+        layout = str(tensor.layout)
+        if tensor.layout != torch.strided:
+            tensor = tensor.to_dense()
+        tensor = tensor.contiguous()
         metadata = json.dumps(
-            {"name": name, "dtype": str(tensor.dtype), "shape": list(tensor.shape)},
+            {"name": name, "dtype": str(tensor.dtype), "layout": layout,
+             "shape": list(tensor.shape)},
             sort_keys=True, separators=(",", ":"),
         ).encode("utf-8")
         digest.update(len(metadata).to_bytes(8, "big"))
@@ -117,4 +126,3 @@ def verify_checkpoint(root: Path, manifest: Mapping[str, Any]) -> dict[str, Any]
     if manifest.get("state_sha256") != state_hash:
         raise CheckpointStoreError(f"checkpoint state hash mismatch: {path}")
     return {"path": str(path), "sha256": file_hash, "state_sha256": state_hash, "bytes": len(raw)}
-
