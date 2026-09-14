@@ -65,7 +65,9 @@ def _validate_formal_e2e_receipt(path: Path, payload: dict[str, Any], *, root: P
         "formal_entry_path", "formal_entry_source_sha256", "formal_path_passed", "writer_finalized", "actual_training",
         "checkpoint_reload_verified", "monitor_samples", "pause_control_verified",
         "emergency_stop_verified", "cumulative_budget_verified", "analysis_verified",
-        "research_results_created",
+        "research_results_created", "monitor_gap_seconds", "long_workload_seconds",
+        "native_power_interface_verified", "simulated_power_injection_verified",
+        "ledger_stop_injection_verified", "suspend_event_injection_verified",
     }
     missing = sorted(required.difference(payload))
     if missing or payload.get("status") != "passed":
@@ -113,7 +115,13 @@ def _validate_formal_e2e_receipt(path: Path, payload: dict[str, Any], *, root: P
         raise ValueError("formal E2E receipt does not prove real training/checkpoint reload")
     if not isinstance(payload.get("monitor_samples"), int) or payload["monitor_samples"] <= 0:
         raise ValueError("formal E2E receipt has no monitor samples")
+    if payload.get("monitor_gap_seconds") != 5 or float(payload.get("long_workload_seconds", 0)) <= 5:
+        raise ValueError("formal E2E rehearsal did not exercise the approved five-second monitor gap")
     for field in ("pause_control_verified", "emergency_stop_verified", "cumulative_budget_verified", "analysis_verified"):
+        if payload.get(field) is not True:
+            raise ValueError(f"formal E2E receipt missing {field}")
+    for field in ("native_power_interface_verified", "simulated_power_injection_verified",
+                  "ledger_stop_injection_verified", "suspend_event_injection_verified"):
         if payload.get(field) is not True:
             raise ValueError(f"formal E2E receipt missing {field}")
     if payload.get("research_results_created") != {"validation_evaluations": 0, "test_evaluations": 0, "formal_records": 0}:

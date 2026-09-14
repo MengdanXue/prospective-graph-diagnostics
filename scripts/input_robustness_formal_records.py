@@ -346,6 +346,7 @@ def run_formal_model_unit(*, writer: FormalRecordWriter, core_runner: Callable[.
                           transform_binding: Mapping[str, Any] | None = None,
                           diagnostics: Mapping[str, Any] | None = None,
                           monitor_callback: Callable[[], Any] | None = None,
+                          post_write_callback: Callable[[], Any] | None = None,
                           **runner_kwargs: Any) -> dict[str, Any]:
     """Run one existing-core unit only after the explicit formal launch gate.
 
@@ -423,6 +424,8 @@ def run_formal_model_unit(*, writer: FormalRecordWriter, core_runner: Callable[.
     record["execution_mode"] = "formal"
     record["formal_training_enabled"] = True
     writer.write_record(record)
+    if post_write_callback is not None:
+        post_write_callback()
     return record
 
 
@@ -497,12 +500,33 @@ class FormalUnitRunner:
             **runner_kwargs: Any) -> tuple[dict[str, Any], dict[str, Any]]:
         if launch_authorized is not True or formal_training_enabled is not True:
             raise FormalRecordError("formal model execution is locked until formal launch authorization")
+        batch_id = self.batch_id
+        if batch_id is None:
+            try:
+                batch_id = (
+                    f"pair_{runner_kwargs['dataset']}_seed_{int(runner_kwargs['seed']):03d}_"
+                    f"{runner_kwargs['model_id']}"
+                )
+            except (KeyError, TypeError, ValueError) as exc:
+                raise FormalRecordError(
+                    "formal units require dataset, seed and model_id to derive a paired batch id"
+                ) from exc
+        if "checkpoint_dir" not in runner_kwargs and all(
+                key in runner_kwargs for key in ("condition", "dataset", "model_id", "seed")):
+            # An interrupted retry must never overwrite the prior attempt's
+            # immutable checkpoints.  The model-unit identity remains the same
+            # while the attempt namespace makes all four new copies exclusive.
+            runner_kwargs["checkpoint_dir"] = (
+                self.writer.root.resolve() / "checkpoints" / str(runner_kwargs["condition"])
+                / str(runner_kwargs["dataset"]) / str(runner_kwargs["model_id"])
+                / f"seed_{int(runner_kwargs['seed']):03d}" / str(attempt_id)
+            )
         if monitor_callback is not None:
             monitor_callback()
         self.ledger.begin_attempt(
             attempt_id, activity_id=self.activity_id, phase_id=self.phase_id,
             budget_group="formal", estimated_seconds=estimated_seconds,
-            unit_id=unit_id, batch_id=self.batch_id,
+            unit_id=unit_id, batch_id=batch_id,
         )
         try:
             record = run_formal_model_unit(
@@ -510,7 +534,8 @@ class FormalUnitRunner:
                 launch_authorized=launch_authorized,
                 formal_training_enabled=formal_training_enabled,
                 checkpoint_manifest=checkpoint_manifest,
-                monitor_callback=monitor_callback, **runner_kwargs,
+                monitor_callback=monitor_callback,
+                post_write_callback=monitor_callback, **runner_kwargs,
             )
             path = self.writer.root / "records" / record["condition"] / record["dataset"] / record["model"] / f"seed_{int(record['seed']):03d}.json"
             snapshot = self.ledger.close_attempt(attempt_id, outcome="completed", record_sha256=file_digest(path))

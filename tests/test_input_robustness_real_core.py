@@ -11,10 +11,18 @@ import torch
 from scripts.input_robustness_formal_records import (
     CONDITIONS, FormalRecordWriter, expected_keys, run_rehearsal_model_unit,
 )
+from scripts.input_robustness_checkpoint_store import state_sha256
 from scripts.validate_input_robustness_formal_records import validate_complete_run
 
 
 class RealCoreRehearsalTests(unittest.TestCase):
+    def test_sparse_checkpoint_fingerprint_never_densifies_large_shape(self):
+        indices = torch.tensor([[0, 999_999, 2_000_000], [999_999, 0, 1_999_999]], dtype=torch.long)
+        values = torch.tensor([1.0, 1.0, 1.0])
+        sparse = torch.sparse_coo_tensor(indices, values, size=(2_000_001, 2_000_001)).coalesce()
+        fingerprint = state_sha256({"adjacency": sparse})
+        self.assertEqual(len(fingerprint), 64)
+
     def test_real_core_runs_four_trials_reloads_checkpoints_and_validates_summary(self):
         torch.set_num_threads(1)
         with tempfile.TemporaryDirectory() as temporary:
@@ -59,4 +67,3 @@ class RealCoreRehearsalTests(unittest.TestCase):
             result = validate_complete_run(root, expected_keys=scope, synthetic=True)
             self.assertEqual(result["record_count"], 1)
             self.assertEqual(result["test_evaluations"], 1)
-

@@ -16,7 +16,11 @@ class CheckpointStoreError(ValueError):
 
 
 def state_sha256(state: Mapping[str, Any]) -> str:
-    """Hash state keys and tensor values independently of torch's pickle bytes."""
+    """Hash state keys and tensor values independently of torch's pickle bytes.
+
+    Sparse buffers are fingerprinted from their canonical sparse components;
+    they are never expanded to a dense ``N x N`` tensor.
+    """
     if not isinstance(state, Mapping) or not state:
         raise CheckpointStoreError("checkpoint state must be a non-empty mapping")
     digest = hashlib.sha256()
@@ -25,24 +29,42 @@ def state_sha256(state: Mapping[str, Any]) -> str:
         if not isinstance(name, str) or not isinstance(value, torch.Tensor):
             raise CheckpointStoreError("checkpoint state must contain tensor values")
         tensor = value.detach().cpu()
-        # H2GCN retains sparse adjacency buffers in its original state dict.
-        # Preserve their layout in the digest while hashing a deterministic
-        # dense byte representation; calling contiguous() directly on a sparse
-        # tensor is unsupported by PyTorch.
         layout = str(tensor.layout)
-        if tensor.layout != torch.strided:
-            tensor = tensor.to_dense()
-        tensor = tensor.contiguous()
+        components: list[tuple[str, torch.Tensor]]
+        if tensor.layout == torch.strided:
+            components = [("dense", tensor.contiguous())]
+        elif tensor.layout == torch.sparse_coo:
+            canonical = tensor.coalesce()
+            components = [("indices", canonical.indices().contiguous()),
+                          ("values", canonical.values().contiguous())]
+        elif tensor.layout in (torch.sparse_csr, torch.sparse_csc,
+                               torch.sparse_bsr, torch.sparse_bsc):
+            # Conversion between sparse layouts preserves sparsity and lets
+            # COO coalesce provide a canonical index/value ordering without
+            # allocating a dense matrix.
+            canonical = tensor.to_sparse_coo().coalesce()
+            components = [("indices", canonical.indices().contiguous()),
+                          ("values", canonical.values().contiguous())]
+        else:
+            raise CheckpointStoreError(f"unsupported checkpoint tensor layout: {layout}")
         metadata = json.dumps(
-            {"name": name, "dtype": str(tensor.dtype), "layout": layout,
-             "shape": list(tensor.shape)},
+            {"name": name, "layout": layout, "shape": list(tensor.shape),
+             "component_names": [label for label, _ in components]},
             sort_keys=True, separators=(",", ":"),
         ).encode("utf-8")
         digest.update(len(metadata).to_bytes(8, "big"))
         digest.update(metadata)
-        raw = tensor.numpy().tobytes()
-        digest.update(len(raw).to_bytes(8, "big"))
-        digest.update(raw)
+        for label, component in components:
+            component_meta = json.dumps(
+                {"label": label, "dtype": str(component.dtype),
+                 "shape": list(component.shape)},
+                sort_keys=True, separators=(",", ":"),
+            ).encode("utf-8")
+            raw = component.numpy().tobytes()
+            digest.update(len(component_meta).to_bytes(8, "big"))
+            digest.update(component_meta)
+            digest.update(len(raw).to_bytes(8, "big"))
+            digest.update(raw)
     return digest.hexdigest()
 
 

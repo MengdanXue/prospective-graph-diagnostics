@@ -12,7 +12,7 @@ import torch
 
 from scripts.input_robustness_budget import BudgetLedger, CI_JOBS
 from scripts.input_robustness_formal_entry import FormalExecutionController
-from scripts.input_robustness_formal_records import CONDITIONS, FormalRecordWriter, digest, expected_keys
+from scripts.input_robustness_formal_records import CONDITIONS, FormalEmergencyStop, FormalRecordWriter, digest, expected_keys
 from scripts.input_robustness_runtime import PowerEventWatcher, TaskPowerRequest
 from scripts.validate_input_robustness_formal_records import validate_complete_run
 
@@ -31,6 +31,20 @@ def _sha(path: Path) -> str:
 
 
 class FormalEntryTests(unittest.TestCase):
+    def test_outer_monitor_vetoes_ledger_stop_and_power_event(self):
+        class Ledger:
+            def poll(self, force=False):
+                return {"must_stop": True, "stop_reasons": []}
+        class Watcher:
+            events = [{"event": "suspend"}]
+        class Writer:
+            synthetic = False
+        controller = FormalExecutionController(writer=Writer(), ledger=Ledger(), phase_id="phase",
+                                               power_request=TaskPowerRequest(_PowerBackend()),
+                                               power_watcher=Watcher())
+        with self.assertRaisesRegex(FormalEmergencyStop, "ledger must_stop"):
+            controller._monitor()
+
     def test_authoritative_finalize_and_monitored_two_condition_run(self):
         torch.set_num_threads(1)
         with tempfile.TemporaryDirectory() as temporary:
@@ -81,7 +95,7 @@ class FormalEntryTests(unittest.TestCase):
             authority = {"approval_sha256": "2" * 64, "proposal_sha256": "3" * 64,
                          "scope_sha256": "4" * 64}
             ledger = BudgetLedger.create(base / "ledger", authority=authority,
-                                         monitor_gap_seconds=999999)
+                                         monitor_gap_seconds=5)
             gate = {"ci_receipt_file_sha256": "e" * 64, "review_record_sha256": "f" * 64,
                     "ci_receipt": {"commit": "a" * 40, "run_id": 17, "status": "completed",
                                    "conclusion": "success", "jobs": [
@@ -123,6 +137,8 @@ class FormalEntryTests(unittest.TestCase):
                                           formal_training_enabled=True)
             self.assertEqual(result["status"], "completed")
             self.assertGreaterEqual(result["monitor_samples"], 10)
+            self.assertEqual({attempt["batch_id"] for attempt in ledger._state["attempts"].values()},
+                             {"pair_Cora_seed_000_MLP"})
             self.assertTrue(result["complete"])
             validated = validate_complete_run(writer.root, expected_keys=scope, synthetic=False,
                                               config_path=config_path, data_binding_path=binding_path)
