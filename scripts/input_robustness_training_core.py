@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import time
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
 import torch
 
@@ -29,10 +29,15 @@ def run_model_unit_with_checkpoints(*, checkpoint_dir: Path, run_id: str,
                                     environment: dict[str, Any], data_provenance: dict[str, Any],
                                     device: torch.device, h2_adjacencies: tuple[torch.Tensor, torch.Tensor] | None = None,
                                     config_sha256: str = "test-only", frozen_config: dict[str, Any] | None = None,
+                                    monitor: Callable[[], Any] | None = None,
                                     **_: Any) -> dict[str, Any]:
     """Run four frozen trials, persist all states, reload the selected state, test once."""
     started = time.perf_counter()
     checkpoint_dir = Path(checkpoint_dir)
+    # Materialize the complete unit directory before the first trial.  This
+    # keeps the four exclusive checkpoint writes atomic even on Windows when a
+    # model name/condition directory is first encountered.
+    checkpoint_dir.mkdir(parents=True, exist_ok=True)
     trial_rows: list[dict[str, Any]] = []
     manifests: list[dict[str, Any]] = []
     for index, trial in enumerate(training["trials"]):
@@ -47,6 +52,11 @@ def run_model_unit_with_checkpoints(*, checkpoint_dir: Path, run_id: str,
         )
         trial_rows.append(row)
         manifests.append(save_checkpoint(checkpoint_dir, trial_id, state))
+        # The formal scheduler samples between every complete trial.  This is
+        # the finest safe boundary exposed by the frozen trial trainer and
+        # keeps the public benchmark implementation unchanged.
+        if monitor is not None:
+            monitor()
     selected = select_trial(trial_rows)
     selected_configuration = selected["configuration"]
     selected_state = load_checkpoint(checkpoint_dir / f"{selected['trial_id']}.pt")
@@ -63,6 +73,8 @@ def run_model_unit_with_checkpoints(*, checkpoint_dir: Path, run_id: str,
     with torch.no_grad():
         logits = model(x.to(device), edge_index.to(device))
         test_accuracy = _accuracy(logits, y.to(device), test_indices.to(device))
+    if monitor is not None:
+        monitor()
     return {
         "schema_version": "1.0", "run_id": run_id, "status": "success",
         "dataset": dataset, "model": model_id,
@@ -79,4 +91,3 @@ def run_model_unit_with_checkpoints(*, checkpoint_dir: Path, run_id: str,
         "validation_evaluations": len(trial_rows),
         "duration_seconds": time.perf_counter() - started,
     }
-

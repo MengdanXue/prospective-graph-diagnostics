@@ -44,6 +44,10 @@ class DuplicateRecordError(FormalRecordError):
     """A unit or manifest would overwrite an existing immutable artifact."""
 
 
+class FormalEmergencyStop(KeyboardInterrupt):
+    """Emergency stop raised by the formal scheduler at a safe poll boundary."""
+
+
 def canonical_json(value: Any) -> bytes:
     return json.dumps(value, sort_keys=True, separators=(",", ":"),
                       ensure_ascii=False, allow_nan=False).encode("utf-8")
@@ -277,15 +281,28 @@ def _exclusive_json(path: Path, value: Mapping[str, Any]) -> None:
 class FormalRecordWriter:
     """Exclusive writer for one formal or synthetic rehearsal output root."""
 
-    def __init__(self, root: Path, *, manifest: Mapping[str, Any], synthetic: bool = False):
+    def __init__(self, root: Path, *, manifest: Mapping[str, Any], synthetic: bool = False,
+                 config_path: Path | None = None, data_binding_path: Path | None = None):
         self.root = Path(root)
         self.synthetic = bool(synthetic)
+        self.config_path = Path(config_path) if config_path is not None else None
+        self.data_binding_path = Path(data_binding_path) if data_binding_path is not None else None
+        if not self.synthetic and (self.config_path is None or self.data_binding_path is None):
+            raise FormalRecordError(
+                "formal record writers require the authoritative config and data-binding paths"
+            )
+        if not self.synthetic:
+            if not self.config_path.is_file() or not self.data_binding_path.is_file():
+                raise FormalRecordError("authoritative config and data-binding files must exist")
         if self.root.exists():
             raise DuplicateRecordError(f"formal output root must be new: {self.root}")
         self.root.mkdir(parents=True)
         self.manifest = dict(manifest)
         self.manifest.setdefault("schema_version", "1.0")
         self.manifest.setdefault("execution_mode", "synthetic_rehearsal" if synthetic else "formal")
+        if not self.synthetic:
+            self.manifest.setdefault("authoritative_config", str(self.config_path.resolve()))
+            self.manifest.setdefault("authoritative_data_binding", str(self.data_binding_path.resolve()))
         _exclusive_json(self.root / "manifest.json", self.manifest)
 
     def write_record(self, record: Mapping[str, Any]) -> Path:
@@ -309,8 +326,11 @@ class FormalRecordWriter:
         from scripts.validate_input_robustness_formal_records import validate_run
         # The complete marker is the final artifact, so validate the records
         # first and then bind that marker to the returned digest.
-        result = validate_run(self.root, expected_keys=expected, synthetic=self.synthetic,
-                              require_complete=False)
+        result = validate_run(
+            self.root, expected_keys=expected, synthetic=self.synthetic,
+            require_complete=False, config_path=self.config_path,
+            data_binding_path=self.data_binding_path,
+        )
         complete = {
             "schema_version": "1.0", "status": "complete", "run_id": self.manifest.get("run_id"),
             "expected_records": result["record_count"], "expected_trials": result["trial_count"],
@@ -325,6 +345,7 @@ def run_formal_model_unit(*, writer: FormalRecordWriter, core_runner: Callable[.
                           checkpoint_manifest: Sequence[Mapping[str, Any]] | None = None,
                           transform_binding: Mapping[str, Any] | None = None,
                           diagnostics: Mapping[str, Any] | None = None,
+                          monitor_callback: Callable[[], Any] | None = None,
                           **runner_kwargs: Any) -> dict[str, Any]:
     """Run one existing-core unit only after the explicit formal launch gate.
 
@@ -343,7 +364,7 @@ def run_formal_model_unit(*, writer: FormalRecordWriter, core_runner: Callable[.
         core_runner = run_model_unit_with_checkpoints
     if "checkpoint_dir" not in runner_kwargs and all(key in runner_kwargs for key in ("condition", "dataset", "model_id", "seed")):
         runner_kwargs["checkpoint_dir"] = (
-            writer.root / "checkpoints" / str(runner_kwargs["condition"]) /
+            writer.root.resolve() / "checkpoints" / str(runner_kwargs["condition"]) /
             str(runner_kwargs["dataset"]) / str(runner_kwargs["model_id"]) /
             f"seed_{int(runner_kwargs['seed']):03d}"
         )
@@ -353,6 +374,12 @@ def run_formal_model_unit(*, writer: FormalRecordWriter, core_runner: Callable[.
         call_kwargs.pop("data_binding_sha256", None)
         call_kwargs.pop("transform_binding", None)
         call_kwargs.pop("diagnostics", None)
+        if monitor_callback is not None:
+            call_kwargs["monitor"] = monitor_callback
+    elif monitor_callback is not None:
+        # Custom cores used by callers may opt into the same heartbeat hook;
+        # the hook is kept out of the formal record and is therefore explicit.
+        call_kwargs.setdefault("monitor", monitor_callback)
     record = dict(core_runner(**call_kwargs))
     if "condition" not in record and "condition" in runner_kwargs:
         record["condition"] = runner_kwargs["condition"]
@@ -466,9 +493,12 @@ class FormalUnitRunner:
             launch_authorized: bool, formal_training_enabled: bool,
             core_runner: Callable[..., Mapping[str, Any]] | None = None,
             checkpoint_manifest: Sequence[Mapping[str, Any]] | None = None,
+            monitor_callback: Callable[[], Any] | None = None,
             **runner_kwargs: Any) -> tuple[dict[str, Any], dict[str, Any]]:
         if launch_authorized is not True or formal_training_enabled is not True:
             raise FormalRecordError("formal model execution is locked until formal launch authorization")
+        if monitor_callback is not None:
+            monitor_callback()
         self.ledger.begin_attempt(
             attempt_id, activity_id=self.activity_id, phase_id=self.phase_id,
             budget_group="formal", estimated_seconds=estimated_seconds,
@@ -479,11 +509,21 @@ class FormalUnitRunner:
                 writer=self.writer, core_runner=core_runner,
                 launch_authorized=launch_authorized,
                 formal_training_enabled=formal_training_enabled,
-                checkpoint_manifest=checkpoint_manifest, **runner_kwargs,
+                checkpoint_manifest=checkpoint_manifest,
+                monitor_callback=monitor_callback, **runner_kwargs,
             )
             path = self.writer.root / "records" / record["condition"] / record["dataset"] / record["model"] / f"seed_{int(record['seed']):03d}.json"
             snapshot = self.ledger.close_attempt(attempt_id, outcome="completed", record_sha256=file_digest(path))
             return record, snapshot
+        except FormalEmergencyStop as exc:
+            # Preserve the unfinished attempt for the ledger's external review
+            # path.  A failure artifact records why dispatch stopped, while no
+            # close event is fabricated for a partially executed unit.
+            self.writer.write_failure({"status": "external_interruption",
+                                       "attempt_id": attempt_id,
+                                       "unit_id": unit_id,
+                                       "reason": repr(exc)}, identity=attempt_id)
+            raise
         except KeyboardInterrupt:
             # Emergency stop deliberately leaves the open attempt for the
             # existing ledger recovery/review path; no fake completion is made.

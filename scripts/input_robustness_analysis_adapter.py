@@ -252,15 +252,19 @@ def adapt_records(records: Sequence[Mapping[str, Any]], *, conditions: Sequence[
     }
 
 
-def adapt_validated_root(root: Path, *, synthetic: bool = False) -> dict[str, Any]:
+def adapt_validated_root(root: Path, *, synthetic: bool = False,
+                         config_path: Path | None = None,
+                         data_binding_path: Path | None = None) -> dict[str, Any]:
     from scripts.validate_input_robustness_formal_records import validate_complete_run
-    config_path = None
+    authoritative_config_path = None
     binding_path = None
     if not synthetic:
         repo_root = Path(__file__).resolve().parents[1]
-        config_path = repo_root / "configs" / "input_robustness_11_v2.json"
-        config = json.loads(config_path.read_text(encoding="utf-8"))
-        binding_path = repo_root / str(config["bound_input_source"]["path"])
-    validated = validate_complete_run(root, synthetic=synthetic, config_path=config_path,
+        authoritative_config_path = (Path(config_path) if config_path is not None
+                                     else repo_root / "configs" / "input_robustness_11_v2.json")
+        config = json.loads(authoritative_config_path.read_text(encoding="utf-8"))
+        binding_path = (Path(data_binding_path) if data_binding_path is not None
+                        else repo_root / str(config["bound_input_source"]["path"]))
+    validated = validate_complete_run(root, synthetic=synthetic, config_path=authoritative_config_path,
                                       data_binding_path=binding_path)
     return adapt_records(validated["records"])
