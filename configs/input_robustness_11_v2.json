@@ -1,0 +1,397 @@
+{
+  "schema_version": "1.0",
+  "run_id": "posthoc_input_robustness_11_v2",
+  "analysis_status": "post_hoc_training_recipe_robustness",
+  "design_date": "2026-09-14",
+  "stage": "design_resource_preflight_only",
+  "formal_training_enabled": false,
+  "parent_source_commit": "8847de65822552558144c4a472fd53fae4f021a0",
+  "parent_run_id": "route_a_prospective_v2",
+  "reference_config": "configs/prospective_benchmark_v2.json",
+  "reference_audit": "results/diagnostic/route_a_prospective_v2/analysis/diagnostic_audit.json",
+  "datasets": [
+    "Cora",
+    "CiteSeer",
+    "PubMed",
+    "Wisconsin",
+    "Cornell",
+    "Chameleon",
+    "Squirrel",
+    "Actor",
+    "Roman-empire",
+    "Amazon-ratings",
+    "Coauthor-CS"
+  ],
+  "conditions": [
+    "normalize_features",
+    "normalize_centered_scaled"
+  ],
+  "seeds": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9
+  ],
+  "models": [
+    "MLP",
+    "GCN",
+    "GAT",
+    "GraphSAGE",
+    "H2GCN",
+    "LINKX",
+    "GPR-GNN"
+  ],
+  "eligibility": {
+    "minimum_class_count": 3,
+    "scope": "the complete original v2 set; Texas is outside this inherited 11-dataset scope",
+    "on_inapplicable_dataset": "stop with incomplete scope; no deletion, substitution, or alternate condition"
+  },
+  "split": {
+    "train": 0.6,
+    "validation": 0.2,
+    "test": 0.2
+  },
+  "training": {
+    "hidden_channels": 64,
+    "max_epochs": 500,
+    "patience": 100,
+    "weight_decay": 0.0005,
+    "trials": [
+      {
+        "learning_rate": 0.01,
+        "dropout": 0.5
+      },
+      {
+        "learning_rate": 0.01,
+        "dropout": 0.7
+      },
+      {
+        "learning_rate": 0.005,
+        "dropout": 0.5
+      },
+      {
+        "learning_rate": 0.005,
+        "dropout": 0.7
+      }
+    ],
+    "selection_order": [
+      "validation_accuracy_desc",
+      "validation_loss_asc",
+      "trial_id_asc"
+    ],
+    "test_evaluations_after_selection": 1
+  },
+  "model_parameters": {
+    "GAT": {
+      "heads": 4
+    },
+    "H2GCN": {
+      "propagation_layers": 2,
+      "strict_two_hop": true
+    },
+    "LINKX": {
+      "num_layers": 2,
+      "num_edge_layers": 1,
+      "num_node_layers": 2
+    },
+    "GPR-GNN": {
+      "propagation_steps": 10,
+      "alpha": 0.1,
+      "initialization": "PPR"
+    }
+  },
+  "transform": {
+    "implementation": "scripts.input_robustness_data.fit_transform_features_bounded; same historical formula and float64 training statistics, one training block at a time and chunked float32 output, with exact parity tests against scripts.run_mlp_optimization_diagnostic.fit_transform_features",
+    "normalization": "unchanged PyG NormalizeFeatures on the complete transductive feature matrix",
+    "fit_partition": "train_features_only",
+    "statistics_dtype": "float64",
+    "output_dtype": "float32",
+    "scale": "one scalar: sqrt(mean((raw_train - mean(raw_train, axis=0))**2)) / sqrt(mean((normalized_train - mean(normalized_train, axis=0))**2))",
+    "centering": "subtract normalized train column means from every node",
+    "epsilon": 1e-12,
+    "on_nonfinite_or_near_zero_rms": "fail; no clamp, per-column scaling, or condition substitution"
+  },
+  "diagnostics": {
+    "label_scope": "train_only",
+    "two_hop_walks": 50000,
+    "two_hop_estimand": "path_weighted_length_two_endpoint_agreement",
+    "exclude_identical_endpoints": true,
+    "uses_test_labels": false
+  },
+  "data_binding": {
+    "cache_policy": "read only; preserve original node ordering, labels, features, and graph version",
+    "required": [
+      "original_release_manifest_sha256",
+      "raw_file_sha256",
+      "processed_file_sha256",
+      "raw_feature_sha256",
+      "label_sha256",
+      "canonical_edge_sha256",
+      "all_110_split_ids",
+      "all_train_only_diagnostics",
+      "transformed_feature_sha256_per_condition_seed",
+      "fit_statistics_per_condition_seed"
+    ],
+    "on_missing_or_mismatch": "stop; no silent download, reprocessing, cleaned-graph replacement, or relaxed match"
+  },
+  "execution": {
+    "device": "cuda",
+    "model_devices": {
+      "MLP": "cuda",
+      "GCN": "cuda",
+      "GAT": "cuda",
+      "GraphSAGE": "cuda",
+      "H2GCN": "cpu",
+      "LINKX": "cuda",
+      "GPR-GNN": "cuda"
+    },
+    "device_policy": "fixed before preflight: H2GCN uses CPU for every dataset and condition; its CUDA sparse.mm path lacks a strict deterministic-dispatch guarantee; no runtime fallback",
+    "workers": 1,
+    "torch_num_threads": 4,
+    "torch_num_interop_threads": 1,
+    "deterministic_algorithms": true,
+    "deterministic_warn_only": false,
+    "cublas_workspace_config": ":4096:8",
+    "allow_tf32": false,
+    "cudnn_benchmark": false,
+    "cudnn_deterministic": true,
+    "hash_seed_before_worker_start": "same as the requested seed",
+    "on_unsupported_deterministic_operation": "fail; no warn-only mode, implementation substitution, or device fallback",
+    "h2gcn_checkpoint_mode": "original_full_state_copy"
+  },
+  "preflight": {
+    "mode": "preflight_only",
+    "seed": 0,
+    "repeats": 2,
+    "training_steps": 3,
+    "all_configured_trials": true,
+    "retain_all_four_trial_states": true,
+    "expected_workers": 44,
+    "expected_model_trial_probes": 1232,
+    "validation_evaluations": 0,
+    "test_evaluations": 0,
+    "formal_records": 0,
+    "determinism_comparison": [
+      "transformed_feature_sha256",
+      "initial_state_sha256",
+      "final_state_sha256",
+      "final_gradient_sha256",
+      "evaluation_logits_sha256"
+    ],
+    "timing_projection": "2 * [sum(max_repeat_mean_epoch_seconds across all model/trial/dataset/condition cells) * 500 * 10 + sum(max transform/setup seconds + max worker nontraining overhead seconds per dataset/condition) * 70 + sum(max H2 preparation seconds per dataset/condition) * 10]; bounded probe estimate, not a guaranteed upper bound",
+    "limitations": "seed 0 and three steps are a bounded deterministic/resource probe, not a proof for all ten seeds or 500 epochs"
+  },
+  "resource_budget": {
+    "preflight_wall_seconds": 7200,
+    "preflight_worker_wall_seconds": 1200,
+    "formal_model_unit_wall_seconds": 28800,
+    "formal_total_worker_wall_seconds": 1368000,
+    "max_worker_rss_gib": 8,
+    "min_system_available_gib": 4,
+    "max_cuda_allocated_gib": 6,
+    "max_cuda_reserved_gib": 6,
+    "min_disk_free_gib": 20,
+    "on_cap_or_estimate_exceeded": "stop with incomplete scope; preserve all observed elapsed time and failures; a further budget amendment requires explicit user confirmation"
+  },
+  "expected_records": 1540,
+  "expected_trials": 6160,
+  "expected_evaluation_units_per_condition": 110,
+  "expected_unique_diagnostic_units": 110,
+  "evaluator": {
+    "specification_version": "route_a_diagnostic_v1",
+    "practical_margin": 0.01,
+    "bootstrap": {
+      "samples": 10000,
+      "seed": 20260808
+    },
+    "permutation": {
+      "samples": 10000,
+      "seed": 20260809
+    },
+    "architecture_selection_order": [
+      "validation_accuracy_desc",
+      "model_id_asc"
+    ],
+    "abstention_fallback": "mlp",
+    "cross_condition_bootstrap_seed": 20260913,
+    "inference_status": "post hoc; dataset-level descriptive uncertainty, no independent confirmatory claim"
+  },
+  "sensitivity": {
+    "all_nonempty_graph_portfolios": 63,
+    "single_architecture_equal_trial_budget": true,
+    "leave_one_dataset_out_influence": true,
+    "fixed_exclusions": {
+      "without_webkb_pair": [
+        "Cornell",
+        "Wisconsin"
+      ],
+      "without_wikipedia_pair": [
+        "Chameleon",
+        "Squirrel"
+      ]
+    },
+    "graph_fallback_on_combined_abstention": true,
+    "exclusions_are_analysis_only": true
+  },
+  "calibration": {
+    "method": "leave_one_dataset_out",
+    "portfolios": [
+      "GAT",
+      "GCN",
+      "GPR-GNN",
+      "GraphSAGE",
+      "H2GCN",
+      "LINKX",
+      "full"
+    ],
+    "threshold_grid": {
+      "constants": [
+        -1.0,
+        2.0
+      ],
+      "inclusive_start": 0.0,
+      "inclusive_stop": 1.0,
+      "step": 0.01
+    },
+    "tie_rule": "smallest threshold within 1e-12 of minimum equal-weight training-dataset mean raw regret",
+    "fit_scope": "other ten datasets within the same condition and fixed portfolio; selected-model test outcomes are explicit meta-training targets",
+    "heldout_scope": "held-out dataset outcomes never select its threshold",
+    "non_nested_limit": "condition and portfolio are fixed analysis strata, not nested-selected candidates; their prior post-hoc choice and overlapping dataset folds preclude independent confirmation"
+  },
+  "failure_and_resume": {
+    "automatic_retries": 0,
+    "write_policy": "atomic exclusive append-only output in a new run directory",
+    "resume_unit": "whole completed model unit; interrupted units remain incomplete",
+    "resume_requires": [
+      "identical_config_digest",
+      "identical_source_commit_and_file_hashes",
+      "identical_environment_and_device",
+      "identical_data_split_and_transform_bindings",
+      "validation_of_every_existing_record_before_new_work",
+      "no_unresolved_failure_artifacts"
+    ],
+    "failure_artifacts": "retain every failed attempt; a validated external-interruption resume requires an explicit attempt record, never deletion of failures",
+    "outcome_adaptation": "forbidden: no changed seeds, datasets, grid, conditions, architecture implementations, or selected favorable subset based on validation/test outcomes"
+  },
+  "launch_gates": [
+    "complete_data_and_split_binding",
+    "all_preflight_probes_pass",
+    "determinism_hashes_match",
+    "resource_caps_and_projected_budget_pass",
+    "formal_runner_and_analysis_adapter_reviewed_and_tested",
+    "clean_committed_source",
+    "remote_sync_verified",
+    "actual_ci_status_reported"
+  ],
+  "pairing": "both conditions retrain all seven original architectures with identical data, split, initialization seed, grid, runtime and device; never mix new MLP and historical graph records",
+  "inference": "post-hoc robustness of this candidate input treatment under the fixed 11-dataset training recipe; no universally optimal preprocessing or new independent confirmatory-validation claim",
+  "prior_resource_run_id": "posthoc_input_robustness_11_v1",
+  "derived_from_config": "configs/input_robustness_11_v1.json",
+  "derived_from_config_sha256": "55657a1cf20521333fd4120b48e12d904fc13a4b41a06c7f2f20a3fd658496ef",
+  "budget_authorization": "results/diagnostic/posthoc_input_robustness_11_v2/budget_authorization.json",
+  "budget_change_authorized": true,
+  "formal_launch_authorized": false,
+  "bound_input_source": {
+    "path": "results/diagnostic/posthoc_input_robustness_11_v1/preflight/data_binding.json",
+    "sha256": "01c2a5692a1c3c00fa9e6d27657ee6ad5347a559ad81a7fd41ae1962efc61ab7",
+    "original_run_id": "posthoc_input_robustness_11_v1",
+    "reuse": "read-only exact-byte reference; do not rewrite the historical binding run id"
+  },
+  "budget_accounting": {
+    "approved_proposal": "results/diagnostic/h2gcn_cpu_performance_v1/budget_proposal.json",
+    "approved_proposal_sha256": "dd938857e560d45e17dbb5626e22acea2388c7ce4d9a934edfa3e3f3941d400b",
+    "total_cumulative_seconds": 1382400,
+    "resource_acceptance_subbudget_seconds": 7200,
+    "coordination_validation_analysis_subbudget_seconds": 7200,
+    "formal_all_attempts_subbudget_seconds": 1368000,
+    "four_trial_unit_all_attempts_seconds": 28800,
+    "paired_batch_all_attempts_seconds": 57600,
+    "cumulative_across_attempts": true,
+    "shared_ledger_required": true,
+    "phase_accounting": "charge the whole resource-acceptance phase, including preparation, workers, coordinator checks, recording and failures, once to its 7200-second allocation and to the shared total",
+    "formal_accounting": "all model-unit attempts including setup/training/checkpoints/recording count against the same unit, batch, formal allocation and total; active coordination/analysis has its separate allocation",
+    "charge_seconds": "max(0, elapsed_utc_wall_seconds, elapsed_monotonic_seconds); live-process suspend intervals count conservatively",
+    "subbudgets_inside_total": true,
+    "unused_reserves_auto_transfer": false,
+    "unit_clock_reset_on_retry": false,
+    "batch_clock_reset_on_retry": false,
+    "historical_attempts_separately_reported": true,
+    "paused_without_live_worker_counts": false,
+    "software_tests_and_ci_wait_count": false,
+    "paired_batches": 770,
+    "units_per_batch": 2,
+    "trials_per_unit": 4,
+    "batch_order": [
+      "dataset_config_order",
+      "seed_0_to_9",
+      "model_config_order",
+      "condition_config_order"
+    ],
+    "incomplete_partner_first_on_resume": true,
+    "projection_acceptance": {
+      "unit_formula": "U(d,c,m)=2*[500*sum_over_four_trials(max_repeat_mean_epoch_seconds)+max_repeat_transform_seconds+max_repeat_worker_nontraining_overhead_seconds+(m==H2GCN ? max_h2_preparation_seconds : 0)]",
+      "worker_nontraining_overhead": "max(0,worker_job_wall_seconds-sum_epoch_seconds_across_all_28_worker_probes)",
+      "unit_limit_seconds": 28800,
+      "total_formula": "10*sum(U(d,c,m)) over 154 dataset-condition-model identities",
+      "formal_all_attempts_limit_seconds": 1368000,
+      "overall_1382400_is_not_the_formal_training_limit": true,
+      "interpretation": "conservative bounded-probe estimate, not guaranteed completion time"
+    }
+  },
+  "runtime_controls": {
+    "poll_interval_seconds": 0.25,
+    "max_poll_gap_seconds": 5,
+    "max_clock_divergence_seconds": 2,
+    "clock_divergence": "absolute difference between elapsed UTC wall and monotonic clock intervals",
+    "gap_or_clock_event": "stop new dispatch, stop the owned active process tree when the OS can execute the monitor, preserve observed overshoot and require review; no automatic resume",
+    "suspend_resume_event_codes": [
+      4,
+      7,
+      18
+    ],
+    "task_power_request_required": true,
+    "task_power_request": {
+      "lifetime": "resource-acceptance process only; acquire before measured work and clear/close on every exit path",
+      "windows_request_types": [
+        "SystemRequired",
+        "ExecutionRequired"
+      ],
+      "no_permanent_power_policy_change": true,
+      "no_display_or_away_mode_request": true,
+      "no_guarantee_against_all_suspend": true
+    },
+    "power_event_watcher_required": true,
+    "outer_guardian_required": true,
+    "outer_guardian_scope": "supervise the complete acceptance process so hashing, setup, serialization or summary work cannot block wall-clock and suspend monitoring",
+    "normal_pause": {
+      "stop_new_dispatch": true,
+      "current_unit_boundary": "finish the current model's original four trials, atomically save and verify its complete model-unit or preflight model-unit marker, then exit without starting a new model",
+      "preflight_boundary": "after trial_003 for the current model; no further model starts in the existing all-model worker",
+      "release_task_power_request": true,
+      "no_epoch_resume_claim": true
+    },
+    "emergency_stop": {
+      "stop_owned_process_tree": true,
+      "preserve_unfinished_attempt": true,
+      "no_automatic_resume": true
+    },
+    "paused_model_resume": "only complete validated units are skipped; an incomplete unit restarts all four original trials under the same cumulative clocks and provenance",
+    "first_limit_wins": true
+  },
+  "resource_acceptance_launch_gates": [
+    "explicit_resource_budget_authorization_bound",
+    "tests_for_suspend_clock_power_pause_and_cumulative_accounting_pass",
+    "clean_source_committed_and_pushed",
+    "same_sha_ci_all_three_jobs_success_receipt_saved",
+    "authorization_config_binding_and_source_hashes_match",
+    "task_power_request_and_suspend_watcher_acquired",
+    "shared_budget_ledger_open_and_remaining_phase_budget_valid"
+  ],
+  "after_resource_acceptance": "complete and test formal record layer, validator, analysis adapter and independent launch checks; submit a formal-launch acceptance report before any formal training"
+}

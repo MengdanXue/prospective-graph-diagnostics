@@ -34,11 +34,19 @@ inputs have measurements, but Actor and all fresh repeats remain unavailable.
 Four checkpoint-mode pairs matched exactly; two available one-thread comparisons
 exceeded the frozen cross-thread tolerance. No optimization qualified, and the
 recommendation is to retain the current implementation and revise the budget.
-The [pending budget proposal](docs/input_robustness_11_budget_proposal.md) specifies
-384 cumulative hours, eight hours per complete four-trial unit, and 770 paired
-batches capped at 16 hours each, with cumulative stop/resume rules. It requires
-explicit user confirmation. There are zero held-out scores or formal records;
-the original caps and disabled formal switch remain in effect.
+The [historical budget proposal](docs/input_robustness_11_budget_proposal.md) is
+preserved with its original pending status. The separate
+[September 14 authorization](results/diagnostic/posthoc_input_robustness_11_v2/budget_authorization.json)
+approves 384 cumulative hours: 380 for all formal-unit attempts, two for resource
+acceptance and two for coordination, validation and analysis. Complete four-trial
+units have an eight-hour cumulative cap; the 770 paired batches each have a
+16-hour cap. The [v2 configuration](configs/input_robustness_11_v2.json) keeps
+formal training disabled. The [resource acceptance plan](docs/input_robustness_11_resource_acceptance_plan.md)
+first checks task-scoped idle-sleep prevention, suspend/clock detection, whole-model
+ordinary pause and emergency stop, then repeats the fixed all-eleven resource
+scope under one cumulative ledger. Actual acceptance remains pending. The formal
+record layer, validator, analysis adapter and independent launch acceptance must
+also pass before training. There are zero new held-out scores or formal records.
 
 ## Main results
 
