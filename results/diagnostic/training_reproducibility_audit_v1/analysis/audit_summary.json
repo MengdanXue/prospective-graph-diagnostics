@@ -712,7 +712,7 @@
       }
     },
     "config_sha256": "80657f2f48fd589568d353cf268f3ed3c59008b9468463779cc3c0008cec80ea",
-    "python_executable": "C:\\Users\\john\\Documents\\Codex\\2026-09-07\\https-github-com-mengdanxue-prospective-graph\\work\\venv-gpu\\Scripts\\python.exe",
+    "python_executable": "<redacted-local-python-executable>",
     "run_id": "training_reproducibility_audit_v1",
     "source_commit": "78a3efebf2f13e271149bceb01ebee1b03552afd",
     "source_files_sha256": {

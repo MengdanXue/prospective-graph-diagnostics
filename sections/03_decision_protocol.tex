@@ -42,8 +42,6 @@ Selection and test & Validation accuracy descending, validation loss ascending, 
 
 The split is stratified 60/20/20 for train/validation/test and is regenerated deterministically for seeds 0--9. Every unit stores the source commit, canonical configuration digest, processed-data checksums, split identifier, four trial records, selected checkpoint, and environment provenance. The v1 and v2 JSON specifications differ only in the pre-outcome eligibility amendment described in Section~\ref{sec:prospective}; the later Squirrel amendment changes only the execution timeout.
 
-AI-assisted tools supported software review, test development, reproducibility checks, and editorial work but did not generate experimental data or make reporting decisions. All reported experiments were executed under the frozen protocol, and the author independently verified the code, artifacts, analyses, and manuscript claims.
-
 \subsection{Decision-Time Information and Policies}
 
 Full node features and graph structure are available because they are model inputs. Label-dependent graph statistics may use training labels only. In particular, edge homophily uses edges whose endpoints are both labeled for training, and the two-hop statistic uses training-labeled endpoint pairs. We denote the resulting one-hop and path-weighted length-two endpoint agreement rates by $h_1$ and $h_2$, respectively. Validation accuracy is available because model tuning precedes the decision. Test labels, test accuracy, and any statistic computed from test labels are forbidden diagnostic inputs; the evaluator rejects records that violate this boundary.
