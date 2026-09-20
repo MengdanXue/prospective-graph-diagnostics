@@ -1,0 +1,91 @@
+{
+  "schema_version": "1.0",
+  "run_id": "posthoc_preprocessing_v1",
+  "analysis_status": "post_hoc_paired_sensitivity",
+  "design_date": "2026-09-07",
+  "datasets": {
+    "Roman-empire": {
+      "filename": "roman_empire.npz",
+      "shape": [
+        22662,
+        300
+      ],
+      "sha256": "a58ba741d123bf892fe5c872138d07463d75a2e9012360b8dd78ac2d4766d428",
+      "source_url": "https://raw.githubusercontent.com/yandex-research/heterophilous-graphs/main/data/roman_empire.npz"
+    },
+    "Amazon-ratings": {
+      "filename": "amazon_ratings.npz",
+      "shape": [
+        24492,
+        300
+      ],
+      "sha256": "4c3a3e3b9d9f6cba0fede4625a00aad8c5721c1a36ed771367f446763241c7dd",
+      "source_url": "https://raw.githubusercontent.com/yandex-research/heterophilous-graphs/main/data/amazon_ratings.npz"
+    }
+  },
+  "conditions": [
+    "normalize_features",
+    "raw"
+  ],
+  "seeds": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9
+  ],
+  "models": [
+    "MLP",
+    "GCN",
+    "GAT",
+    "GraphSAGE",
+    "H2GCN",
+    "LINKX",
+    "GPR-GNN"
+  ],
+  "training": {
+    "hidden_channels": 64,
+    "max_epochs": 500,
+    "patience": 100,
+    "weight_decay": 0.0005,
+    "trials": [
+      {
+        "learning_rate": 0.01,
+        "dropout": 0.5
+      },
+      {
+        "learning_rate": 0.01,
+        "dropout": 0.7
+      },
+      {
+        "learning_rate": 0.005,
+        "dropout": 0.5
+      },
+      {
+        "learning_rate": 0.005,
+        "dropout": 0.7
+      }
+    ],
+    "selection_order": [
+      "validation_accuracy_desc",
+      "validation_loss_asc",
+      "trial_id_asc"
+    ],
+    "test_evaluations_after_selection": 1
+  },
+  "split": {
+    "train": 0.6,
+    "validation": 0.2,
+    "test": 0.2
+  },
+  "practical_margin": 0.01,
+  "threshold": 0.55,
+  "fallback": "mlp",
+  "pairing": "same raw data, split, initialization seed, architecture, trial grid, runtime and device; both conditions retrained",
+  "inference": "descriptive per-dataset paired differences; two selected datasets, no new confirmatory population claim"
+}

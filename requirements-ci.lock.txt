@@ -28,6 +28,7 @@ pandas==2.3.3
 pillow==12.3.0
 propcache==0.4.1
 psutil==7.0.0
+pypdf==6.10.0
 pyparsing==3.2.3
 python-dateutil==2.9.0.post0
 pytz==2026.3.post1

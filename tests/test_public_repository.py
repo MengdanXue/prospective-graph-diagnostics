@@ -7,11 +7,23 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 ALLOWED_RESULTS = {
+    "results/diagnostic/route_a_prospective_v2/analysis/portfolio_robustness.json",
+    "results/diagnostic/route_a_prospective_v2/analysis/preprocessing_sensitivity.json",
+    "results/diagnostic/route_a_prospective_v2/analysis/preprocessing_record_audit.json",
+    "results/diagnostic/posthoc_mlp_optimization_v1/analysis/mlp_optimization_diagnostic_summary.json",
+    "results/diagnostic/posthoc_mlp_optimization_v1/analysis/mlp_optimization_diagnostic_summary.md",
+    "results/diagnostic/posthoc_mlp_optimization_v1/analysis/mlp_optimization_validation.png",
+    "results/diagnostic/posthoc_mlp_optimization_v1/analysis/mlp_optimization_validation.svg",
+    "results/diagnostic/posthoc_graph_parameterization_v1/analysis/graph_parameterization_diagnostic_summary.json",
+    "results/diagnostic/posthoc_graph_parameterization_v1/analysis/graph_parameterization_diagnostic_summary.md",
+    "results/diagnostic/training_reproducibility_audit_v1/analysis/audit_summary.json",
     "results/diagnostic/route_a_degree_matched_v1/summary/summary.json",
     "results/diagnostic/route_a_prospective_v2/analysis/diagnostic_audit.json",
+    "results/diagnostic/route_a_prospective_v2/analysis/equal_budget_sensitivity.json",
     "results/diagnostic/route_a_prospective_v2/analysis/prospective_regret_coverage.pdf",
     "results/diagnostic/route_a_prospective_v2/analysis/prospective_regret_coverage.png",
     "results/diagnostic/route_a_prospective_v2/analysis/reviewer_appendix_summary.json",
+    "results/diagnostic/route_a_prospective_v2/analysis/winning_architectures.json",
     "results/discriminability/route_a_grid_v1/summary/figure_manifest.json",
     "results/discriminability/route_a_grid_v1/summary/records.csv",
     "results/discriminability/route_a_grid_v1/summary/summary.json",
