@@ -1,0 +1,24 @@
+\section{Introduction}
+
+Graph structure can provide information beyond node features, but its value depends on the model and task~\cite{kipf2017gcn,velivckovic2018gat,hamilton2017graphsage}. For node classification, this raises a practical decision: should one use a tuned graph-model portfolio or a tuned feature-only multilayer perceptron (MLP)? A useful diagnostic must make this choice with small accuracy loss relative to the better available action. Its evaluation therefore needs to specify the candidate models, training budget, and information available at decision time.
+
+Existing work already shows that homophily alone is insufficient to characterize GNN performance and develops class-conditional, feature, structural, and neighborhood-distribution metrics~\cite{luan2023whendo,platonov2023characterizing,zheng2024trihom,pmlr-v235-wang24u}. Learned selectors also rank graph models across datasets~\cite{park2023metagl,park2023glemos}. Our question is narrower: how do fixed transparent graph/MLP/abstain policies perform against trivial and validation-based policies, and how does their measured value change when the graph action refers to a different candidate portfolio?
+
+We evaluate nine diagnostic and reference policies under a frozen protocol on 11 datasets with ten seeds each. The graph action selects among six architectures with 24 trials in total; the MLP action receives four. This asymmetric operational comparison fixes the training grid, information boundaries, decision rules, and dataset-level inference before generating the confirmatory records. The historical Combined rule has an exploratory origin: legacy aggregate outcomes were inspected before its exact thresholds were frozen. With complete inputs and the declared MLP fallback for abstentions, its full-set action is graph when training-label homophily $h_1\geq0.55$ and MLP otherwise (Section~\ref{sec:protocol}).
+
+Combined incurs 7.46 percentage points of full-set regret, compared with 0.26 for always-graph and 0.22 for validation selection. Regret measures accuracy lost relative to the better selected portfolio. These descriptive differences show a substantial cost for the evaluated rule, while the dataset-level analysis does not establish superiority after the frozen multiplicity correction. The rule has no demonstrated incremental value under this protocol.
+
+\paragraph{A concrete reversal, with a narrow empirical scope.}
+Post-hoc restrictions of the same records leave the diagnostic's actions unchanged but alter the graph candidates. With GCN alone, Combined has lower mean regret than always-graph (1.74 versus 5.29 points); GAT gives the same reversal (2.08 versus 6.35). Each other single architecture favors always-graph. These restrictions match the MLP's four trials, without equalizing compute. Across all 63 nonempty candidate subsets, only GCN, GAT, and their pair favor Combined; excluding both Cornell and Wisconsin removes its advantage in every subset. The findings quantify how a fixed rule's observed benefit can reverse with the candidate portfolio, while exposing its sensitivity to dataset composition.
+
+\paragraph{Training choices limit the interpretation.}
+Post-hoc raw-feature retraining on Roman-empire and Amazon-ratings substantially improves MLP test accuracy while retaining the graph target in the recorded comparisons. Further validation-only diagnostics expose sensitivity to input parameterization and variation in repeated graph-model training (Section~\ref{sec:preprocessing_sensitivity} and Appendix~\ref{app:training_diagnostics}). The measured graph--MLP gap thus depends on the training pipeline. These two-dataset checks constrain its interpretation without independently validating the full benchmark.
+
+The paper offers three contributions:
+\begin{enumerate}
+    \item \textbf{Measured diagnostic losses and portfolio sensitivity.} The frozen benchmark quantifies the evaluated rule's cost; post-hoc portfolio, dataset, and threshold controls delimit when its relative regret improves or worsens.
+    \item \textbf{A reproducible decision-evaluation protocol.} The release connects information scope, validation selection, abstention, regret, coverage, and dataset-level inference to auditable model records.
+    \item \textbf{Auxiliary evidence of graph signal.} A degree-preserving intervention reduces GCN accuracy on three citation networks, showing sensitivity to non-degree edge organization without isolating homophily as its cause.
+\end{enumerate}
+
+The frozen comparison is the confirmatory analysis; all later sensitivities are post-hoc. Together they motivate evaluating a specified diagnostic against specified candidate portfolios on independent datasets.

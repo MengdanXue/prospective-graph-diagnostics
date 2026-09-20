@@ -1,0 +1,70 @@
+% Anonymous TMLR submission manuscript.
+\documentclass[10pt]{article}
+\makeatletter
+\def\input@path{{templates/tmlr/}}
+\makeatother
+\usepackage{tmlr}
+
+\usepackage{amsmath,amssymb,amsfonts,amsthm}
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{multirow}
+\usepackage{textcomp}
+\usepackage{xcolor}
+\usepackage{url}
+\usepackage[hidelinks]{hyperref}
+
+\graphicspath{{code/figures/}{figures/}}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{proposition}{Proposition}
+\newtheorem{definition}{Definition}
+\newtheorem{remark}{Remark}
+\newtheorem{corollary}{Corollary}
+\newtheorem{lemma}{Lemma}
+\newtheorem{assumption}{Assumption}
+
+\title{Diagnostic Utility Depends on the Model Portfolio:\\
+A Frozen Graph-vs-MLP Decision Benchmark}
+
+\author{Anonymous Author(s)}
+
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\begingroup
+\renewcommand{\thefootnote}{}
+\footnotetext{The author used OpenAI Codex for code development and review, experiment execution, test development, reproducibility checks, analysis, and language and structural editing. Reported numerical results come from executed programs and retained experimental artifacts. The author is responsible for the scientific judgments, reporting decisions, and manuscript content.}
+\endgroup
+
+\begin{abstract}
+Graph diagnostics are useful for model selection when their decisions improve on a relevant reference policy. We evaluate fixed graph-versus-MLP policies on 11 datasets and ten seeds under a frozen protocol. Label-dependent statistics use training labels only, and validation selects models. The graph action searches six architectures with four trials each; MLP receives four trials. The combined diagnostic incurs 7.46 percentage points of full-set oracle-portfolio regret with MLP fallback, compared with 0.26 for always-graph and 0.22 for validation selection. Post-hoc restrictions reverse its relative performance: with unchanged diagnostic decisions, Combined has lower descriptive mean regret than always-graph for GCN (1.74 versus 5.29) and GAT (2.08 versus 6.35), but higher regret for the other four architectures. Across all 63 candidate subsets, only GCN, GAT, and their pair favor Combined; removing Cornell and Wisconsin eliminates those advantages. Two-dataset preprocessing and validation-only training diagnostics further show that the measured comparison depends on the training pipeline. These observations establish neither stable external performance nor equal-compute effects, and the original dataset-level tests establish no superiority after multiplicity correction. We provide frozen records and a decision-evaluation protocol that makes candidate models, information boundaries, abstention, regret, and dataset-level uncertainty explicit.
+\end{abstract}
+
+\input{sections_tmlr/01_introduction}
+\input{sections_tmlr/02_related_work}
+\input{sections_tmlr/03_decision_protocol}
+\input{sections_tmlr/04_prospective_results}
+\input{sections_tmlr/04a_equal_budget_sensitivity}
+\input{sections_tmlr/05_edge_intervention}
+\input{sections_tmlr/07_discussion}
+\input{sections_tmlr/08_conclusion}
+
+\section*{Data and code availability}
+The anonymous supplement provides source code, configurations, compact result summaries, and the retained unit-level records supporting this manuscript. Its manifest distinguishes unchanged files from copies with identifying path metadata removed. Large checkpoint tensors and the complete Git history remain in the author archive and are omitted from the review supplement; this omission limits independent checkpoint replay from that supplement. The original confirmatory records and later post-hoc diagnostics remain separate, and the supplement does not represent a new experiment or a new test-set evaluation. Historical exploratory outputs are separate from the confirmatory artifacts.
+
+\bibliographystyle{templates/tmlr/tmlr}
+\bibliography{references}
+
+\clearpage
+\appendix
+% Keep table numbering continuous to avoid duplicate appendix labels and anchors.
+\input{sections_tmlr/09_reproducibility_appendix}
+\input{sections_tmlr/10_training_diagnostics}
+\input{sections/06_fixed_degree_analysis}
+
+\end{document}
