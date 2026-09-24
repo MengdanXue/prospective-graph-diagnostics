@@ -7,6 +7,7 @@ scripts/summarize_winning_architectures.py, and that the repositioned sources
 remain free of the claims forbidden by the Route A design.
 """
 
+import copy
 import json
 import re
 import subprocess
@@ -16,7 +17,13 @@ import unittest
 from pathlib import Path
 
 import numpy as np
-from experiments.evaluate_diagnostics import holm_adjust, sign_flip_p
+from experiments.evaluate_diagnostics import (
+    action_regret,
+    dataset_mean_regret,
+    fixed_decisions,
+    holm_adjust,
+    sign_flip_p,
+)
 from scripts.audit_route_a_claims import audit
 from scripts.summarize_winning_architectures import summarize
 
@@ -24,6 +31,7 @@ ROOT = Path(__file__).resolve().parents[1]
 MAIN = ROOT / "main_tmlr.tex"
 MAIN_TEXT = MAIN.read_text(encoding="utf-8")
 INTRODUCTION = (ROOT / "sections_tmlr" / "01_introduction.tex").read_text(encoding="utf-8")
+PROTOCOL = (ROOT / "sections_tmlr" / "03_decision_protocol.tex").read_text(encoding="utf-8")
 RESULTS = (ROOT / "sections_tmlr" / "04_prospective_results.tex").read_text(encoding="utf-8")
 DISCUSSION = (ROOT / "sections_tmlr" / "07_discussion.tex").read_text(encoding="utf-8")
 CONCLUSION = (ROOT / "sections_tmlr" / "08_conclusion.tex").read_text(encoding="utf-8")
@@ -94,24 +102,192 @@ class RepositionedManuscriptTests(unittest.TestCase):
     def test_attainable_resolution_limitation_is_disclosed(self):
         self.assertIn("$2^{1-k}$", RESULTS)
         self.assertNotIn("could not have rejected under any realization", RESULTS)
-        self.assertIn("conditional resolution limitation", RESULTS)
+        self.assertIn("Structural resolution limitation of the key comparison", RESULTS)
+        self.assertIn("identically zero, irrespective of the learned test accuracies", RESULTS)
+        self.assertIn("unattainable for this key comparison", RESULTS)
         self.assertIn("Holm's first step", RESULTS)
         self.assertIn("$p=0.015625$", RESULTS)
+        self.assertIn("Holm's running maximum", RESULTS)
+        self.assertIn("$6p_0=0.09375$", RESULTS)
+        self.assertIn("fixed eight-comparison family and realized dataset composition", RESULTS)
         always_graph = next(
             c for c in AUDIT["paired_comparisons"] if c["method"] == "always_graph"
         )
         self.assertAlmostEqual(always_graph["raw_p"], 2 / 2**7)
         self.assertGreater(always_graph["holm_adjusted_p"], 0.05)
+        self.assertEqual(always_graph["holm_adjusted_p"], 0.125)
 
-    def test_eleven_datasets_do_not_imply_zero_attainable_power(self):
-        observed_pattern = np.array([-1.0] * 7 + [0.0] * 4)
+    def test_fixed_actions_impose_structural_zeros_and_holm_resolution_bound(self):
+        def effective_action(unit, method):
+            action = unit["decisions"][method]["action"]
+            return "mlp" if action == "abstain" else action
+
+        units = AUDIT["units"]
+        for unit in units:
+            self.assertEqual(fixed_decisions(unit), unit["decisions"])
+        datasets = {unit["dataset"] for unit in units}
+        self.assertEqual(len(units), 110)
+        self.assertEqual(len(datasets), 11)
+        methods = [row["method"] for row in AUDIT["paired_comparisons"]]
+        self.assertEqual(len(methods), 8)
+        differing_datasets = {
+            method: {
+                unit["dataset"] for unit in units
+                if effective_action(unit, method)
+                != effective_action(unit, "historical_combined")
+            }
+            for method in methods
+        }
+        self.assertEqual(
+            {method: len(names) for method, names in differing_datasets.items()},
+            {
+                "always_graph": 7, "always_mlp": 4, "degree_only": 6,
+                "homophily_only": 0, "homophily_plus_degree": 5,
+                "random_50_50": 11, "two_hop_only": 7,
+                "validation_selection": 6,
+            },
+        )
+        structural_zeros = datasets - differing_datasets["always_graph"]
+        self.assertEqual(structural_zeros, {"Cora", "CiteSeer", "PubMed", "Coauthor-CS"})
+        self.assertEqual(sum(unit["dataset"] in structural_zeros for unit in units), 40)
+        reference = dataset_mean_regret(units, "historical_combined")
+        candidate = dataset_mean_regret(units, "always_graph")
+        observed_pattern = np.array([candidate[name] - reference[name] for name in sorted(datasets)])
+        self.assertEqual(np.count_nonzero(observed_pattern), 7)
         self.assertEqual(sign_flip_p(observed_pattern, samples=10000, seed=0), 2 / 2**7)
-        possible_pattern = np.ones(11)
-        floor = sign_flip_p(possible_pattern, samples=10000, seed=0)
-        family = [{"raw_p": floor} for _ in range(8)]
+
+        # Fixed diagnostic actions constrain nonzero dataset differences even
+        # when trained accuracies change. Validation may change on all eleven
+        # datasets, so give it the most permissive possible raw-p floor.
+        floor_family = []
+        for method in methods:
+            maximum_nonzero = (
+                len(datasets) if method == "validation_selection"
+                else len(differing_datasets[method])
+            )
+            floor_family.append({
+                "method": method,
+                "raw_p": 2 ** (1 - maximum_nonzero) if maximum_nonzero else 1.0,
+            })
+        self.assertEqual(
+            {row["method"] for row in floor_family if row["raw_p"] < 2 / 2**7},
+            {"random_50_50", "validation_selection"},
+        )
+        holm_adjust(floor_family)
+        core_bound = next(row for row in floor_family if row["method"] == "always_graph")
+        self.assertEqual(core_bound["holm_adjusted_p"], 6 * (2 / 2**7))
+        self.assertGreater(core_bound["holm_adjusted_p"], .05)
+
+        # A tied two-hop floor can put always-graph fourth, while Holm's
+        # running maximum retains the third-position factor of six.
+        tied_family = [row.copy() for row in floor_family if row["method"] != "always_graph"]
+        tied_family.append(core_bound.copy())
+        ordered = sorted(tied_family, key=lambda row: row["raw_p"])
+        self.assertEqual([row["method"] for row in ordered].index("always_graph"), 3)
+        holm_adjust(tied_family)
+        tied_core = next(row for row in tied_family if row["method"] == "always_graph")
+        self.assertEqual(tied_core["holm_adjusted_p"], 6 * (2 / 2**7))
+
+    def test_paper_level_rule_preserves_regret_coverage_and_interval_requirements(self):
+        specification = (ROOT / "docs" / "preregistration_diagnostic_benchmark.md").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("full-set regret relative to simple baselines without relying on lower coverage", specification)
+        self.assertIn("the uncertainty interval excludes zero for the predeclared comparison", specification)
+        self.assertIn("reduces full-set regret relative to simple baselines without relying on lower coverage", PROTOCOL)
+        self.assertIn("uncertainty interval excludes zero in the favorable direction", PROTOCOL)
+        self.assertIn("baseline-minus-Combined difference, the favorable direction is positive", PROTOCOL)
+        self.assertIn("a significance result alone does not replace the regret and coverage conditions", PROTOCOL)
+        self.assertGreater(
+            AUDIT["methods"]["historical_combined"]["full_set_mean_regret"],
+            AUDIT["methods"]["always_graph"]["full_set_mean_regret"],
+        )
+        comparison = next(row for row in AUDIT["paired_comparisons"] if row["method"] == "always_graph")
+        self.assertLess(comparison["bootstrap_95_ci"][1], 0)
+        self.assertIn("independently of the sign-flip resolution limit", RESULTS)
+
+    def test_policy_origin_remains_disclosed_without_private_source_identifiers(self):
+        self.assertIn("8 August 2026", PROTOCOL)
+        self.assertIn("after inspection of legacy aggregate outputs", PROTOCOL)
+        self.assertIn("exploratory-origin rule", PROTOCOL)
+        self.assertIn("source provenance is retained in the author archive", PROTOCOL)
+        self.assertNotIn(r"route\_a\_diagnostic\_v1", PROTOCOL)
+        self.assertNotIn("dca835a", PROTOCOL)
+        self.assertNotIn("confirmatory", PROTOCOL.lower())
+        self.assertNotIn("confirmatory", RESULTS.lower())
+
+    def test_fallback_decomposition_table_matches_frozen_unit_regrets(self):
+        units = AUDIT["units"]
+        groups = {
+            "Covered decisions": [u for u in units if u["decisions"]["historical_combined"]["action"] != "abstain"],
+            "Abstentions with MLP fallback": [u for u in units if u["decisions"]["historical_combined"]["action"] == "abstain"],
+            "Total": units,
+        }
+        rows = re.findall(
+            r"^(Covered decisions|Abstentions with MLP fallback|Total) & (\d+) & ([\d.]+) & ([\d.]+) \\\\",
+            RESULTS, re.M,
+        )
+        self.assertEqual(len(rows), 3)
+        group_sums = {}
+        for label, count, mean, contribution in rows:
+            selected = groups[label]
+            total = sum(action_regret(
+                unit,
+                "mlp" if unit["decisions"]["historical_combined"]["action"] == "abstain"
+                else unit["decisions"]["historical_combined"]["action"],
+            ) for unit in selected)
+            group_sums[label] = total
+            self.assertEqual(len(selected), int(count))
+            self.assertEqual(f"{100 * total / len(selected):.3f}", mean)
+            self.assertEqual(f"{100 * total / len(units):.3f}", contribution)
+        self.assertEqual(len(groups["Covered decisions"]), 75)
+        self.assertEqual(len(groups["Abstentions with MLP fallback"]), 35)
+        self.assertAlmostEqual(
+            group_sums["Covered decisions"] + group_sums["Abstentions with MLP fallback"],
+            group_sums["Total"], places=12,
+        )
+        self.assertAlmostEqual(
+            group_sums["Total"] / len(units),
+            AUDIT["methods"]["historical_combined"]["full_set_mean_regret"], places=12,
+        )
+        share = 100 * group_sums["Abstentions with MLP fallback"] / group_sums["Total"]
+        self.assertIn(f"{share:.3f}\\% of the total regret", RESULTS)
+
+    def test_random_policy_can_reject_in_the_same_family_with_fixed_diagnostic_actions(self):
+        # This is a counterexample fixture, not a new research result. Keep
+        # every actual diagnostic and validation input, but give each unit's
+        # Combined action the lower synthetic test accuracy.
+        units = copy.deepcopy(AUDIT["units"])
+        for unit in units:
+            combined = unit["decisions"]["historical_combined"]["action"]
+            combined = "mlp" if combined == "abstain" else combined
+            unit["selected_graph_test"] = .25 if combined == "graph" else .75
+            unit["selected_mlp_test"] = .75 if combined == "graph" else .25
+            unit["test_gap"] = unit["selected_graph_test"] - unit["selected_mlp_test"]
+            unit["target_action"] = "graph" if unit["test_gap"] > .01 else "mlp"
+            self.assertEqual(fixed_decisions(unit), unit["decisions"])
+        reference = dataset_mean_regret(units, "historical_combined")
+        family = []
+        for comparison in AUDIT["paired_comparisons"]:
+            method = comparison["method"]
+            candidate = dataset_mean_regret(units, method)
+            differences = np.array([
+                candidate[name] - reference[name] for name in sorted(reference)
+            ])
+            if method == "random_50_50":
+                self.assertEqual(len(differences), 11)
+                self.assertTrue(np.all(differences == -.25))
+            family.append({
+                "method": method,
+                "raw_p": sign_flip_p(differences, samples=10000, seed=0),
+            })
+        self.assertEqual(len(family), 8)
         holm_adjust(family)
-        self.assertLess(family[0]["holm_adjusted_p"], .05)
-        self.assertIn("0.0009765625", RESULTS)
+        random = next(row for row in family if row["method"] == "random_50_50")
+        self.assertEqual(random["raw_p"], 2 / 2**11)
+        self.assertEqual(random["holm_adjusted_p"], 8 * (2 / 2**11))
+        self.assertLess(random["holm_adjusted_p"], .05)
+        self.assertIn("does not imply that every comparison in the family has zero power", RESULTS)
 
     def test_equal_budget_table_matches_the_frozen_summary(self):
         rows = re.findall(

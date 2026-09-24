@@ -1,7 +1,7 @@
-\section{Dataset-Level Results and Reproducibility Details}
+\section{Dataset-Level Results and Record Reconstruction Details}
 \label{app:reproducibility}
 
-This appendix reports descriptive heterogeneity and implementation details requested for textual reproducibility. All outcome summaries are deterministic transformations of the frozen audit; no model was retrained, no action was changed, and the primary dataset-level inference remains that in Section~\ref{sec:prospective}.
+This appendix reports descriptive heterogeneity and implementation details for reconstructing the reported decision scores. The original policy actions and primary dataset-level inference in Section~\ref{sec:prospective} remain unchanged. The added threshold analysis evaluates alternative decisions using the same retained model outcomes; no model was retrained. Reconstruction of these scores is distinct from repeatability of the model training that produced their inputs.
 
 \subsection{Dataset Properties and Decision Heterogeneity}
 
@@ -96,7 +96,7 @@ Total & --- & --- & 95/110 & 40 & 7.46 \\
 
 All runs use PyTorch 2.9.1 and PyTorch Geometric 2.7.0. Planetoid loads Cora, CiteSeer, and PubMed; WebKB loads Wisconsin and Cornell. WikipediaNetwork with geometric preprocessing loads Chameleon and Squirrel. Actor uses the Actor loader. Roman-empire and Amazon-ratings use PyG's Heterophilous Graph Dataset loader; Coauthor-CS uses Coauthor. The frozen v2 run applies PyG \texttt{NormalizeFeatures} on load to every dataset as a common preprocessing choice: in PyG 2.7.0 this subtracts the global feature-matrix minimum and normalizes each row by its sum, clamped below at one. It is therefore a modeling choice, not a graph-invariant transformation; the post-hoc two-dataset retraining in Section~\ref{sec:preprocessing_sensitivity} quantifies its sensitivity for Roman-empire and Amazon-ratings. We then remove self-loops, collapse duplicate and reverse edges to a unique undirected edge set, and emit both directions for message passing; isolated nodes are retained. These canonical edges are also the input to the diagnostics.
 
-Chameleon (2,277 nodes) and Squirrel (5,201 nodes) are the original geometric-preprocessing versions, not the duplicate-filtered variants. Prior work identifies problematic duplicate nodes in these benchmarks~\cite{platonov2023heterophilous}. Our edge canonicalization removes repeated edges, not duplicate nodes, and does not resolve that concern. Section~\ref{sec:subset_robustness} therefore reports their exclusion as a post-hoc sensitivity check; no filtered-graph retraining is claimed.
+Chameleon (2,277 nodes) and Squirrel (5,201 nodes) are the original geometric-preprocessing versions, not the duplicate-filtered variants. Prior work identifies problematic duplicate nodes in these benchmarks~\citep{platonov2023heterophilous}. Our edge canonicalization removes repeated edges, not duplicate nodes, and does not resolve that concern. Section~\ref{sec:subset_robustness} therefore reports their exclusion as a post-hoc sensitivity check; no filtered-graph retraining is claimed.
 
 Table~\ref{tab:architecture_details} completes the common training grid in Table~\ref{tab:frozen_training}. Unless stated otherwise, hidden width is 64, outputs are unnormalized logits, and dropout is the selected trial value. No architecture other than the PyG LINKX implementation uses BatchNorm.
 
