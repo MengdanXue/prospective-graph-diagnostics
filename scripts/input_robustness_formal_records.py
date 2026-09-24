@@ -305,6 +305,38 @@ class FormalRecordWriter:
             self.manifest.setdefault("authoritative_data_binding", str(self.data_binding_path.resolve()))
         _exclusive_json(self.root / "manifest.json", self.manifest)
 
+    @classmethod
+    def reopen(cls, root: Path, *, manifest: Mapping[str, Any],
+               config_path: Path, data_binding_path: Path) -> "FormalRecordWriter":
+        """Reopen an incomplete formal root for a reviewed resume.
+
+        The stored manifest must equal the one this invocation would create:
+        same run, source commit, config, data binding, environment and scope.
+        Completed roots stay immutable, and nothing already written is touched.
+        """
+        root = Path(root)
+        config_path, data_binding_path = Path(config_path), Path(data_binding_path)
+        if not config_path.is_file() or not data_binding_path.is_file():
+            raise FormalRecordError("authoritative config and data-binding files must exist")
+        if not (root / "manifest.json").is_file():
+            raise FormalRecordError(f"resume root has no formal manifest: {root}")
+        if (root / "complete.json").exists():
+            raise DuplicateRecordError(f"completed formal root cannot be resumed: {root}")
+        expected = dict(manifest)
+        expected.setdefault("schema_version", "1.0")
+        expected.setdefault("execution_mode", "formal")
+        expected.setdefault("authoritative_config", str(config_path.resolve()))
+        expected.setdefault("authoritative_data_binding", str(data_binding_path.resolve()))
+        stored = json.loads((root / "manifest.json").read_text(encoding="utf-8"))
+        if canonical_json(stored) != canonical_json(expected):
+            differing = sorted(key for key in set(stored) | set(expected) if stored.get(key) != expected.get(key))
+            raise FormalRecordError(f"resume manifest differs from the original run: {differing}")
+        writer = cls.__new__(cls)
+        writer.root, writer.synthetic = root, False
+        writer.config_path, writer.data_binding_path = config_path, data_binding_path
+        writer.manifest = stored
+        return writer
+
     def write_record(self, record: Mapping[str, Any]) -> Path:
         validate_record(record, expected=self.manifest, synthetic=self.synthetic)
         if not self.synthetic:
