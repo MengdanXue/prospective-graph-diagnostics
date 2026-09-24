@@ -234,6 +234,11 @@ class FormalExecutionController:
                 if self.pause_requested:
                     status = "paused"
                     break
+            # A pause requested by the unit source (for example an operator
+            # pause file) can end the iterator without yielding another unit.
+            # That is still a pause at a whole-unit boundary, never completion.
+            if status == "completed" and self.pause_requested:
+                status = "paused"
             if status == "completed" and finalize:
                 self._monitor()
                 scope = self.writer.manifest.get("scope", {})

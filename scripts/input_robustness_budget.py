@@ -25,6 +25,9 @@ CAPS_SECONDS = {"total": 1382400, "resource": 7200, "control": 7200,
                 "formal": 1368000, "unit": 28800, "batch": 57600}
 GROUPS = ("resource", "control", "formal")
 CI_JOBS = {"lightweight-verification", "full-protocol-verification", "manuscript-build"}
+# A local receipt runs the complete protocol suite on a clean checkout of the
+# exact source commit.  It is labelled as local and never presented as GitHub CI.
+LOCAL_VERIFICATION_JOBS = {"full-protocol-verification"}
 
 
 class BudgetError(RuntimeError):
@@ -221,7 +224,8 @@ def _validate_provenance(provenance, gate):
     _require(isinstance(receipt, dict) and receipt.get("commit") == provenance["source_commit"], "CI receipt must bind the phase source")
     _require(type(receipt.get("run_id")) is int and receipt["run_id"] > 0 and receipt.get("status") == "completed" and receipt.get("conclusion") == "success", "phase CI run must be complete and successful")
     jobs = receipt.get("jobs", [])
-    _require(isinstance(jobs, list) and len(jobs) == 3 and all(isinstance(j, dict) for j in jobs) and {j.get("name") for j in jobs} == CI_JOBS, "phase requires all three CI jobs")
+    required_jobs = LOCAL_VERIFICATION_JOBS if receipt.get("kind") == "local_verification" else CI_JOBS
+    _require(isinstance(jobs, list) and len(jobs) == len(required_jobs) and all(isinstance(j, dict) for j in jobs) and {j.get("name") for j in jobs} == required_jobs, "phase requires every verification job")
     _require(all(j.get("run_id") == receipt["run_id"] and j.get("status") == "completed" and j.get("conclusion") == "success" for j in jobs), "phase CI jobs differ or did not pass")
     _canonical(provenance)
     _canonical(gate)
