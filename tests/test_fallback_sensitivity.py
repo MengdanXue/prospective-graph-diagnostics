@@ -2,11 +2,13 @@ import contextlib
 import copy
 import io
 import json
+import math
 from pathlib import Path
 import tempfile
 import unittest
 
-from scripts.summarize_fallback_sensitivity import ANALYSIS, load_json, main, summarize
+from experiments.evaluate_diagnostics import fixed_decisions
+from scripts.summarize_fallback_sensitivity import ANALYSIS, load_json, main, same_decisions, summarize
 
 
 class FallbackSensitivityTests(unittest.TestCase):
@@ -129,6 +131,26 @@ class FallbackSensitivityTests(unittest.TestCase):
         before = copy.deepcopy((self.audit, self.preprocessing))
         summarize(self.audit, self.preprocessing)
         self.assertEqual((self.audit, self.preprocessing), before)
+
+    def test_saved_confidences_tolerate_platform_libm_rounding_only(self):
+        unit = next(u for u in self.audit["units"] if u["decisions"]["degree_only"]["confidence"])
+        computed = fixed_decisions(unit)
+        saved = copy.deepcopy(computed)
+        confidence = saved["degree_only"]["confidence"]
+        saved["degree_only"]["confidence"] = math.nextafter(confidence, 2.0)
+        same_decisions(computed, saved, "one-ulp")
+        for mode in ("action", "drift", "none", "method"):
+            broken = copy.deepcopy(computed)
+            if mode == "action":
+                broken["degree_only"]["action"] = "graph" if computed["degree_only"]["action"] == "mlp" else "mlp"
+            elif mode == "drift":
+                broken["degree_only"]["confidence"] = confidence + 1e-9
+            elif mode == "none":
+                broken["random_50_50"]["confidence"] = 0.5
+            else:
+                del broken["two_hop_only"]
+            with self.subTest(mode=mode), self.assertRaises(ValueError):
+                same_decisions(computed, broken, mode)
 
     def test_cli_defaults_to_stdout_and_explicit_output_cannot_overwrite(self):
         inputs = [ANALYSIS / "diagnostic_audit.json", ANALYSIS / "preprocessing_sensitivity.json"]

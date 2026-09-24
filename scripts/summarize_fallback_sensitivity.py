@@ -44,6 +44,28 @@ def same_number(actual, expected, context):
             f"{context}: saved value does not match reconstruction")
 
 
+def same_decisions(actual, expected, context):
+    """Require identical actions and confidences equal up to reconstruction tolerance.
+
+    The frozen evaluator's degree scores use math.log and math.tanh, whose last
+    bit depends on the platform's libm, so a saved confidence can differ from a
+    reconstruction by one ulp without any change in the selected action.
+    """
+    require(isinstance(expected, dict) and set(expected) == set(actual),
+            f"{context}: saved decisions differ from the frozen evaluator")
+    for method, computed in actual.items():
+        saved = expected[method]
+        require(isinstance(saved, dict) and set(saved) == set(computed)
+                and saved["action"] == computed["action"],
+                f"{context}.{method}: saved decisions differ from the frozen evaluator")
+        if computed["confidence"] is None:
+            require(saved["confidence"] is None,
+                    f"{context}.{method}: saved decisions differ from the frozen evaluator")
+        else:
+            same_number(saved["confidence"], computed["confidence"],
+                        f"{context}.{method}.confidence")
+
+
 def unique_json_object(pairs):
     out = {}
     for key, value in pairs:
@@ -98,8 +120,7 @@ def frozen_units(audit):
                 f"{key}: unknown selected graph")
         require(required(row, "selected_mlp", str(key)) == "MLP", f"{key}: unexpected MLP")
         validate_unit_values(row, str(key))
-        require(fixed_decisions(row) == required(row, "decisions", str(key)),
-                f"{key}: saved decisions differ from the frozen evaluator")
+        same_decisions(fixed_decisions(row), required(row, "decisions", str(key)), str(key))
         index[key] = row
     check_scope(index, DATASETS, "audit")
     units = [index[key] for key in sorted(index)]
