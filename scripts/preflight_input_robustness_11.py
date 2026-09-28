@@ -129,7 +129,12 @@ def process_tree_memory(process, psutil):
 
 
 def terminate_process_tree(process, psutil):
-    """Stop only this owned Popen worker and every known descendant."""
+    """Stop owned processes while leaving root-child reaping to Popen.
+
+    On POSIX, psutil.wait_procs([root]) can consume Popen's waitpid status.
+    Popen then observes ECHILD and reports zero, hiding a real forced stop.
+    Descendants remain psutil-owned; only Popen waits for its direct child.
+    """
     try:
         root = psutil.Process(process.pid)
         descendants = root.children(recursive=True)
@@ -148,7 +153,8 @@ def terminate_process_tree(process, psutil):
             target.kill()
         except psutil.NoSuchProcess:
             pass
-    psutil.wait_procs(targets, timeout=10)
+    process.wait(timeout=10)
+    psutil.wait_procs(descendants, timeout=10)
 
 
 def workers(config):

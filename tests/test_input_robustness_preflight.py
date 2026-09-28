@@ -30,6 +30,31 @@ def write_fixture(path, value):
 
 
 class ProbeContractTests(unittest.TestCase):
+    def test_termination_leaves_root_exit_status_owned_by_popen(self):
+        events = []
+        child = SimpleNamespace(pid=2, suspend=lambda: events.append("suspend-child"),
+                                kill=lambda: events.append("kill-child"))
+        root = SimpleNamespace(pid=1, children=lambda recursive: [child],
+                               suspend=lambda: events.append("suspend-root"),
+                               kill=lambda: events.append("kill-root"))
+        process = SimpleNamespace(pid=1, returncode=None)
+        def popen_wait(timeout):
+            events.append("popen-wait-root")
+            process.returncode = -9
+            return -9
+        def psutil_wait(targets, timeout):
+            self.assertEqual(targets, [child], "psutil must never reap Popen's root child")
+            self.assertEqual(process.returncode, -9, "Popen must retain the true kill status")
+            events.append("psutil-wait-descendants")
+            return targets, []
+        process.wait = popen_wait
+        psutil = SimpleNamespace(Process=lambda pid: root, NoSuchProcess=ProcessLookupError,
+                                 wait_procs=psutil_wait)
+        preflight.terminate_process_tree(process, psutil)
+        self.assertEqual(events, ["suspend-root", "suspend-child", "kill-child", "kill-root",
+                                  "popen-wait-root", "psutil-wait-descendants"])
+        self.assertEqual(process.returncode, -9)
+
     def test_memory_monitor_includes_real_interpreter_descendants_and_windows_high_water(self):
         import psutil
         interpreter = SimpleNamespace(pid=2, memory_info=lambda: SimpleNamespace(rss=4000, peak_wset=8000))
@@ -65,6 +90,8 @@ class ProbeContractTests(unittest.TestCase):
             finally:
                 preflight.terminate_process_tree(process, psutil)
                 process.wait(timeout=10)
+            self.assertIsNotNone(process.returncode)
+            self.assertNotEqual(process.returncode, 0, "forced termination must retain a nonzero exit status")
             if child_pid is not None and psutil.pid_exists(child_pid):
                 self.assertEqual(psutil.Process(child_pid).status(), psutil.STATUS_ZOMBIE)
 

@@ -27,9 +27,12 @@ The reviewed handoff and acceptance files below must exist and must bind the com
 
 ## Execution after all gates pass
 
-Set `$supplementCi` to the archived `ci-verified-<execution SHA prefix>.json` for the exact checkout. The shared budget remains 384 h total / 380 h formal / 2 h resource / 2 h control, with cumulative unit and pair caps of 8 h and 16 h.
+Use the archived CI and native-acceptance receipts for the exact checkout. The shared budget remains 384 h total / 380 h formal / 2 h resource / 2 h control, with cumulative unit and pair caps of 8 h and 16 h.
 
 ```powershell
+$supplementExecution = (git rev-parse HEAD).Trim().Substring(0, 12)
+$supplementCi = Join-Path $supplementProof "ci-verified-$supplementExecution.json"
+$supplementAcceptance = Join-Path $supplementProof "extension-acceptance-$supplementExecution.json"
 $supplementArgs = @(
   '-m', 'scripts.mlp_budget_extension_entry',
   '--config', 'configs/diagnostics_mlp_budget_extension_v1.json',
@@ -40,7 +43,7 @@ $supplementArgs = @(
   '--output-root', $supplementOutput,
   '--budget-ledger', $supplementLedger,
   '--budget-handoff', (Join-Path $supplementProof 'budget-handoff-reviewed.json'),
-  '--acceptance-record', (Join-Path $supplementProof 'extension-acceptance.json'),
+  '--acceptance-record', $supplementAcceptance,
   '--ci-receipt', $supplementCi,
   '--execute'
 )
@@ -59,7 +62,7 @@ New-Item -ItemType File -Path (Join-Path $supplementOutput 'PAUSE_REQUESTED')
 # New-Item -ItemType File -Path (Join-Path $supplementOutput 'EMERGENCY_STOP_REQUESTED')
 ```
 
-Do not delete failed attempts, reset the ledger, change the grid or overwrite output. Before resuming, verify process termination and existing records, review any interruption, bind the new terminal ledger head in the cumulative handoff, and archive the acknowledged control marker under a timestamped name. Then use the same command with `--resume`, the same output and the same incremental ledger. A stale lock or unresolved stop requires review; the runner does not remove it automatically. Completed valid units are reused. An incomplete unit restarts its twenty additional trials under the same cumulative MLP unit and paired-batch identities.
+Do not delete failed attempts, reset the ledger, change the grid or overwrite output. Before resuming, verify process termination and existing records, review any interruption, bind the new terminal ledger head in a newly named cumulative-handoff receipt, and archive the acknowledged control marker under a timestamped name. Preserve every earlier receipt and point `--budget-handoff` to the new one. Then use the same command with `--resume`, the same output and the same incremental ledger. A stale lock or unresolved stop requires review; the runner does not remove it automatically. Completed valid units are reused. An incomplete unit restarts its twenty additional trials under the same cumulative MLP unit and paired-batch identities.
 
 ## Completion evidence
 
