@@ -32,6 +32,7 @@ ACCEPTANCE_SOURCES = (
     "scripts/mlp_budget_extension.py", "scripts/mlp_budget_extension_entry.py",
     "scripts/mlp_budget_extension_worker.py", "scripts/mlp_budget_extension_e2e.py",
     "scripts/analyze_published_diagnostics.py", "scripts/published_graph_diagnostics.py",
+    "scripts/preflight_input_robustness_11.py",
     "tests/test_mlp_budget_extension.py",
 )
 
