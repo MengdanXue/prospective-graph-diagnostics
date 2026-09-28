@@ -1,0 +1,322 @@
+{
+  "schema_version": "1.0",
+  "run_id": "posthoc_diagnostics_mlp24_v1",
+  "analysis_status": "post_hoc_extension_after_inspection_of_base_outcomes",
+  "design_date": "2026-09-28",
+  "execution_mode": "research",
+  "formal_training_enabled": false,
+  "datasets": [
+    "Cora",
+    "CiteSeer",
+    "PubMed",
+    "Wisconsin",
+    "Cornell",
+    "Chameleon",
+    "Squirrel",
+    "Actor",
+    "Roman-empire",
+    "Amazon-ratings",
+    "Coauthor-CS"
+  ],
+  "conditions": [
+    "normalize_features",
+    "normalize_centered_scaled"
+  ],
+  "seeds": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9
+  ],
+  "base": {
+    "run_id": "posthoc_input_robustness_11_v2",
+    "config_path": "configs/input_robustness_11_v2.json",
+    "data_binding_path": "results/diagnostic/posthoc_input_robustness_11_v1/preflight/data_binding.json",
+    "source_commit": "eb43adfe7c366154170526f30d9ffe2477a70436",
+    "config_sha256": "4750f3f2443d826e3225b89a6a9f59b1404c1d2309492cb5939855895877f4e3",
+    "data_binding_sha256": "01c2a5692a1c3c00fa9e6d27657ee6ad5347a559ad81a7fd41ae1962efc61ab7",
+    "require_complete": true,
+    "require_checkpoint_hashes": true,
+    "require_closed_budget_handoff": true
+  },
+  "training": {
+    "model": "MLP",
+    "hidden_channels": 64,
+    "max_epochs": 500,
+    "patience": 100,
+    "trials": [
+      {
+        "trial_id": "trial_000",
+        "learning_rate": 0.01,
+        "dropout": 0.5,
+        "weight_decay": 0.0005
+      },
+      {
+        "trial_id": "trial_001",
+        "learning_rate": 0.01,
+        "dropout": 0.7,
+        "weight_decay": 0.0005
+      },
+      {
+        "trial_id": "trial_002",
+        "learning_rate": 0.005,
+        "dropout": 0.5,
+        "weight_decay": 0.0005
+      },
+      {
+        "trial_id": "trial_003",
+        "learning_rate": 0.005,
+        "dropout": 0.7,
+        "weight_decay": 0.0005
+      },
+      {
+        "trial_id": "trial_004",
+        "learning_rate": 0.001,
+        "dropout": 0,
+        "weight_decay": 0
+      },
+      {
+        "trial_id": "trial_005",
+        "learning_rate": 0.001,
+        "dropout": 0,
+        "weight_decay": 0.0005
+      },
+      {
+        "trial_id": "trial_006",
+        "learning_rate": 0.001,
+        "dropout": 0.3,
+        "weight_decay": 0
+      },
+      {
+        "trial_id": "trial_007",
+        "learning_rate": 0.001,
+        "dropout": 0.3,
+        "weight_decay": 0.0005
+      },
+      {
+        "trial_id": "trial_008",
+        "learning_rate": 0.001,
+        "dropout": 0.5,
+        "weight_decay": 0
+      },
+      {
+        "trial_id": "trial_009",
+        "learning_rate": 0.001,
+        "dropout": 0.5,
+        "weight_decay": 0.0005
+      },
+      {
+        "trial_id": "trial_010",
+        "learning_rate": 0.001,
+        "dropout": 0.7,
+        "weight_decay": 0
+      },
+      {
+        "trial_id": "trial_011",
+        "learning_rate": 0.001,
+        "dropout": 0.7,
+        "weight_decay": 0.0005
+      },
+      {
+        "trial_id": "trial_012",
+        "learning_rate": 0.005,
+        "dropout": 0,
+        "weight_decay": 0
+      },
+      {
+        "trial_id": "trial_013",
+        "learning_rate": 0.005,
+        "dropout": 0,
+        "weight_decay": 0.0005
+      },
+      {
+        "trial_id": "trial_014",
+        "learning_rate": 0.005,
+        "dropout": 0.3,
+        "weight_decay": 0
+      },
+      {
+        "trial_id": "trial_015",
+        "learning_rate": 0.005,
+        "dropout": 0.3,
+        "weight_decay": 0.0005
+      },
+      {
+        "trial_id": "trial_016",
+        "learning_rate": 0.005,
+        "dropout": 0.5,
+        "weight_decay": 0
+      },
+      {
+        "trial_id": "trial_017",
+        "learning_rate": 0.005,
+        "dropout": 0.7,
+        "weight_decay": 0
+      },
+      {
+        "trial_id": "trial_018",
+        "learning_rate": 0.01,
+        "dropout": 0,
+        "weight_decay": 0
+      },
+      {
+        "trial_id": "trial_019",
+        "learning_rate": 0.01,
+        "dropout": 0,
+        "weight_decay": 0.0005
+      },
+      {
+        "trial_id": "trial_020",
+        "learning_rate": 0.01,
+        "dropout": 0.3,
+        "weight_decay": 0
+      },
+      {
+        "trial_id": "trial_021",
+        "learning_rate": 0.01,
+        "dropout": 0.3,
+        "weight_decay": 0.0005
+      },
+      {
+        "trial_id": "trial_022",
+        "learning_rate": 0.01,
+        "dropout": 0.5,
+        "weight_decay": 0
+      },
+      {
+        "trial_id": "trial_023",
+        "learning_rate": 0.01,
+        "dropout": 0.7,
+        "weight_decay": 0
+      }
+    ],
+    "reused_trial_ids": [
+      "trial_000",
+      "trial_001",
+      "trial_002",
+      "trial_003"
+    ],
+    "selection_order": [
+      "validation_accuracy_desc",
+      "validation_loss_asc",
+      "trial_id_asc"
+    ],
+    "test_evaluations_after_selection": 1,
+    "unchanged_winner_policy": "reload the selected checkpoint and perform one fresh post-selection test evaluation; retain the historical measurement separately as reused evidence"
+  },
+  "expected_records": 220,
+  "expected_trials": 5280,
+  "expected_reused_trials": 880,
+  "expected_new_trials": 4400,
+  "execution": {
+    "device": "cuda",
+    "model_devices": {
+      "MLP": "cuda",
+      "GCN": "cuda",
+      "GAT": "cuda",
+      "GraphSAGE": "cuda",
+      "H2GCN": "cpu",
+      "LINKX": "cuda",
+      "GPR-GNN": "cuda"
+    },
+    "device_policy": "fixed before preflight: H2GCN uses CPU for every dataset and condition; its CUDA sparse.mm path lacks a strict deterministic-dispatch guarantee; no runtime fallback",
+    "workers": 1,
+    "torch_num_threads": 4,
+    "torch_num_interop_threads": 1,
+    "deterministic_algorithms": true,
+    "deterministic_warn_only": false,
+    "cublas_workspace_config": ":4096:8",
+    "allow_tf32": false,
+    "cudnn_benchmark": false,
+    "cudnn_deterministic": true,
+    "hash_seed_before_worker_start": "same as the requested seed",
+    "on_unsupported_deterministic_operation": "fail; no warn-only mode, implementation substitution, or device fallback",
+    "h2gcn_checkpoint_mode": "original_full_state_copy"
+  },
+  "published_diagnostics": {
+    "citation_key": "platonov2023characterizing",
+    "source_url": "https://proceedings.neurips.cc/paper_files/paper/2023/file/01b681025fdbda8e935a66cc5bb6e9de-Paper-Conference.pdf",
+    "metrics": [
+      "adjusted_homophily",
+      "edge_label_informativeness"
+    ],
+    "graph_scope": "train-induced simple undirected graph; remove loops and deduplicate only in diagnostic view",
+    "labels": "training labels only; unavailable labels must not be inspected",
+    "empty_or_single_class_policy": "undefined metric, explicit abstention and declared MLP fallback; retain unit in full-set loss",
+    "reuse_between_conditions": true,
+    "interpretation": "published statistics with the present decision calibration, not a reproduction of a published end-to-end selector"
+  },
+  "analysis": {
+    "mlp_budgets": [
+      4,
+      24
+    ],
+    "graph_portfolios": 63,
+    "fixed_strategies": 9,
+    "graph_selection_order": [
+      "validation_accuracy_desc",
+      "model_name_asc"
+    ],
+    "practical_margin": 0.01,
+    "full_set_fallback": "MLP",
+    "dataset_weighting": "equal",
+    "calibration": {
+      "method": "leave_one_dataset_out",
+      "metric_direction": "graph iff score >= threshold",
+      "candidate_thresholds": "midpoints of distinct defined scores in training datasets, plus all-graph and all-MLP endpoints",
+      "loss": "equal-weight training-dataset mean raw regret",
+      "tie_rule": "smallest threshold among losses within 1e-12 of the minimum",
+      "target_source": "selected-model test outcomes from other datasets are explicit meta-training targets",
+      "heldout_exclusion": "held-out values and outcomes never choose threshold, direction, metric or portfolio"
+    },
+    "original_h1_calibration": "unchanged original grid; do not silently replace existing LODO with midpoint search",
+    "optimistic_bound": "optional complete test-selected threshold-family lower bound, labelled post-hoc and never a deployed-policy estimate",
+    "reporting": "all planned conditions, budgets, metrics and portfolios; no selection by outcome",
+    "uncertainty": "descriptive dataset-level paired differences and intervals; no new confirmatory superiority claim",
+    "exclusions": "inherit only the two pre-existing dataset-exclusion sensitivities"
+  },
+  "budget": {
+    "inherit_all_prior_usage": true,
+    "total_cumulative_seconds": 1382400,
+    "formal_cumulative_seconds": 1368000,
+    "resource_cumulative_seconds": 7200,
+    "control_cumulative_seconds": 7200,
+    "unit_cumulative_seconds": 28800,
+    "paired_batch_cumulative_seconds": 57600,
+    "reused_training_charge": "already charged in base evidence; do not charge historical training twice",
+    "new_training_charge": "all setup, additional training, save and validation time; failures and retries accumulate with corresponding original dataset/condition/MLP unit and dataset/seed/MLP pair",
+    "new_phase_does_not_reset_caps": true,
+    "authorization_scope": "additional published diagnostics and 24-trial MLP grid approved 2026-09-28; no increase to existing total or subbudgets",
+    "inventory_roots": [
+      "input-robustness-budget-v2",
+      "input-robustness-budget-v2-r2"
+    ],
+    "inventory_root_base": "base_root.parent",
+    "incremental_segments": "Every subsequently created supplement segment must be included in the shared append-only inventory before a later handoff; inherited use cannot be omitted."
+  },
+  "launch_gates": [
+    "base complete and strictly validated",
+    "all prior attempts reviewed and trusted ledger heads bound",
+    "remaining cumulative caps cover bounded estimate",
+    "isolated end-to-end fixture passes actual training and reload",
+    "committed clean execution source",
+    "same execution SHA has all three unique completed successful CI jobs in one run",
+    "task-scoped sleep prevention and continuous supervisor active",
+    "exclusive execution; base research process has exited"
+  ],
+  "runtime_controls": {
+    "poll_interval_seconds": 0.25,
+    "max_poll_gap_seconds": 5,
+    "normal_pause": "finish and save the complete 24-trial model unit, then stop dispatch",
+    "emergency_stop": "terminate owned worker immediately; preserve unfinished attempt; no automatic retry",
+    "task_power_request_required": true,
+    "power_event_watcher_required": true,
+    "outer_guardian_required": true
+  }
+}
