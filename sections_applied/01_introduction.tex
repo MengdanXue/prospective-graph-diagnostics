@@ -1,0 +1,18 @@
+\section{Introduction}
+
+Choosing between a graph neural network (GNN) and a feature-only multilayer perceptron (MLP) is a model-selection decision. Graph structure can improve node classification, but its value depends on the models available and how they are trained~\citep{kipf2017gcn,velivckovic2018gat,hamilton2017graphsage}. A diagnostic intended to guide this choice must therefore be evaluated through the predictions it selects. A statistic can describe a graph accurately yet recommend a model that loses accuracy relative to a simple reference policy.
+
+Research on homophily and heterophily has developed class-conditional, feature, structural, and neighborhood-distribution measures to characterize graph learning~\citep{luan2023whendo,platonov2023characterizing,zheng2024trihom,pmlr-v235-wang24u}. Learned selectors use historical performance to rank graph models on new datasets~\citep{park2023metagl,park2023glemos}. For transparent graph-versus-MLP rules, a complementary question is how much accuracy their decisions cost and whether that assessment changes when the graph action selects from a different candidate portfolio.
+
+We address this question with a paired decision evaluation on 11 datasets and ten seeds. Nine diagnostic and reference policies use the same trained outcomes, validation-selection rules, and train-label information boundary. We measure oracle-portfolio regret, the accuracy lost relative to the better selected graph or MLP model, alongside selection accuracy and abstention coverage. The primary protocol was fixed before generating its benchmark records. Its historical Combined rule has an exploratory origin: the thresholds were chosen after inspecting legacy aggregates. The full graph action searches six architectures with four trials each, while MLP receives four trials; the study evaluates this specified budget allocation.
+
+The results connect diagnostic utility to the complete decision policy. Combined with its declared MLP fallback incurs 7.46 percentage points of regret, versus 0.26 for always-graph. Abstentions followed by MLP account for 75.9\% of that loss. Changing the graph candidates while retaining the diagnostic's decisions reverses the relative ordering for GCN and GAT. Those descriptive advantages occur in only three of the 63 candidate subsets and disappear when Cornell and Wisconsin are jointly excluded. Separate two-dataset preprocessing experiments and training diagnostics locate further sensitivity in the learned baselines.
+
+The paper makes three contributions:
+\begin{enumerate}
+    \item \textbf{Diagnostic loss and portfolio sensitivity.} We quantify decision costs for the evaluated policies and identify how fallback, candidate models, and dataset composition change their comparison with reference policies.
+    \item \textbf{An auditable decision-evaluation protocol.} The protocol connects decision-time information, validation selection, abstention, regret, coverage, and dataset-level inference to retained model records.
+    \item \textbf{Auxiliary evidence of graph signal.} A degree-preserving edge intervention measures GCN sensitivity to non-degree edge organization on three citation networks, distinguishing the use of graph structure from the value of a model-selection rule.
+\end{enumerate}
+
+The primary comparison and post-hoc sensitivities have distinct inferential roles. Together, they provide a concrete evaluation procedure: specify the models a diagnostic can select, score the entire policy including fallback, and compare its losses with the improvement available over simple reference policies.

@@ -16,3 +16,9 @@
 # Preserve the vendored official Elsevier style byte-for-byte.
 submission_assets/elsevier/elsarticle-num.bst -whitespace
 submission_assets/elsevier/elsarticle.cls -whitespace
+
+# Preserve the official Springer files without newline conversion.
+sn-jnl.cls -text -whitespace
+sn-basic.bst -text -whitespace
+# Context lines in a saved unified diff intentionally begin with a space.
+docs/applied-intelligence/manuscript.diff -whitespace

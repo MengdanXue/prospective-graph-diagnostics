@@ -1,0 +1,68 @@
+% Applied Intelligence manuscript. Original TMLR sources remain unchanged.
+% Official Springer Nature December 2024 v3.1 class, numbered Basic style.
+\documentclass[pdflatex,sn-basic,Numbered]{sn-jnl}
+\usepackage{amsmath,amssymb,amsfonts,amsthm}
+\usepackage{array,booktabs,multirow,graphicx,textcomp,xcolor,url}
+\usepackage{placeins}
+\hypersetup{hidelinks}
+\graphicspath{{code/figures/}{figures/}}
+\newtheorem{theorem}{Theorem}
+\newtheorem{proposition}{Proposition}
+\newtheorem{definition}{Definition}
+\newtheorem{remark}{Remark}
+\newtheorem{corollary}{Corollary}
+\newtheorem{lemma}{Lemma}
+\newtheorem{assumption}{Assumption}
+
+\begin{document}
+\title{Diagnostic Utility Depends on the Model Portfolio: A Frozen Graph-vs-MLP Decision Benchmark}
+\author*[1]{\fnm{Mengdan} \sur{Xue}}\email{17326961775@163.com}
+\affil*[1]{\orgdiv{Faculty of Computational Mathematics and Cybernetics}, \orgname{Lomonosov Moscow State University}, \orgaddress{\city{Moscow}, \country{Russia}}}
+
+\abstract{Graph diagnostics can guide model selection only when their decisions improve on a relevant reference policy. We evaluate nine graph-versus-multilayer-perceptron policies on 11 node-classification datasets and ten seeds using training-label statistics and validation-selected models. The pre-specified benchmark compares a six-architecture graph portfolio with 24 tuning trials against a feature-only multilayer perceptron with four. The combined diagnostic and its declared fallback incur 7.46 percentage points of oracle-portfolio regret, compared with 0.26 for always choosing graph and 0.22 for validation selection. Decisions that abstain and fall back to the multilayer perceptron contribute 75.9\% of the combined policy's loss. Post-hoc restrictions change the comparison while retaining the diagnostic's decisions: regret is lower than always-graph for a graph convolutional network (GCN; 1.74 versus 5.29 points) and a graph attention network (GAT; 2.08 versus 6.35). Only these architectures and their pair favor the rule among 63 candidate subsets; removing Cornell and Wisconsin eliminates those advantages. Two-dataset preprocessing experiments further show that the measured gap depends on baseline training. Dataset-level tests establish no superiority after multiplicity correction, and structural policy agreement makes rejection unattainable for the key comparison in the fixed test family. These findings locate the observed decision costs in candidate portfolios, fallback, and training choices. The accompanying evaluation protocol and retained records support direct comparison of regret, coverage, and available improvement over reference policies.}
+
+\keywords{Graph neural networks, Model selection, Graph diagnostics, Node classification, Benchmark evaluation, Decision regret}
+\maketitle
+\raggedbottom
+
+\input{sections_applied/01_introduction}
+\input{sections_applied/02_related_work}
+\input{sections_applied/03_decision_protocol}
+\input{sections_applied/04_prospective_results}
+\input{sections_applied/04a_equal_budget_sensitivity}
+\input{sections_applied/05_edge_intervention}
+\input{sections_applied/07_discussion}
+\input{sections_applied/08_conclusion}
+
+\FloatBarrier
+\backmatter
+\section*{Declarations}
+\subsection*{Funding}
+The author received no funding for this research.
+\subsection*{Competing interests}
+The author declares no competing interests.
+\subsection*{Author contributions}
+Mengdan Xue is the sole author and is responsible for the study design, interpretation of the results, and manuscript. AI assistance is described in Section~\ref{sec:research_tools}.
+\subsection*{Data and code availability}
+The accompanying research archive contains source code, configurations, compact summaries, and retained unit-level records supporting the reported results. File manifests support verification and reconstruction of the decision scores. The primary benchmark and subsequent sensitivity analyses are stored separately. Review copies retain consistent aliases for source revisions and artifact names; the author archive preserves the original identifiers and mappings. Large checkpoint tensors and the complete Git history are retained by the author and are omitted from the review archive, limiting independent checkpoint replay from that archive. The original public datasets and loaders are identified in Appendix~\ref{app:reproducibility}.
+\subsection*{Ethics approval and consent}
+This computational study uses existing public benchmark datasets and involves no recruitment of human participants or animal experiments. Consent for participation and publication is not applicable.
+
+\begin{appendices}
+% The class resets counters; appendix destinations must differ from main-text ones.
+\renewcommand{\theHtable}{appendix.\thetable}
+\renewcommand{\theHfigure}{appendix.\thefigure}
+\renewcommand{\theHequation}{appendix.\theequation}
+\input{sections_applied/09_reproducibility_appendix}
+\FloatBarrier
+\input{sections_applied/09a_threshold_headroom}
+\FloatBarrier
+\input{sections_applied/10_training_diagnostics}
+\FloatBarrier
+\input{sections_applied/11_fixed_degree_analysis}
+\FloatBarrier
+\input{sections_applied/12_execution_details}
+\FloatBarrier
+\end{appendices}
+\bibliography{references}
+\end{document}

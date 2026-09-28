@@ -1,0 +1,84 @@
+{
+  "base_commit": "6495a64fdbb45670b0ce6f66f33a89a7984d4175",
+  "original_tmlr_sources_unchanged": true,
+  "tables_with_identical_numeric_content": 22,
+  "display_equations_identical": 14,
+  "citation_keys_retained": 43,
+  "bibliography_sha256": "af5e98fec2b065bd96d8bc9665f1afd4ddc4ced07fd99e67235d391ce29b7102",
+  "abstract_words": 220,
+  "keywords": 6,
+  "pdf_pages": 40,
+  "modular_and_flat_pdf_text_identical": true,
+  "pdf_sha256": "a12277e8038293b74ba11495971ccc4e2f1fe1e34395fb3ca86bebd1bd00991e",
+  "flat_pdf_sha256": "cc01b74e786d9ed07b13cf41cdf66ba232a739244557f0512d60294145858ee7",
+  "section_word_counts_lexical_not_texcount": [
+    {
+      "section": "01_introduction.tex",
+      "before_lexical_words": 652,
+      "after_lexical_words": 456
+    },
+    {
+      "section": "02_related_work.tex",
+      "before_lexical_words": 910,
+      "after_lexical_words": 613
+    },
+    {
+      "section": "03_decision_protocol.tex",
+      "before_lexical_words": 1605,
+      "after_lexical_words": 1585
+    },
+    {
+      "section": "04_prospective_results.tex",
+      "before_lexical_words": 1415,
+      "after_lexical_words": 1029
+    },
+    {
+      "section": "04a_equal_budget_sensitivity.tex",
+      "before_lexical_words": 2149,
+      "after_lexical_words": 1621
+    },
+    {
+      "section": "05_edge_intervention.tex",
+      "before_lexical_words": 352,
+      "after_lexical_words": 311
+    },
+    {
+      "section": "07_discussion.tex",
+      "before_lexical_words": 1008,
+      "after_lexical_words": 686
+    },
+    {
+      "section": "08_conclusion.tex",
+      "before_lexical_words": 230,
+      "after_lexical_words": 143
+    },
+    {
+      "section": "09_reproducibility_appendix.tex",
+      "before_lexical_words": 1084,
+      "after_lexical_words": 1093
+    },
+    {
+      "section": "09a_threshold_headroom.tex",
+      "before_lexical_words": 667,
+      "after_lexical_words": 673
+    },
+    {
+      "section": "10_training_diagnostics.tex",
+      "before_lexical_words": 1541,
+      "after_lexical_words": 1541
+    },
+    {
+      "section": "11_fixed_degree_analysis.tex",
+      "before_lexical_words": 1626,
+      "after_lexical_words": 1626
+    },
+    {
+      "section": "12_execution_details.tex",
+      "before_lexical_words": 0,
+      "after_lexical_words": 442
+    }
+  ],
+  "new_training": false,
+  "new_research_test_evaluation": false,
+  "submitted": false
+}

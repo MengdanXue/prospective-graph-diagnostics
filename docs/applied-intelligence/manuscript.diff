@@ -1,0 +1,630 @@
+--- sections_tmlr\01_introduction.tex
++++ sections_applied\01_introduction.tex
+@@ -1,24 +1,18 @@
+ \section{Introduction}
+ 
+-Graph structure can provide information beyond node features, but its value depends on the model and task~\citep{kipf2017gcn,velivckovic2018gat,hamilton2017graphsage}. For node classification, this raises a practical decision: should one use a tuned graph-model portfolio or a tuned feature-only multilayer perceptron (MLP)? A useful diagnostic must make this choice with small accuracy loss relative to the better available action. Its evaluation therefore needs to specify the candidate models, training budget, and information available at decision time.
++Choosing between a graph neural network (GNN) and a feature-only multilayer perceptron (MLP) is a model-selection decision. Graph structure can improve node classification, but its value depends on the models available and how they are trained~\citep{kipf2017gcn,velivckovic2018gat,hamilton2017graphsage}. A diagnostic intended to guide this choice must therefore be evaluated through the predictions it selects. A statistic can describe a graph accurately yet recommend a model that loses accuracy relative to a simple reference policy.
+ 
+-Existing work already shows that homophily alone is insufficient to characterize GNN performance and develops class-conditional, feature, structural, and neighborhood-distribution metrics~\citep{luan2023whendo,platonov2023characterizing,zheng2024trihom,pmlr-v235-wang24u}. Learned selectors also rank graph models across datasets~\citep{park2023metagl,park2023glemos}. Our question is narrower: how do fixed transparent graph/MLP/abstain policies perform against trivial and validation-based policies, and how does their measured value change when the graph action refers to a different candidate portfolio?
++Research on homophily and heterophily has developed class-conditional, feature, structural, and neighborhood-distribution measures to characterize graph learning~\citep{luan2023whendo,platonov2023characterizing,zheng2024trihom,pmlr-v235-wang24u}. Learned selectors use historical performance to rank graph models on new datasets~\citep{park2023metagl,park2023glemos}. For transparent graph-versus-MLP rules, a complementary question is how much accuracy their decisions cost and whether that assessment changes when the graph action selects from a different candidate portfolio.
+ 
+-We evaluate nine diagnostic and reference policies under a frozen protocol on 11 datasets with ten seeds each. The graph action selects among six architectures with 24 trials in total; the MLP action receives four. This asymmetric operational comparison fixes the training grid, information boundaries, decision rules, and dataset-level inference before generating the primary benchmark records. The historical Combined rule has an exploratory origin: legacy aggregate outcomes were inspected before its exact thresholds were frozen. With complete inputs and the declared MLP fallback for abstentions, its full-set action is graph when training-label homophily $h_1\geq0.55$ and MLP otherwise (Section~\ref{sec:protocol}).
++We address this question with a paired decision evaluation on 11 datasets and ten seeds. Nine diagnostic and reference policies use the same trained outcomes, validation-selection rules, and train-label information boundary. We measure oracle-portfolio regret, the accuracy lost relative to the better selected graph or MLP model, alongside selection accuracy and abstention coverage. The primary protocol was fixed before generating its benchmark records. Its historical Combined rule has an exploratory origin: the thresholds were chosen after inspecting legacy aggregates. The full graph action searches six architectures with four trials each, while MLP receives four trials; the study evaluates this specified budget allocation.
+ 
+-Combined with the declared MLP fallback incurs 7.46 percentage points of full-set regret, compared with 0.26 for always-graph and 0.22 for validation selection. Regret measures accuracy lost relative to the better selected portfolio. Of the 7.46 points, 1.80 come from covered decisions and 5.66 from abstentions followed by MLP; the latter account for 75.9\% of the total. This is the measured cost of the complete rule-and-fallback policy. The dataset-level analysis does not establish superiority after the frozen multiplicity correction, and structural policy agreement on four datasets makes rejection unattainable for the key comparison under the realized dataset composition and fixed comparison family (Section~\ref{sec:prospective}). Combined does not lower descriptive regret against always-graph, independently of that inferential limitation.
++The results connect diagnostic utility to the complete decision policy. Combined with its declared MLP fallback incurs 7.46 percentage points of regret, versus 0.26 for always-graph. Abstentions followed by MLP account for 75.9\% of that loss. Changing the graph candidates while retaining the diagnostic's decisions reverses the relative ordering for GCN and GAT. Those descriptive advantages occur in only three of the 63 candidate subsets and disappear when Cornell and Wisconsin are jointly excluded. Separate two-dataset preprocessing experiments and training diagnostics locate further sensitivity in the learned baselines.
+ 
+-\paragraph{A concrete reversal, with a narrow empirical scope.}
+-Post-hoc restrictions of the same records leave the diagnostic's actions unchanged but alter the graph candidates. With GCN alone, Combined has lower mean regret than always-graph (1.74 versus 5.29 points); GAT gives the same reversal (2.08 versus 6.35). Each other single architecture favors always-graph. These restrictions match the MLP's four trials, without equalizing compute. Across all 63 nonempty candidate subsets, only GCN, GAT, and their pair favor Combined; excluding both Cornell and Wisconsin removes its advantage in every subset. The findings quantify how a fixed rule's observed benefit can reverse with the candidate portfolio, while exposing its sensitivity to dataset composition.
+-
+-\paragraph{Training choices limit the interpretation.}
+-Post-hoc raw-feature retraining on Roman-empire and Amazon-ratings substantially improves MLP test accuracy while retaining the graph target in the recorded comparisons. Further validation-only diagnostics expose sensitivity to input parameterization and variation in repeated graph-model training (Section~\ref{sec:preprocessing_sensitivity} and Appendix~\ref{app:training_diagnostics}). The measured graph--MLP gap thus depends on the training pipeline. These two-dataset checks constrain its interpretation without independently validating the full benchmark.
+-
+-The paper offers three contributions:
++The paper makes three contributions:
+ \begin{enumerate}
+-    \item \textbf{Measured diagnostic losses and portfolio sensitivity.} The frozen benchmark quantifies the evaluated rule-and-fallback policy's cost; post-hoc portfolio, dataset, and threshold controls delimit when its relative regret improves or worsens.
+-    \item \textbf{An auditable decision-evaluation protocol.} The release connects information scope, validation selection, abstention, regret, coverage, and dataset-level inference to retained model records, supporting reconstruction of the reported decision scores. This record-based scope does not guarantee repeatable model training.
+-    \item \textbf{Auxiliary evidence of graph signal.} A degree-preserving intervention reduces GCN accuracy on three citation networks, showing sensitivity to non-degree edge organization without isolating homophily as its cause.
++    \item \textbf{Diagnostic loss and portfolio sensitivity.} We quantify decision costs for the evaluated policies and identify how fallback, candidate models, and dataset composition change their comparison with reference policies.
++    \item \textbf{An auditable decision-evaluation protocol.} The protocol connects decision-time information, validation selection, abstention, regret, coverage, and dataset-level inference to retained model records.
++    \item \textbf{Auxiliary evidence of graph signal.} A degree-preserving edge intervention measures GCN sensitivity to non-degree edge organization on three citation networks, distinguishing the use of graph structure from the value of a model-selection rule.
+ \end{enumerate}
+ 
+-The frozen comparison is the pre-specified primary analysis; all later sensitivities are post-hoc. Together they motivate evaluating a specified diagnostic against specified candidate portfolios on independent datasets.
++The primary comparison and post-hoc sensitivities have distinct inferential roles. Together, they provide a concrete evaluation procedure: specify the models a diagnostic can select, score the entire policy including fallback, and compare its losses with the improvement available over simple reference policies.
+--- sections_tmlr\02_related_work.tex
++++ sections_applied\02_related_work.tex
+@@ -1,39 +1,26 @@
+-% ============================================================
+-% Section 2: Related Work
+-% Negative diagnostic study: closest-work positioning
+-% ============================================================
+-
+ \section{Related Work}
+ \label{sec:related}
+ 
+-The study sits at the intersection of graph-characterization metrics, heterophilous node classification, graph learning model selection, and tests of whether graph structure is necessary. Its contribution is a frozen decision evaluation of simple diagnostics, not a new homophily measure, graph architecture, or general model-selection benchmark.
++Graph diagnostics connect data characterization with model selection. We position the present decision evaluation within work on graph statistics, architecture-dependent performance, and controls for the predictive value of graph structure.
+ 
+-\subsection{Graph Characteristics and Relative Model Performance}
++\subsection{Graph Statistics and Model Performance}
+ 
+-Early homophily measures summarize whether adjacent nodes share labels, but a single global fraction omits class imbalance, feature geometry, neighborhood distributions, and local variation~\citep{mcpherson2001homophily,zhu2020beyond}. Subsequent work introduced post-aggregation similarity, adjusted homophily, label informativeness, and local or class-conditional characterizations to better describe when message passing helps~\citep{luan2022linkx,platonov2023characterizing,loveland2024local}. Accordingly, our contribution is not the established observation that homophily is insufficient~\citep{ma2021homophily}.
++Edge homophily summarizes whether adjacent nodes share labels, but a global fraction omits class imbalance, feature geometry, neighborhood distributions, and local variation~\citep{mcpherson2001homophily,zhu2020beyond,ma2021homophily}. Post-aggregation similarity, adjusted homophily, label informativeness, and local characterizations describe additional aspects of message-passing behavior~\citep{luan2022linkx,platonov2023characterizing,loveland2024local}.
+ 
+-The closest diagnostic work goes further. \citet{luan2023whendo} analyze node distinguishability and propose feature-based hypothesis-testing metrics with thresholds intended to reveal the advantage of graph-aware models. \citet{zheng2024trihom} disentangle label, structural, and feature homophily; their 31-dataset study compares Tri-Hom with 17 metrics, including correlations with GCN-, GraphSAGE-, and GAT-versus-MLP performance gaps. Under a heterophilous stochastic block model, \citet{pmlr-v235-wang24u} relate separability gain to neighborhood-distribution distance and degree rather than to global homophily alone. These studies motivate richer diagnostics but primarily evaluate theoretical quantities or performance association. We instead freeze specified statistics as graph/MLP/abstain policies and evaluate the cost of their actions through regret and coverage.
++Several diagnostics address relative model performance directly. \citet{luan2023whendo} analyze node distinguishability and develop feature-based hypothesis-testing metrics with thresholds intended to reveal graph-model advantages. \citet{zheng2024trihom} disentangle label, structural, and feature homophily; their 31-dataset study compares Tri-Hom with 17 metrics, including correlations with GCN-, GraphSAGE-, and GAT-versus-MLP gaps. Under a heterophilous stochastic block model, \citet{pmlr-v235-wang24u} relate separability gain to neighborhood-distribution distance and degree. These approaches characterize richer signals than the simple rules evaluated here. Our evaluation asks a complementary question: what loss and coverage result when specified statistics determine graph, MLP, or abstain actions?
+ 
+-Benchmark design also narrows the novelty claim. Repeated-split evaluation and standardized graph collections expose conclusions that depend on data splits, tuning, or dataset choice~\citep{shchur2018pitfalls,hu2020ogb}. \citet{platonov2023heterophilous} reassess whether reported progress on heterophilous benchmarks survives stronger protocols, while \citet{luan2024reevaluating} quantitatively re-evaluate both models and homophily metrics. Comparisons across datasets further require treating datasets, rather than pooled seeds, as the inferential units~\citep{demsar2006statistical}. We therefore do not claim the first negative evaluation of homophily-related diagnostics. Our narrower question is whether transparent rules whose label-dependent graph statistics use training labels only retain incremental decision value over matched trivial policies on real dataset--seed units when negative outcomes are preserved without threshold redesign.
++Benchmark protocols affect the interpretation of these comparisons. Repeated splits and standardized graph collections expose sensitivity to splitting, tuning, and dataset selection~\citep{shchur2018pitfalls,hu2020ogb}. Reassessments of heterophilous benchmarks and homophily metrics further emphasize protocol quality~\citep{platonov2023heterophilous,luan2024reevaluating}. Dataset-level inference distinguishes variation across tasks from repeated seeds on the same task~\citep{demsar2006statistical}. These principles motivate our paired evaluation, training-label information boundary, and retention of negative outcomes without redesigning the frozen rules.
+ 
+-\subsection{Heterophily-Aware Architectures}
++\subsection{Architectures and the Candidate Portfolio}
+ 
+-Heterophily-aware models change which signals are propagated or how they are combined. H2GCN separates ego and neighbor representations and uses two-hop neighborhoods~\citep{zhu2020beyond}; LINKX separates structural and feature processing~\citep{lim2021linkx}; MixHop and GPR-GNN combine multiple propagation depths~\citep{abu2019mixhop,chien2021gprgnn}; FAGCN, GloGNN, and ACM-GCN adapt filters or communication patterns~\citep{fagcn2021,li2022glognn,luan2022linkx}. Geom-GCN constructs geometric neighborhoods, while high-frequency and flexible spectral designs broaden the signals a graph model can retain~\citep{pei2020geomgcn,he2022bernnet,wang2022jacobi}. The wider node-classification design space also includes simplified propagation, deeper residual propagation, revised attention, and graph-augmented MLPs~\citep{wu2019sgc,chen2020gcnii,brody2022gatv2,zhang2021gamlp}. These architectures demonstrate that low one-hop homophily need not make graph structure useless. They also make architecture-specific prediction difficult: a statistic that describes one-hop mixing need not identify which portfolio wins after tuning. Our benchmark therefore places GCN, GAT, GraphSAGE, H2GCN, LINKX, and GPR-GNN in the graph portfolio and evaluates a portfolio action rather than presenting a new heterophily architecture.
++Graph architectures differ in which signals they propagate and combine. H2GCN separates ego and neighbor representations and uses two-hop neighborhoods~\citep{zhu2020beyond}; LINKX separates structural and feature processing~\citep{lim2021linkx}; MixHop and GPR-GNN combine propagation depths~\citep{abu2019mixhop,chien2021gprgnn}. FAGCN, GloGNN, and ACM-GCN adapt filters or communication patterns~\citep{fagcn2021,li2022glognn,luan2022linkx}. Geom-GCN uses geometric neighborhoods, while flexible spectral filters broaden the signals retained by graph models~\citep{pei2020geomgcn,he2022bernnet,wang2022jacobi}. Simplified propagation, residual propagation, revised attention, and graph-augmented MLPs further expand this design space~\citep{wu2019sgc,chen2020gcnii,brody2022gatv2,zhang2021gamlp}.
+ 
+-Depth introduces a separate limitation: repeated propagation can erase discriminative variation or contract node representations~\citep{oono2020exponential,chen2020measuring}. DropEdge and PairNorm address this behavior through edge sampling and representation normalization~\citep{rong2020dropedge,zhao2020pairnorm}. These results reinforce the distinction between describing a graph and forecasting the outcome of a tuned portfolio: realized graph utility depends jointly on data, architecture, optimization, and regularization.
++Training depth and regularization also affect predictive performance. Repeated propagation can erase discriminative variation or contract representations~\citep{oono2020exponential,chen2020measuring}; DropEdge and PairNorm address these effects through edge sampling and representation normalization~\citep{rong2020dropedge,zhao2020pairnorm}. Thus a statistic describing one-hop mixing has a different task from predicting the result of validation selection across trained architectures. We evaluate that distinction using GCN, GAT, GraphSAGE, H2GCN, LINKX, and GPR-GNN as a candidate portfolio, then examine restrictions of that portfolio with the diagnostic decisions held fixed.
+ 
+-\subsection{Graph Learning Model Selection}
++\subsection{Model Selection and Graph-Signal Controls}
+ 
+-Graph model selection has been studied directly. Auto-GNN searches neural architectures for a given graph task~\citep{zhou2020autognn}. MetaGL learns to select graph-learning models on a new graph from meta-graph features and historical performance~\citep{park2023metagl}. GLEMOS scales this problem to 366 models and 457 graphs and benchmarks multiple instantaneous selection algorithms~\citep{park2023glemos}. Consequently, the present 11-dataset experiment is neither the first nor the largest graph-model-selection benchmark.
++Graph model selection already includes architecture search and learned selection across tasks. Auto-GNN searches architectures for a graph task~\citep{zhou2020autognn}. MetaGL selects graph-learning models using meta-graph features and historical performance~\citep{park2023metagl}; GLEMOS benchmarks instantaneous selection across 366 models and 457 graphs~\citep{park2023glemos}. Our target is a binary graph-portfolio-versus-MLP action evaluated through oracle-portfolio regret and abstention coverage. The reference policies are always-graph, always-MLP, random, and direct validation selection. Each architecture receives four trials, yielding unequal aggregate search budgets for the six-architecture graph action and the single-architecture MLP action. This resource asymmetry is part of the evaluated decision problem.
+ 
+-Our estimand differs from ranking many individual models across a large meta-dataset. We ask whether predeclared, interpretable statistics can support a binary graph-portfolio-versus-MLP-portfolio action without using test labels. Each architecture receives the same four-trial validation grid, but the total search budgets are not equal: the graph action selects among six architectures and the feature-only action contains one MLP. The final test outcome is evaluated once, and the diagnostic rules are compared with always-graph, always-MLP, random, and direct validation-selection policies on the same 110 units. This design treats diagnostics as deployable decisions and makes oracle-portfolio regret and abstention coverage explicit.
++Strong feature-only baselines and edge controls help interpret that decision. Well-tuned MLPs can be competitive when node features encode graph information~\citep{katsman2026necessary}, while edge-removal controls show that models can exploit graph structure even when it hurts generalization~\citep{bechler2024graphs}. Our degree-preserving rewiring intervention provides complementary evidence about graph signal. It changes class mixing and higher-order organization together, so it does not isolate homophily. Its role is to assess structural signal separately from the utility of the diagnostic policies.
+ 
+-\subsection{When Is the Graph Necessary?}
+-
+-Strong feature-only baselines are essential because some graph benchmarks can be solved largely from node features. Prior evaluations show that model rankings depend on data splits and training procedures~\citep{shchur2018pitfalls}. Well-tuned feature-only MLPs can also be competitive when node features already encode graph information~\citep{katsman2026necessary}. Other controls compare predictions with and without meaningful edges, showing that models can exploit graph structure when it hurts generalization~\citep{bechler2024graphs}. These findings motivate the graph-versus-MLP action but do not supply a cheap rule for making it.
+-
+-Our intervention complements these controls. It holds every node's degree fixed while randomizing edge organization. It does not isolate homophily: class mixing, paths, components, clustering, and other higher-order properties can change together. We use the intervention only to reject the interpretation that diagnostic failure demonstrates graph irrelevance. The main contribution remains the decision audit: useful graph signal in the intervention does not establish that the evaluated diagnostic policies improve graph-versus-MLP selection.
+-
+-\subsection{Scoped Mechanistic Context}
+-
+-The fixed-degree Gaussian calculation in Appendix~\ref{sec:snr} is included to explain why correlation, degree, and feature strength can interact under a prescribed linear average. It is adjacent to contextual stochastic-block-model recovery theory and finite-depth embedding analyses~\citep{lu2023contextual,pmlr-v269-dalle25a}, but it is not a new recovery threshold, Bayes-error result, or trained-GNN guarantee. The negative benchmark does not depend on that calculation being a universal theory; it evaluates the diagnostics directly under the frozen empirical protocol.
++The fixed-degree Gaussian calculation in Appendix~\ref{sec:snr} describes how correlation, degree, and feature strength interact under a prescribed linear average. Contextual stochastic-block-model recovery theory and finite-depth embedding analyses provide adjacent theoretical perspectives~\citep{lu2023contextual,pmlr-v269-dalle25a}. The calculation supplies bounded mechanistic context; the claims about decision utility rest on the recorded empirical comparisons, rather than a recovery threshold or trained-GNN guarantee.
+--- sections_tmlr\03_decision_protocol.tex
++++ sections_applied\03_decision_protocol.tex
+@@ -1,4 +1,4 @@
+-\section{Decision Problem and Frozen Protocol}
++\section{Decision-Evaluation Protocol}
+ \label{sec:protocol}
+ 
+ \subsection{Graph-vs-MLP Decision}
+@@ -16,9 +16,9 @@
+ \end{equation}
+ The same tie policy applies to every evaluated rule. This formulation makes the decision asymmetric by design: a graph model must exceed the MLP by more than one percentage point to justify the graph action.
+ 
+-\subsection{Frozen Per-Architecture Training and Selection}
++\subsection{Per-Architecture Training and Selection}
+ 
+-Table~\ref{tab:frozen_training} records the frozen per-architecture training grid. The implementation uses PyTorch~\citep{paszke2019pytorch}, and each trial minimizes cross-entropy with Adam. Early stopping retains the checkpoint with the highest validation accuracy, then the lowest validation loss and earliest epoch; training stops after 100 stale epochs or 500 epochs in total. The four trial configurations are selected independently within every architecture, and the chosen checkpoint then receives one held-out test evaluation. Consequently, the graph portfolio searches 24 trial configurations (six architectures times four), whereas the MLP portfolio searches four trial configurations. The estimand therefore compares these fixed asymmetric portfolios rather than equal-total-compute model families. No individual architecture receives a larger per-architecture search grid, and neither portfolio receives repeated access to the test split.
++Table~\ref{tab:frozen_training} records the frozen per-architecture training grid. The implementation uses PyTorch~\citep{paszke2019pytorch}, and each trial minimizes cross-entropy with Adam. Early stopping retains the checkpoint with the highest validation accuracy, then the lowest validation loss and earliest epoch; training stops after 100 stale epochs or 500 epochs in total. The four trial configurations are selected independently within every architecture, and the chosen checkpoint then receives one held-out test evaluation. Consequently, the graph portfolio searches 24 trial configurations (six architectures times four), whereas the MLP portfolio searches four trial configurations. This specifies an asymmetric portfolio comparison with equal per-architecture grids and a single selected test evaluation per architecture.
+ 
+ \begin{table}[t]
+ \centering
+@@ -48,7 +48,7 @@
+ 
+ Full node features and graph structure are available because they are model inputs. Label-dependent graph statistics may use training labels only. In particular, edge homophily uses edges whose endpoints are both labeled for training, and the two-hop statistic uses training-labeled endpoint pairs. We denote the resulting one-hop and path-weighted length-two endpoint agreement rates by $h_1$ and $h_2$, respectively. Validation accuracy is available because model tuning precedes the decision. Test labels, test accuracy, and any statistic computed from test labels are forbidden diagnostic inputs; the evaluator rejects records that violate this boundary.
+ 
+-Table~\ref{tab:diagnostic_policies} lists the nine frozen policies. The simple baselines are deliberately fixed sanity checks. For the combined rule, the exact $0.55/0.40$ pair first appeared in the frozen specification and scorer on 8 August 2026, after inspection of legacy aggregate outputs but before any unit-level record for the pre-specified primary analysis was generated. It was not inherited verbatim from an earlier committed rule, was not derived through a prospective threshold sweep, and was not adjusted using the final 110 units. The dated source provenance is retained in the author archive. We therefore treat it as an exploratory-origin rule rather than claim whole-project preregistration. The policy chooses graph when training-only edge homophily is at least $0.55$; below that threshold, it chooses MLP when MLP validation accuracy is at least $0.40$ and otherwise abstains. Missing inputs also cause abstention. For full-set evaluation, every abstention uses the same predeclared MLP fallback, while coverage remains separately visible.
++Table~\ref{tab:diagnostic_policies} lists the nine policies. The Combined rule has an exploratory origin: its exact $0.55/0.40$ thresholds were fixed in the specification and scorer on 8 August 2026, after inspection of legacy aggregates and before generation of the primary records. The final 110 units were not used to adjust them. Appendix~\ref{app:execution_details} retains the threshold provenance; the scope is a pre-specified primary analysis rather than whole-project preregistration. The policy chooses graph when training-only edge homophily is at least $0.55$; below that threshold, it chooses MLP when MLP validation accuracy is at least $0.40$ and otherwise abstains. Missing inputs also cause abstention. For full-set evaluation, every abstention uses the same predeclared MLP fallback, while coverage remains separately visible.
+ 
+ With the complete inputs observed here, the full-set Combined policy therefore simplifies exactly to graph if $h_1\geq0.55$ and MLP otherwise. The $0.40$ MLP-validation cutoff distinguishes explicit MLP decisions from abstentions and affects coverage and the confidence curve, but not full-set accuracy or regret under MLP fallback. The name Combined refers to the historical pre-fallback rule, not an additional predictor in its deployed full-set action.
+ 
+@@ -90,3 +90,8 @@
+ The frozen paper-level decision rule permits an incremental-value claim only if Combined reduces full-set regret relative to simple baselines without relying on lower coverage, and the uncertainty interval excludes zero in the favorable direction for the predeclared comparison. The comparison family contains the other eight policies in Table~\ref{tab:diagnostic_policies}, each versus Combined, with unadjusted 95\% dataset-level percentile-bootstrap intervals. The specification neither singles out always-graph nor resolves whether its criterion must hold for all baselines; always-graph is the focal comparator in this report, not a uniquely predeclared comparator. With the reported baseline-minus-Combined difference, the favorable direction is positive. Full-set scoring applies the declared fallback to every abstention, so omitting uncovered units cannot satisfy this requirement. The uncertainty intervals and Holm-adjusted tests are reported separately; a significance result alone does not replace the regret and coverage conditions.
+ 
+ The prospective specification, immutable per-unit schema, analysis code, bootstrap seed, permutation seed, and paper-level decision rule were fixed before assembling or evaluating the new comparative outcomes. Section~\ref{sec:prospective} reports two outcome-independent protocol amendments and keeps the earlier feasibility artifacts outside the final analysis.
++
++\subsection{Research Tools}
++\label{sec:research_tools}
++
++OpenAI Codex assisted with code and test development, experiment orchestration, result checks, analysis, and manuscript editing. Numerical results were computed by the experimental and analysis programs and retained in the research artifacts.
+--- sections_tmlr\04_prospective_results.tex
++++ sections_applied\04_prospective_results.tex
+@@ -5,9 +5,7 @@
+ 
+ The final benchmark contains 11 datasets. Cora, CiteSeer, PubMed, and Coauthor-CS represent citation and co-authorship graphs; Chameleon, Squirrel, Actor, Wisconsin, Cornell, Roman-empire, and Amazon-ratings broaden the structural regimes. Each dataset uses ten fixed seeds, with 60\% of nodes for training, 20\% for validation, and 20\% for testing. The run yields 770 selected-model records and 110 diagnostic records: every unit contains the MLP and six graph architectures, four tuning trials per architecture, explicit split and environment provenance, and one test evaluation after validation selection. The graph and MLP actions therefore search 24 and four trial configurations, respectively; this is a frozen asymmetric-portfolio comparison, not an equal-total-compute comparison. No final-run unit fails.
+ 
+-The execution history contains two documented amendments. First, the v1 feasibility run stops before model training on Texas because one class contains a single node and cannot populate the frozen three-way split. Before comparative assembly or evaluation, an outcome-independent eligibility amendment excludes Texas, assigns a new run identifier, and restarts all remaining datasets from zero without changing models, splits, seeds, thresholds, metrics, or inference. Second, after a blinded wall-clock timeout on Squirrel, an execution-only amendment increases the per-dataset limit from 30 to 90 minutes. No comparative outcome is inspected, and all scientific settings remain unchanged. The completed v2 artifacts retain the amendments and exclude the aborted v1 records from analysis.
+-
+-Here ``prospective'' refers specifically to newly generated records for the pre-specified primary analysis, produced after the specification and scoring implementation were frozen. Legacy aggregate results inspected during exploratory work are not part of this analysis because they lack consistent paired outcomes and decision-time provenance. The public release provides the frozen snapshot, file digests, and mappings to execution provenance, but it does not expose the private predecessor history; the auditable claim is therefore about the released primary run rather than the entire earlier research timeline.
++Execution amendments and the scope of the released provenance are documented in Appendix~\ref{app:execution_details}. The primary records were generated after the protocol was fixed; earlier exploratory aggregates remain separate.
+ 
+ \subsection{Primary Policy Outcomes}
+ 
+@@ -18,9 +16,10 @@
+ \caption{Prospective Graph-vs-MLP Policy Results on 110 Dataset--Seed Units. Regret is reported in percentage points; selection accuracy uses the common MLP fallback.}
+ \label{tab:prospective_policy_results}
+ \small
++\setlength{\tabcolsep}{3.5pt}
+ \begin{tabular}{@{}lccc@{}}
+ \toprule
+-Policy & Accuracy (\%) & Coverage (\%) & Regret (pp) \\
++Policy & Selection accuracy (\%) & Coverage (\%) & Regret (pp) \\
+ \midrule
+ Combined & 55.5 & 68.2 & 7.46 \\
+ Always-graph & 80.9 & 100.0 & 0.26 \\
+@@ -35,16 +34,11 @@
+ \end{tabular}
+ \end{table}
+ 
+-\begin{figure}[t]
+-\centering
+-\includegraphics[width=0.82\linewidth]{results/diagnostic/route_a_prospective_v2/analysis/prospective_regret_coverage.pdf}
+-\caption{Descriptive regret--coverage display from the frozen confidence scores. For Combined and validation selection, coverage increases as lower-confidence eligible decisions enter. Always-graph and always-MLP have constant confidence and therefore appear only as full-set endpoints. The ordinate is covered-set mean raw-accuracy regret, not selection error under the one-point target margin. The Combined curve ends at 68.2\% because 35 units abstain and fallback decisions are not added to this display. The pre-specified primary analysis remains full-set regret with dataset-level inference.}
+-\label{fig:regret_coverage}
+-\end{figure}
++
+ 
+ Always-graph attains 80.9\% selection accuracy and 0.26 points of regret. Direct validation selection attains 91.8\% and 0.22 points, respectively. Homophily-only has the same full-set accuracy and regret as the combined policy after fallback. Although degree-only and homophily-plus-degree reduce descriptive full-set regret relative to Combined, none of the evaluated low-dimensional rules improves on always-graph; under this portfolio and target, they do not demonstrate incremental value in this benchmark.
+ 
+-The equality with homophily-only is not an aggregate coincidence. Combined produces 40 graph, 35 MLP, and 35 abstain actions before fallback. With the frozen MLP fallback, its 110 effective actions exactly match those from the homophily rule. Among the 35 abstentions, 30 have graph as the margin-defined target and 32 have higher raw graph test accuracy; the difference reflects the one-point practical margin. Appendix~\ref{app:action_confusion} reports the complete action-by-target table and distinguishes these targets from positive-regret counts. As a post-hoc descriptive graph-fallback sensitivity, assigning graph rather than MLP to only those abstentions yields 78.2\% selection accuracy and 1.82 points of regret. This remains worse than always-graph and does not replace the frozen MLP-fallback primary result. The \hyperref[app:reproducibility]{record-reconstruction appendix} reports the action counts and regret by dataset, making the concentration of fallback losses explicit.
++Combined produces 40 graph, 35 MLP, and 35 abstain actions before fallback. With the frozen MLP fallback, its 110 effective actions exactly match those from the homophily rule. Among the 35 abstentions, 30 have graph as the margin-defined target and 32 have higher raw graph test accuracy; the difference reflects the one-point practical margin. Appendix~\ref{app:action_confusion} reports the complete action-by-target table and distinguishes these targets from positive-regret counts. As a post-hoc descriptive graph-fallback sensitivity, assigning graph rather than MLP to only those abstentions yields 78.2\% selection accuracy and 1.82 points of regret. This alternative remains worse than always-graph; Table~\ref{tab:fallback_sensitivity} compares the fallback configurations. Appendix~\ref{app:reproducibility} reports the action counts and regret by dataset.
+ 
+ Table~\ref{tab:fallback_decomposition} decomposes the full-set loss of the rule together with its declared fallback. The 75 covered decisions contribute 1.799 points to the full-set mean, and the 35 MLP-fallback decisions contribute 5.658 points, or 75.876\% of the total regret. The covered-set mean and full-set mean have different denominators; their difference alone is not the fallback contribution.
+ 
+@@ -53,6 +47,7 @@
+ \caption{Descriptive decomposition of Combined with the frozen MLP fallback. Regret entries are percentage points. Each full-set contribution is the sum of regrets in that group divided by all 110 units.}
+ \label{tab:fallback_decomposition}
+ \small
++\setlength{\tabcolsep}{3.5pt}
+ \begin{tabular}{@{}lrrr@{}}
+ \toprule
+ Decision group & Units & Within-group mean regret & Full-set contribution \\
+@@ -67,7 +62,7 @@
+ 
+ The observed homophily values also limit what can be learned about the cutoff. The adjacent observed values around $0.50$ are approximately $0.3848$ and $0.7125$. Every threshold strictly between those two unrounded values therefore produces the same 110 actions. The homophily-only versus Combined comparison is an identity after fallback, with difference and interval exactly zero and $p=1$. We retain this comparison in the eight-member Holm family; the current data do not distinguish thresholds within this interval.
+ 
+-Figure~\ref{fig:regret_coverage} shows the precomputed descriptive curves for Combined and validation selection, together with the two constant policies at their identifiable full-set endpoints. Raising confidence within the Combined rule does not reveal a sustained regret region comparable to the low-regret reference policies: its final covered-set regret is 2.64 points at 68.2\% coverage, compared with full-set regrets of 0.26 for always-graph and 0.22 for validation selection. This display is a sensitivity summary only and does not replace the predeclared full-set comparison.
++The descriptive regret--coverage display and its interpretation are reported in Appendix~\ref{app:coverage_display}.
+ 
+ \subsection{Paired Inference and Interpretation}
+ 
+@@ -76,4 +71,4 @@
+ \paragraph{Structural resolution limitation of the key comparison.}
+ An exact two-sided sign-flip test with $k\geq1$ nonzero dataset-level differences has a minimum attainable $p$-value of $2^{1-k}$; when $k=0$, $p=1$. For the fixed datasets and diagnostic inputs in this study, Combined and always-graph select graph on Cora, CiteSeer, PubMed, and Coauthor-CS. Their regret differences on these four datasets are therefore identically zero, irrespective of the learned test accuracies. The comparison has at most seven nonzero differences and a raw $p$-value floor of $p_0=0.015625$. Under these fixed diagnostic actions, only the random and validation-selection comparisons can attain raw $p$-values below $p_0$.\footnote{Relative to Combined after the declared fallback, fixed-action disagreements can occur on at most four datasets for always-MLP, zero for homophily-only, six for degree-only, five for homophily+degree, and seven for two-hop-only. These are structural upper bounds on nonzero dataset-level regret differences; with no disagreements, $p=1$.} If always-graph ranks first or second, its Holm multiplier is at least seven; if it ranks third or later, Holm's running maximum is at least $6p_0=0.09375$. Thus rejection at $\alpha=0.05$ is unattainable for this key comparison under the fixed eight-comparison family and realized dataset composition. This is a design limitation, not merely a consequence of the realized test outcomes. In the observed family, the comparison reaches its raw floor at $p=0.015625$ and has the smallest $p$-value, so Holm's first step gives $8\times0.015625=0.125$. The limitation concerns this key comparison and does not imply that every comparison in the family has zero power. Its non-rejection supplies no evidence of equivalence and cannot independently support the operational conclusion below.
+ 
+-The operational conclusion follows the frozen paper-level rule in Section~\ref{sec:protocol}. Combined fails its regret-reduction requirement against always-graph (7.46 versus 0.26 points), independently of the sign-flip resolution limit; the reported unadjusted interval lies in the opposite direction to an incremental-value claim. Selection accuracy alone would hide the magnitude of the loss: the target imbalance makes always-graph strong, while regret shows that the diagnostic's errors are also substantially more costly. Under this protocol the evaluated diagnostics do not demonstrate incremental value in this benchmark. Section~\ref{sec:edge_intervention} provides a separate graph-signal intervention on three citation networks, and Section~\ref{sec:discussion} then discusses a possible diagnostic--portfolio mismatch and its limits.
++The operational conclusion rests on the observed regret comparison. Combined fails the regret-reduction condition against always-graph (7.46 versus 0.26 points), and the unadjusted interval points against an incremental-value claim. The evaluated diagnostics do not demonstrate incremental value in this benchmark. The following sensitivity analyses identify which parts of this comparison change with the candidate models, fallback, and training inputs.
+--- sections_tmlr\04a_equal_budget_sensitivity.tex
++++ sections_applied\04a_equal_budget_sensitivity.tex
+@@ -3,11 +3,11 @@
+ 
+ \subsection{Design and Scope}
+ 
+-The frozen graph action selects among six architectures with 24 trials in total, whereas the feature-only action contains one MLP with four. We examine the role of the candidate portfolio in a post-hoc reanalysis of the same records. Restricting the graph action to one architecture matches the number of trials at four per action. It does not equalize training time, FLOPs, preprocessing cost, or parameter count. The restriction changes both architecture availability and search breadth, so it does not isolate a causal effect of compute budget.
++The graph action searches six architectures with 24 trials; MLP receives four. This post-hoc reanalysis restricts the graph action to one architecture, matching four trials per action. Training time, FLOPs, preprocessing cost, and parameter count remain unequal. Because the restriction changes architecture availability and search breadth together, it measures portfolio sensitivity without isolating a causal compute-budget effect.
+ 
+-No model is retrained for the portfolio and threshold analyses below. In the portfolio restrictions, homophily and MLP validation accuracy remain unchanged, so the diagnostic takes the same actions as before. For each restricted portfolio we recompute the selected graph result, the margin-defined target, regret, and validation selection using the frozen selection and fallback rules. A wider candidate set guarantees a nondecreasing maximum validation accuracy; it does not guarantee a better selected test result. In the observed table, H2GCN alone has lower always-graph regret than the unrestricted portfolio, illustrating this distinction. The later preprocessing sensitivity in Section~\ref{sec:preprocessing_sensitivity} uses separately trained records.
++The portfolio and threshold analyses reuse recorded models. Portfolio restrictions leave diagnostic inputs and actions unchanged while recomputing graph selection, the margin-defined target, regret, and validation selection under the frozen rules. Enlarging a candidate set guarantees nondecreasing maximum validation accuracy, but the selected test result can worsen: H2GCN alone has lower always-graph regret than the unrestricted portfolio. Section~\ref{sec:preprocessing_sensitivity} separately reports retraining for preprocessing sensitivity.
+ 
+-The reconstruction script verifies all prospective record checksums against the release manifest, reuses the frozen assembly checks for configuration, provenance, trial selection, unique record scope, and splits, and regenerates the complete original audit before computing restrictions. Matching a few rounded aggregate values would not validate records for architectures that the full portfolio did not select. The unrestricted reconstruction recovers 89 graph targets and regrets of 0.26, 7.46, and 0.22 points for always-graph, Combined, and validation selection, respectively.
++Before computing restrictions, reconstruction verifies record checksums, configuration, provenance, trial selection, unique record scope, and splits for every architecture. The unrestricted reconstruction recovers 89 graph targets and regrets of 0.26, 7.46, and 0.22 points for always-graph, Combined, and validation selection, respectively.
+ 
+ \subsection{Results}
+ 
+@@ -17,9 +17,10 @@
+ \caption{Post-hoc single-architecture sensitivity at matched trial count. Each single-architecture graph action receives four trials against the MLP's four. Regret is mean full-set oracle-portfolio regret in percentage points. W/L/T counts datasets on which the combined rule attains lower, higher, or equal mean regret than always-graph.}
+ \label{tab:equal_budget}
+ \small
++\setlength{\tabcolsep}{3.5pt}
+ \begin{tabular}{@{}lrrrrrc@{}}
+ \toprule
+-Graph action & Trials & Graph targets & Always-graph & Combined & Validation & W/L/T \\
++Graph action & Trials & \shortstack{Graph\\targets} & Always-graph & Combined & Validation & W/L/T \\
+ \midrule
+ Six architectures & 24 & 89/110 & 0.26 & 7.46 & 0.22 & 0/7/4 \\
+ \midrule
+@@ -34,26 +35,27 @@
+ \end{table}
+ 
+ 
+-Table~\ref{tab:equal_budget} shows that the combined rule has lower mean full-set regret than always-graph under GCN and GAT, reversing its relative performance in the full-portfolio comparison. The difference is substantial descriptively: 1.74 versus 5.29 points for GCN and 2.08 versus 6.35 for GAT. Under LINKX the ordering reverses, at 7.99 versus 2.13 points. GPR-GNN, GraphSAGE, and H2GCN also favor always-graph on mean regret. Thus the same diagnostic has different measured value against the same trivial policy when the graph action changes.
++Combined has lower descriptive mean regret than always-graph with GCN (1.74 versus 5.29 points) or GAT (2.08 versus 6.35), reversing the full-portfolio ordering (Table~\ref{tab:equal_budget}). LINKX favors always-graph at 7.99 versus 2.13 points, as do GPR-GNN, GraphSAGE, and H2GCN. Changing the graph action therefore changes the measured value of the same diagnostic against the same reference policy.
+ 
+-The complete table does not support a simple ordering of architecture categories. GPR-GNN, one of the heterophily-aware architectures, yields the lowest absolute Combined regret (1.50 points), below GCN (1.74) and GAT (2.08). Absolute regret and improvement over always-graph answer different questions. Each row also uses its own graph/MLP oracle, so absolute regrets across rows are not losses relative to one common oracle. The evidence supports variation with the candidate portfolio, rather than a claim that a broad architecture class necessarily makes diagnostics effective or ineffective.
++Absolute regret and improvement over always-graph describe different outcomes. GPR-GNN yields the lowest absolute Combined regret (1.50 points), below GCN (1.74) and GAT (2.08), while favoring always-graph. Each row uses its own graph/MLP oracle, so these losses do not share a common reference. The results identify portfolio-specific differences rather than an ordering of broad architecture categories.
+ 
+-Dataset-level heterogeneity remains substantial. For GCN, Combined wins, loses, and ties always-graph on three, three, and five datasets; for GAT the counts are four, two, and five. Those counts and the reported means are descriptive. The original eight-comparison primary-analysis family did not include these six restrictions, and these data were already available when the additional analysis was formulated. We do not infer equivalence, a stable out-of-dataset advantage, or a lack of diagnostic information from the small number of informative datasets.
++The averages conceal dataset-level variation: Combined wins, loses, and ties on three, three, and five datasets for GCN, and four, two, and five for GAT. These post-hoc restrictions were formulated after the records became available and fall outside the original eight-comparison test family. Their descriptive advantages require evaluation on independent datasets.
+ 
+ \subsection{Interpretation}
+ 
+-The restriction analysis provides direct empirical evidence that evaluation against one graph action need not transfer to another. It is consistent with a mismatch between a fixed homophily rule and some candidate portfolios, but it does not prove a universal mechanism or exclude other threshold choices. The operational lesson is to specify the candidate models and resource budget when evaluating a diagnostic, and to test any proposed improvement on independent data.
++The restrictions demonstrate that a diagnostic's measured performance against one graph action need not transfer to another. Evaluation should therefore specify candidate models and resource budgets. The threshold control below examines how the chosen cutoff contributes to this variation.
+ 
+ \subsection{All Candidate Subsets and Dataset Sensitivity}
+ \label{sec:subset_robustness}
+ 
+-We enumerate all $2^6-1=63$ nonempty graph-architecture subsets using the same validation selection and frozen diagnostic actions. Define $\Delta$ as Combined minus always-graph mean regret in percentage points; negative values favor Combined. Table~\ref{tab:subset_sensitivity} reports the entire enumeration by subset size. Only GAT, GCN, and their pair favor Combined. The 63 subsets overlap in both models and datasets: their counts are descriptive, not 63 independent replications or estimates of a generalization probability.
++We enumerate all $2^6-1=63$ nonempty graph-architecture subsets with unchanged validation selection and diagnostic actions. Define $\Delta$ as Combined minus always-graph mean regret in percentage points. Only GAT, GCN, and their pair have negative $\Delta$, favoring Combined (Table~\ref{tab:subset_sensitivity}). The overlapping models and datasets make these counts descriptive, rather than independent replications or generalization probabilities.
+ 
+ \begin{table}[t]
+ \centering
+ \caption{Post-hoc enumeration of all available graph portfolios. Each architecture contributes four trials. The range is over candidate subsets, not a confidence interval.}
+ \label{tab:subset_sensitivity}
+ \small
++\setlength{\tabcolsep}{3.5pt}
+ \begin{tabular}{@{}rrrrr@{}}
+ \toprule
+ Architectures & Subsets & $\Delta<0$ & Min $\Delta$ & Max $\Delta$ \\
+@@ -68,18 +70,19 @@
+ \end{tabular}
+ \end{table}
+ 
+-At the same eight-trial graph budget, GAT+GCN yields Combined/always-graph regrets of 2.27/5.50 points, whereas H2GCN+LINKX yields 7.59/0.27. Thus equal trial count does not remove variation with architecture composition. Nevertheless, the favorable average under GAT or GCN is sensitive to dataset composition. Omitting any one dataset preserves its direction, but omitting both Cornell and Wisconsin reverses it: $\Delta$ becomes $+1.11$ for GAT and $+0.92$ for GCN, and none of the 63 subsets favors Combined. This is a post-hoc influence check, not grounds for discarding these datasets.
++At the same eight-trial graph budget, GAT+GCN yields Combined/always-graph regrets of 2.27/5.50 points, versus 7.59/0.27 for H2GCN+LINKX. Architecture composition matters even at equal trial count. The favorable GAT and GCN averages survive any single-dataset omission, but excluding both Cornell and Wisconsin reverses them: $\Delta$ becomes $+1.11$ and $+0.92$, respectively, and none of the 63 subsets favors Combined. This influence check retains both datasets in the primary analysis.
+ 
+-Separately omitting Chameleon and Squirrel, whose original versions have known duplicate-node concerns, leaves full-portfolio Combined/always-graph regrets of 4.90/0.31 points ($\Delta=+4.59$). Seven of the 63 remaining subset comparisons favor Combined. This exclusion does not establish performance on cleaned versions of either graph. For the full portfolio, omitting any single dataset leaves Combined-minus-always-graph regret between 5.556 and 7.922 points, without reversing its sign. All per-subset and per-dataset values, including leave-one-dataset-out ranges, are released; neither exclusion replaces the frozen full-set result.
++Excluding Chameleon and Squirrel, whose original versions have known duplicate-node concerns, leaves full-portfolio regrets of 4.90/0.31 points ($\Delta=+4.59$); seven subsets favor Combined. Exclusion measures dataset sensitivity, not performance on cleaned graphs. Every single-dataset omission preserves the full-portfolio ordering, with excess regret from 5.556 to 7.922 points. Released records include all subset and dataset values; the full-set result remains primary.
+ 
+ \paragraph{Fallback and dataset-exclusion sensitivity.}
+-Table~\ref{tab:fallback_sensitivity} crosses MLP versus graph fallback with inclusion versus exclusion of Chameleon and Squirrel, holding the six-architecture portfolio and all recorded model outcomes fixed. Combined has higher descriptive mean regret than always-graph in each of these four configurations, but the excess varies from 0.141 to 7.201 points. This range applies only to these four configurations: the previously reported Cornell/Wisconsin exclusion gives an 8.683-point excess under MLP fallback. Fallback and dataset groupings overlap, so they do not supply independent causal contributions. Removing datasets with known duplicate-node concerns does not identify those duplicates as the cause of the losses. Using the frozen validation-selection rule only for abstentions instead gives 1.806 points on all datasets and 0.442 after excluding Chameleon/Squirrel, close to graph fallback; explicit graph and MLP decisions are unchanged.
++Table~\ref{tab:fallback_sensitivity} crosses fallback choice with Chameleon/Squirrel inclusion while holding the portfolio and model outcomes fixed. Combined's excess regret ranges from 0.141 to 7.201 points across these four configurations; the separate Cornell/Wisconsin exclusion gives an 8.683-point excess under MLP fallback. These overlapping groupings describe sensitivity, without identifying independent causal contributions or attributing losses to duplicate nodes. Applying validation selection only to abstentions yields 1.806 points on all datasets and 0.442 after Chameleon/Squirrel exclusion, close to graph fallback. Explicit graph and MLP actions remain unchanged.
+ 
+ \begin{table}[ht]
+ \centering
+ \caption{Post-hoc fallback and dataset-exclusion sensitivity of the frozen six-architecture portfolio. Regrets and Combined-minus-always-graph differences are percentage points. All entries reuse recorded outcomes; no model is retrained.}
+ \label{tab:fallback_sensitivity}
+ \small
++\setlength{\tabcolsep}{3.5pt}
+ \begin{tabular}{@{}llrrr@{}}
+ \toprule
+ Datasets & Fallback & Combined & Always-graph & Difference \\
+@@ -93,18 +96,19 @@
+ \end{table}
+ 
+ \paragraph{Headroom and an optimistic threshold bound.}
+-Always-graph's regret is also the maximum possible reduction in mean regret relative to that reference, holding each portfolio's recorded outcomes and oracle fixed. This headroom is only 0.256 points for the full portfolio, versus 5.292 for GCN and 6.346 for GAT. Exhaustively evaluating all distinct decisions of graph-if-$h_1\geq t$ for $t\in[0,1]$ gives a test-outcome-selected minimum of 0.256, 0.812, and 0.678 points, respectively. Thus no cutoff in this one-sided family improves on always-graph in the full-portfolio records; this is not a result about every diagnostic or an external dataset. For GCN and GAT, the frozen rule closes 67.04\% and 67.17\% of the respective headroom, while the optimistic cutoff bound closes 84.67\% and 89.32\%; validation selection closes about 99.9\%. Appendix~\ref{app:threshold_headroom} reports every single architecture and the exact curves. These bounds reuse test outcomes to choose the cutoff and are not calibrated or deployable performance estimates. The held-out analysis below retains its original grid and results.
++With recorded outcomes and oracle fixed, always-graph's regret is the maximum possible improvement over that reference: 0.256 points for the full portfolio, 5.292 for GCN, and 6.346 for GAT. Enumerating every distinct graph-if-$h_1\geq t$ decision for $t\in[0,1]$ gives test-outcome-selected minima of 0.256, 0.812, and 0.678 points. Thus this one-sided threshold family cannot improve on always-graph in the full-portfolio records. For GCN and GAT, the frozen rule closes 67.04\% and 67.17\% of headroom; the optimistic cutoff bound closes 84.67\% and 89.32\%, and validation selection about 99.9\%. Appendix~\ref{app:threshold_headroom} gives all architectures and exact curves. Because test outcomes select these cutoffs, the bounds characterize recorded headroom, not deployable performance. The following held-out analysis retains its original grid and results.
+ 
+ \subsection{A Post-Hoc Calibrated Threshold Control}
+ \label{sec:calibrated_threshold}
+ 
+-To distinguish the frozen threshold from the homophily statistic itself, we fit a graph-if-$h_1\geq t$ rule separately for each held-out dataset. The fixed grid is $\{-1,0,0.01,\ldots,1,2\}$, including constant graph and MLP policies. Each fold minimizes equal-weight mean dataset regret on the other ten datasets; ties within $10^{-12}$ choose the smallest threshold. The selected-model test outcomes of those ten datasets serve as meta-training targets. Neither outcomes nor model records of the held-out dataset select its threshold. We then evaluate on that dataset's ten seeds and average the eleven held-out dataset means.
++We separate threshold choice from the homophily statistic by fitting graph-if-$h_1\geq t$ on ten datasets and evaluating on the held-out dataset. The grid $\{-1,0,0.01,\ldots,1,2\}$ includes constant graph and MLP policies. Each fold minimizes equal-weight mean dataset regret; ties within $10^{-12}$ choose the smallest threshold. Selected-model test outcomes from the ten calibration datasets are meta-training targets; the held-out dataset's outcomes and model records are excluded from threshold selection. Evaluation averages its ten seeds, then the eleven held-out dataset means.
+ 
+ \begin{table}[t]
+ \centering
+ \caption{Post-hoc held-out threshold control. Regrets are percentage points, using each row's own graph/MLP oracle. Calibration is performed separately for each portfolio; it is not an independent prospective experiment.}
+ \label{tab:calibrated_threshold}
+ \small
++\setlength{\tabcolsep}{3.5pt}
+ \begin{tabular}{@{}lrrr@{}}
+ \toprule
+ Graph action & Frozen Combined & Calibrated & Always-graph \\
+@@ -120,42 +124,44 @@
+ \end{tabular}
+ \end{table}
+ 
+-Calibration lowers mean regret relative to the frozen rule in all seven rows of Table~\ref{tab:calibrated_threshold}, including from 7.46 to 2.41 points for the full portfolio, but still exceeds its always-graph regret of 0.26. In that full-portfolio control, 10 of the 11 folds select the constant always-graph policy ($t=-1$); the Roman-empire fold selects $t=0.11$ and contributes approximately 89\% of the remaining aggregate regret. The remaining loss is therefore concentrated in one held-out dataset. Calibration retains lower descriptive regret than always-graph for GCN and GAT and also improves slightly on it for GPR-GNN, unlike the frozen threshold. These results argue against interpreting failure of the frozen cutoff as failure of every threshold. The control was designed after inspection of the original benchmark, its training folds overlap, and graph domains may be related. It is a stronger threshold baseline, not a representative comparison with all published diagnostic methods or evidence of stable external validity. These post-hoc comparisons are descriptive and do not enter the pre-specified primary test family.
++Calibration lowers regret in all seven rows (Table~\ref{tab:calibrated_threshold}). Full-portfolio regret falls from 7.46 to 2.41 points, still above always-graph's 0.26. Ten folds choose constant graph ($t=-1$); the Roman-empire fold chooses $t=0.11$ and contributes approximately 89\% of the remaining regret. GCN and GAT retain lower descriptive regret than always-graph, and GPR-GNN gains a small advantage absent under the frozen cutoff. Threshold choice therefore changes the results. Designed after benchmark inspection, this control uses overlapping calibration folds and potentially related graph domains. It evaluates one threshold family, leaving published diagnostic methods and external validity unresolved. These descriptive comparisons remain outside the primary test family.
+ 
+ \subsection{Feature Preprocessing Sensitivity}
+ \label{sec:preprocessing_sensitivity}
+ 
+-The frozen run applies PyG 2.7.0 \texttt{NormalizeFeatures} to every dataset on load. This transform subtracts the global minimum of the feature matrix and divides each row by its sum clamped below at one. This common choice is not a neutral operation for the continuous features in the Heterophilous Graph Dataset. We therefore retrained all seven architectures for ten seeds on Roman-empire and Amazon-ratings under the frozen transform and under raw features, keeping the graph, splits, seeds, trial grid, checkpoint rule, and device paired. This is a post-hoc two-dataset sensitivity experiment; it does not replace the frozen 11-dataset benchmark or support a population-wide preprocessing claim.
++PyG 2.7.0 \texttt{NormalizeFeatures} subtracts the feature matrix's global minimum and divides each row by its sum clamped below at one. To examine this transformation on continuous features, we retrained all seven architectures for ten seeds on Roman-empire and Amazon-ratings using normalized and raw features. Graphs, splits, seeds, trial grids, checkpoint rules, and devices remain paired. This post-hoc experiment measures sensitivity on two selected datasets; the frozen 11-dataset benchmark remains separate.
+ 
+ \begin{table}[t]
+ \centering
+ \caption{Post-hoc paired feature-preprocessing sensitivity on two heterophilous datasets. Values are mean test accuracy or full-set oracle regret in percentage points; graph targets are out of ten seeds. Each graph action still searches six architectures and 24 trials.}
+ \label{tab:preprocessing_sensitivity}
+ \small
++\setlength{\tabcolsep}{3.5pt}
+ \begin{tabular}{@{}llrrrrr@{}}
+ \toprule
+-Dataset & Features & MLP & Graph & Graph--MLP & Combined regret & Graph targets \\
++Dataset & Features & MLP & Graph & Graph--MLP & \shortstack{Combined\\regret} & \shortstack{Graph\\targets} \\
+ \midrule
+-Roman-empire & NormalizeFeatures & 16.71 & 42.16 & 25.45 & 25.45 & 10/10 \\
++Roman-empire & \shortstack{Normalize\\Features} & 16.71 & 42.16 & 25.45 & 25.45 & 10/10 \\
+ Roman-empire & Raw & 66.19 & 80.96 & 14.77 & 14.77 & 10/10 \\
+-Amazon-ratings & NormalizeFeatures & 36.76 & 53.06 & 16.30 & 16.30 & 10/10 \\
++Amazon-ratings & \shortstack{Normalize\\Features} & 36.76 & 53.06 & 16.30 & 16.30 & 10/10 \\
+ Amazon-ratings & Raw & 41.35 & 53.17 & 11.82 & 11.82 & 10/10 \\
+ \bottomrule
+ \end{tabular}
+ \end{table}
+ 
+-Raw features raise selected MLP accuracy by 49.48 points on Roman-empire and 4.59 points on Amazon-ratings, while the selected graph changes by 38.81 and 0.11 points, respectively. The graph portfolio remains the better action in all 20 paired units under both conditions, so always-graph and validation selection have zero regret in this restricted sensitivity set; the homophily rule still selects MLP because both datasets lie below $h_1=0.55$. The result shows that the frozen preprocessing choice materially changes the graph--MLP estimand on these two datasets. It does not show that normalization caused the full benchmark's negative result, because the comparison covers only two selected datasets and remains post-hoc.
++Raw features raise MLP accuracy by 49.48 points on Roman-empire and 4.59 on Amazon-ratings; selected graph accuracy changes by 38.81 and 0.11 points. Graph remains better in all 20 units under both conditions, giving always-graph and validation selection zero regret. Homophily still selects MLP because both datasets fall below $h_1=0.55$. Preprocessing materially changes the graph--MLP gaps on these two datasets; its contribution to the full benchmark's negative result remains unmeasured.
+ 
+-The low normalized-feature MLP results also warrant checking training behavior. Appendix~\ref{app:training_diagnostics} reports separate validation-only input-parameterization experiments and a bounded training-repeatability audit. Centering and scalar scaling of normalized features recover MLP validation performance in the tested conditions, while repeated LINKX training under identical inputs can diverge substantially. The separately retrained normalized-feature condition is a sensitivity reference, not an exact replay of the original selected models: its graph--MLP gaps are 25.45 versus 23.66 points in the frozen run for Roman-empire, and 16.30 versus 16.45 for Amazon-ratings. Accordingly, Table~\ref{tab:preprocessing_sensitivity} preserves the recorded paired test results; it is not a guarantee of repeatable graph effect sizes across executions. Neither these two datasets nor the later validation-only diagnostics establish that the complete 11-dataset result is robust to alternative preprocessing.
++Validation-only input-parameterization and training-repeatability audits appear in Appendix~\ref{app:training_diagnostics}. Centering and scalar scaling of normalized features recover MLP validation performance in the tested conditions, while repeated LINKX training with identical inputs can diverge substantially. The retrained normalized-feature condition differs from the original models: graph--MLP gaps are 25.45 versus 23.66 points for Roman-empire and 16.30 versus 16.45 for Amazon-ratings. Table~\ref{tab:preprocessing_sensitivity} therefore reports paired sensitivity outcomes, rather than an exact replay or repeatable graph effect size. Preprocessing robustness of the complete 11-dataset benchmark remains untested by these bounded audits.
+ 
+ \paragraph{Fallback within the paired preprocessing run.}
+-Table~\ref{tab:preprocessing_fallback} recomputes the two fallback choices from the retained per-seed results of this two-dataset experiment. All 20 normalized-feature units abstain, whereas all 20 raw-feature units explicitly select MLP because each selected MLP validation accuracy exceeds 0.40. Consequently, graph fallback changes only the normalized-feature results. This interaction describes alternative evaluation configurations; a validation score below 0.40 is not by itself evidence that graph will outperform MLP. The table neither pools these later model outcomes with the original 11-dataset records nor defines a corrected benchmark effect.
++Table~\ref{tab:preprocessing_fallback} evaluates both fallbacks on this experiment's per-seed records. All 20 normalized-feature units abstain; all 20 raw-feature units explicitly select MLP because validation accuracy exceeds 0.40. Graph fallback therefore changes only normalized-feature outcomes. The absolute 0.40 cutoff alone does not establish graph superiority. These alternative configurations remain separate from the original 11-dataset records and cannot be pooled into a corrected benchmark effect.
+ 
+ \begin{table}[ht]
+ \centering
+ \caption{Post-hoc fallback sensitivity within the same paired preprocessing experiment on Roman-empire and Amazon-ratings (20 units per feature condition). Entries are mean full-set regret in percentage points. The graph action uses all six architectures.}
+ \label{tab:preprocessing_fallback}
+ \small
++\setlength{\tabcolsep}{3.5pt}
+ \begin{tabular}{@{}lrrr@{}}
+ \toprule
+ Features & Combined, MLP fallback & Combined, graph fallback & Always-graph \\
+--- sections_tmlr\05_edge_intervention.tex
++++ sections_applied\05_edge_intervention.tex
+@@ -3,7 +3,7 @@
+ 
+ \subsection{Paired Intervention Design}
+ 
+-We separately test whether GCN uses edge organization beyond degree on Cora, CiteSeer, and PubMed. This intervention provides auxiliary evidence of useful graph signal in these settings. It does not explain the diagnostic losses on Roman-empire, Squirrel, Amazon-ratings, or Chameleon, which are different graphs with different selected architectures. For each dataset and seed, verified double-edge swaps randomize the graph while preserving the complete node set, edge count, and degree of every node. The runner stores both edge lists and recomputes the simple-graph, self-loop, duplicate-edge, per-node-degree, connectivity, and homophily checks before training.
++We separately test whether GCN uses edge organization beyond degree on Cora, CiteSeer, and PubMed. This is auxiliary evidence about graph signal on the three citation networks; the largest diagnostic-loss settings involve different graphs and selected architectures. For each dataset and seed, verified double-edge swaps randomize the graph while preserving the complete node set, edge count, and degree of every node. The runner stores both edge lists and recomputes the simple-graph, self-loop, duplicate-edge, per-node-degree, connectivity, and homophily checks before training.
+ 
+ The original and randomized conditions use the same node features, labels, split, GCN architecture, and four-trial hyperparameter grid. They select hyperparameters independently by validation accuracy and evaluate the selected test state once. The paired estimand is randomized minus original test accuracy for the same dataset, split, and seed. This design isolates sensitivity to edge organization beyond the degree sequence, but it does not isolate a single changed property: swaps jointly alter class mixing, connectivity patterns, motifs, and higher-order neighborhoods.
+ 
+@@ -27,4 +27,4 @@
+ 
+ Table~\ref{tab:degree_intervention} summarizes the intervention; all 30 paired seed differences are negative. The seed-level two-sided sign-flip tests yield Holm-adjusted $p=0.005859$ for each dataset. The equal-weight mean across the three dataset effects is $-30.9$ points, with a descriptive dataset-bootstrap interval of $[-45.5,-17.3]$. However, three dataset clusters provide only eight possible sign patterns; the exact dataset-cluster sign-flip test gives $p=0.25$.
+ 
+-These results rule out a simple graph-irrelevance interpretation on the three evaluated citation networks: changing edge organization while holding every node degree fixed materially changes GCN accuracy. They do not show that homophily alone causes the change, establish the same effect outside these datasets, or validate any diagnostic threshold. Together with Section~\ref{sec:prospective}, the intervention supports a mechanism--decision separation: edge organization can matter greatly even when simple graph summaries fail to indicate when the evaluated graph portfolio should be preferred to the MLP portfolio.
++GCN accuracy is sensitive to edge organization beyond the degree sequence on these three citation networks. Because randomization jointly changes several structural properties, the effect cannot be attributed to homophily alone. This auxiliary evidence separates the use of graph structure by a trained model from the utility of a diagnostic for choosing that model.
+--- sections_tmlr\07_discussion.tex
++++ sections_applied\07_discussion.tex
+@@ -1,35 +1,27 @@
+ \section{Discussion}
+ \label{sec:discussion}
+ 
+-\subsection{Interpreting the Observed Portfolio Dependence}
++\subsection{Diagnostic Utility Is a Property of the Decision Setting}
+ \label{sec:mismatch}
+ 
+-Within the evaluated protocol, a fixed diagnostic's measured value changes with the trained models its actions select. Combined with MLP fallback incurs greater descriptive regret than always-graph for the full portfolio, while the post-hoc GCN and GAT restrictions reverse that ordering. The favorable results are narrow: only those two architectures and their pair favor Combined among the 63 subsets, and excluding both Cornell and Wisconsin removes the advantage everywhere. These observations motivate evaluating each diagnostic--portfolio pairing. Their sensitivity to dataset composition leaves performance on independent datasets unresolved.
++The same diagnostic decisions lead to different comparisons with always-graph when the candidate models change. The GCN and GAT restrictions make this dependence concrete: a rule that loses against the full portfolio can have lower mean regret against either restricted portfolio. Prior work characterizes graph properties and model performance~\citep{luan2023whendo,platonov2023characterizing,zheng2024trihom}; our evaluation connects such statistics to the cost of selecting a specified model portfolio. This makes the reference policy and candidate set part of the diagnostic's evaluation target.
+ 
+-The full-set Combined action simplifies to a single homophily threshold under the MLP fallback. Roman-empire, Squirrel, Amazon-ratings, and Chameleon account for 95.1\% of its full-portfolio regret: all fall below that threshold, and the rule declines graph on all 40 units. The architecture-selection summary in Table~\ref{tab:winning_architectures} helps locate this mismatch, but selection within the graph portfolio is distinct from beating MLP. The concentration identifies where this complete policy is costly without establishing an architecture mechanism. Separately, 75.9\% of its total regret occurs on the 35 abstaining units that receive MLP fallback. These overlapping groupings locate the losses, not independent causes; Tables~\ref{tab:fallback_sensitivity} and~\ref{tab:preprocessing_fallback} show how their magnitude changes under the specified alternative configurations.
++Available improvement helps explain the contrast. Always-graph has only 0.256 percentage points of regret in the full portfolio, leaving little absolute improvement for any selector using these outcomes. The GCN and GAT portfolios leave more headroom. Absolute regret and improvement over a reference remain separate questions: GPR-GNN gives lower absolute Combined regret than GCN or GAT but favors always-graph in the paired comparison. Each restricted portfolio also defines its own oracle. The observed reversals therefore concern these model-selection settings, with favorable averages concentrated in Cornell and Wisconsin.
+ 
+-Threshold choice remains consequential. In the current full-portfolio evaluation, the post-hoc held-out calibration reduces regret but still exceeds always-graph (Section~\ref{sec:calibrated_threshold}); even choosing the best one-sided homophily cutoff using all test outcomes cannot improve on that reference in these records (Appendix~\ref{app:threshold_headroom}). Its small 0.256-point headroom limits the possible absolute gain without ruling out gains from richer selectors. The result does not extend to every portfolio: calibrated GCN, GAT, and GPR-GNN have lower descriptive regret than their own always-graph references. Likewise, improvement over always-graph and absolute regret answer different questions: under the frozen rule, GPR-GNN yields lower absolute Combined regret than GCN or GAT while favoring always-graph. The restrictions use different graph/MLP oracles and do not establish a general ordering of architecture categories.
++\subsection{Fallback and Training Determine the Measured Cost}
+ 
+-\subsection{Evaluating Decisions and Their Cost}
++An abstaining diagnostic becomes an operational policy only after specifying what happens on abstention. Here MLP fallback turns Combined's full-set action into a single homophily threshold. The MLP validation threshold changes coverage, while fallback determines the selected predictions on uncovered units. The loss decomposition shows why covered-set regret alone gives an incomplete assessment: most of the full-set loss occurs after abstention. Reporting coverage, covered-set loss, and the full-set contribution of fallback makes this distinction explicit.
+ 
+-The frozen comparison evaluates actions on common units with a practical margin and explicit fallback. Its graph-heavy target distribution makes always-graph a strong reference; regret reveals the cost of errors that selection accuracy alone obscures, and coverage exposes abstention. The predeclared incremental-value rule requires lower full-set regret than simple baselines without relying on reduced coverage, with the uncertainty interval excluding zero in the favorable direction for a pre-specified comparison (Section~\ref{sec:protocol}). Combined fails the regret-reduction requirement against always-graph on the recorded point estimates; this does not depend on a Holm significance requirement. The dataset-level tests establish no reference-policy superiority after Holm correction. For the key always-graph comparison, structural zeros and the planned correction make rejection unattainable on this dataset composition, limiting the evidential role of non-rejection. This establishes neither equivalence nor a lack of power for every comparison in the family.
++Training choices also change the comparison being predicted. The raw-feature experiment recovers substantial MLP accuracy on Roman-empire and reduces both tested graph--MLP gaps. The validation-only affine-input diagnostics provide further evidence that a shared preprocessing transform does not ensure an adequately trained feature-only baseline. These observations support inspecting baseline optimization before interpreting a graph-selection loss as a property of graph structure. The degree-preserving intervention separately demonstrates useful edge organization for GCN on the three citation networks; its graphs and architectures do not identify the mechanism of the largest diagnostic losses.
+ 
+-Validation selection achieves the lowest descriptive regret but requires training both model families and is not a guaranteed upper bound. Combined itself uses MLP validation accuracy for coverage, although only homophily determines its full-set actions. A useful selection policy must therefore be assessed against a relevant reference with its decision-time information and training cost stated explicitly.
++\subsection{Scope of the Evidence}
+ 
+-\subsection{Graph Signal and Diagnostic Value}
++The benchmark covers 11 public datasets, one stratified split design, ten seeds, and a four-trial grid per architecture. Its simple rules test transparent decision policies; published diagnostics with richer features or learned selectors are a different comparison. Thresholds were fixed after legacy aggregate inspection and before the primary records. Subsequent portfolio restrictions, calibration, and influence checks are post-hoc. In particular, all three favorable subset averages disappear when Cornell and Wisconsin are jointly excluded, so transport to independent datasets remains unresolved.
+ 
+-The degree-preserving intervention shows useful non-degree edge organization for GCN on Cora, CiteSeer, and PubMed. These three graphs and the intervention architecture differ from the four largest diagnostic-loss settings, so the result supplies auxiliary graph-signal evidence rather than their failure mechanism. Randomization changes several structural attributes together and does not isolate homophily. Appendix~\ref{sec:snr}'s fixed-degree calculation similarly explains interactions among label mixing, degree, and feature strength within a prescribed surrogate; it does not characterize trained graph-model selection.
++The full graph action receives 24 trials against four for MLP. Single-architecture restrictions match trial counts while changing candidate availability, and neither analysis equalizes time or FLOPs or evaluates a comparably expanded MLP search. The two-dataset preprocessing experiment does not establish full-benchmark robustness to alternative inputs. Chameleon and Squirrel use original versions with known duplicate-node concerns; their exclusion sensitivity describes the remaining datasets, not retraining on filtered graphs.
+ 
+-\subsection{Training Pipelines Define the Comparison}
++Dataset-level inference has a concrete resolution limit. Fixed policy agreement on four datasets restricts the key comparison to at most seven nonzero differences, making rejection unattainable in the chosen Holm family. The descriptive loss comparison supplies the operational conclusion; non-rejection supplies no evidence of equivalence. More seeds on the same datasets would not remove those structural zeros. A new evaluation would need to plan dataset composition and inferential resolution together.
+ 
+-The learned baseline is part of the estimand. Raw-feature retraining substantially improves MLP accuracy on Roman-empire and improves it on Amazon-ratings, reducing the graph--MLP gaps while preserving the graph target on both. The original gaps consequently combine the effects of model inputs and training choices. Validation-only diagnostics further recover MLP performance through a training-fitted affine reparameterization of normalized inputs, without adding information to those inputs. A common preprocessing transform alone therefore cannot establish an adequately trained feature-only reference.
++Finally, reconstruction of decisions from retained outcomes and repeatability of model training are separate properties. The bounded LINKX audit records default-CUDA variability and identical histories within its specified deterministic repeat groups. It characterizes the tested configurations rather than certifying the original benchmark's training. The released snapshot supports record verification; the private predecessor history and large checkpoint tensors remain in the author archive.
+ 
+-Training repeatability is a separate concern. Repeated LINKX runs with matching inputs vary substantially in the tested settings. The bounded 22-process audit records default-CUDA variation from identical initial states and random states; its specified deterministic configuration yields identical histories and selected states within the tested repeat groups. Here record reconstruction means recomputing decision scores from saved outcomes; training repeatability means agreement across repeated training executions within a specified configuration. The audit characterizes training repeatability in these tested configurations and does not certify it for the original 770 benchmark records or the 420-record graph diagnostic. The two-dataset raw and centered-scaled diagnostics constrain interpretation; this bounded audit does not replace a complete benchmark rerun or establish that the full benchmark withstands improved baseline training. Appendix~\ref{app:training_diagnostics} preserves these scopes and observed contrasts.
+-
+-\subsection{Limitations and Next Tests}
+-
+-The benchmark covers 11 public datasets, one stratified split design, ten seeds, seven architectures, a four-trial grid, and test accuracy. Inference treats datasets as clusters; additional seeds do not supply independent datasets. Thresholds were frozen after inspection of legacy aggregates but before the primary benchmark records. The public snapshot documents file identities and execution provenance, while the earlier private history remains inaccessible.
+-
+-The graph action receives 24 trials against the MLP's four. Single-architecture restrictions match trial counts while changing architecture availability and search breadth. Equal trial counts do not equalize time or FLOPs; neither these restrictions nor the subset enumeration isolate compute effects or test a comparably expanded MLP search. All reuse the original outcomes. Excluding Chameleon and Squirrel preserves the full-portfolio disadvantage but cannot replace retraining on duplicate-filtered versions.
+-
+-The next useful evidence is an independent prospective comparison that includes representative published diagnostics and specified candidate portfolios. It should separate selector development from evaluation, plan dataset-level precision and multiplicity, and measure resource consumption alongside trial counts. This would test whether the observed decision effects persist with stronger training baselines and new datasets.
++The next discriminating comparisons concern richer published diagnostics and stronger feature-only training under a specified budget. Their value would be to test whether the observed decision costs persist when the selector or its baseline changes. The current evidence already supports reporting the candidate portfolio, baseline training, fallback, and available headroom whenever diagnostic utility is evaluated.
+--- sections_tmlr\08_conclusion.tex
++++ sections_applied\08_conclusion.tex
+@@ -1,5 +1,5 @@
+ \section{Conclusion}
+ 
+-Under the frozen 11-dataset protocol and full six-architecture portfolio, the evaluated diagnostic rules do not demonstrate incremental value over always-graph in this benchmark. Combined with the declared MLP fallback incurs 7.46 points of regret versus 0.26 for always-graph; 75.9\% of its regret occurs on abstaining units. The fallback and dataset-exclusion sensitivities retain higher descriptive regret for Combined in the four specified configurations, while substantially changing the size of the difference. Post-hoc analysis reveals a concrete reversal: the unchanged rule has lower mean regret with GCN or GAT as the graph action, but higher regret with each other single architecture. Its favorable averages disappear after excluding both Cornell and Wisconsin. These observations show sensitivity within the evaluated candidate portfolios and dataset composition. Held-out threshold calibration reduces full-portfolio regret without matching always-graph, while GCN, GAT, and GPR-GNN have favorable calibrated averages; the findings do not establish general diagnostic failure.
++The frozen 11-dataset benchmark shows that measured graph-diagnostic utility depends on the models and fallback selected by the policy. With the full six-architecture portfolio, Combined and its MLP fallback incur 7.46 percentage points of regret against 0.26 for always-graph, with most loss occurring after abstention. Post-hoc GCN and GAT restrictions reverse that descriptive ordering, but the advantages depend on Cornell and Wisconsin. These findings identify a portfolio-dependent comparison within the evaluated benchmark.
+ 
+-The practical lesson is to evaluate the decision a diagnostic would make: specify its candidate portfolio and resource budget, compare its regret and coverage with relevant reference policies, and inspect baseline training and repeatability. Preprocessing changes the two-dataset test gaps, and validation-only diagnostics reveal training sensitivity and repeatability limits under the tested configurations. Our frozen artifacts and evaluation protocol support reconstruction of the recorded decision results; the bounded training audit does not replace a complete benchmark rerun or establish selection performance beyond this benchmark.
++The practical contribution is a decision-evaluation protocol that makes those dependencies visible. A diagnostic should be evaluated through full-set regret and coverage against a relevant reference, with candidate models, tuning budgets, fallback, and baseline training specified. The retained records support reconstruction of the reported scores, while the sensitivity analyses delimit their interpretation. This gives a concrete basis for evaluating graph-versus-MLP choices without treating a graph statistic alone as a model-selection guarantee.
+--- sections_tmlr\09_reproducibility_appendix.tex
++++ sections_applied\09_reproducibility_appendix.tex
+@@ -39,10 +39,10 @@
+ \caption{Dataset-level targets, decisions, and mean oracle-portfolio regret. G/M/A denotes graph/MLP/abstain counts before fallback; gaps and regrets are percentage points.}
+ \label{tab:dataset_decisions}
+ \scriptsize
+-\setlength{\tabcolsep}{3.0pt}
++\setlength{\tabcolsep}{2.0pt}
+ \begin{tabular}{@{}lrrrrrr@{}}
+ \toprule
+-Dataset & Graph targets & Mean gap & Combined G/M/A & Combined & Always-G & Validation \\
++Dataset & \shortstack{Graph\\targets} & \shortstack{Mean\\gap} & \shortstack{Combined\\G/M/A} & Combined & Always-G & Validation \\
+ \midrule
+ Actor & 0/10 & 0.10 & 0/5/5 & 0.34 & 0.24 & 0.34 \\
+ Amazon-ratings & 10/10 & 16.45 & 0/0/10 & 16.45 & 0.00 & 0.00 \\
+@@ -70,10 +70,10 @@
+ \caption{Validation-selected graph architecture per dataset, ordered by mean training-label homophily $h_1$. ``Het.-aware'' counts graph-portfolio selections of GPR-GNN, H2GCN, or LINKX, not wins over MLP. ``Combined G'' counts graph actions taken by the combined rule after the frozen MLP fallback. Regret is mean full-set oracle-portfolio regret in percentage points.}
+ \label{tab:winning_architectures}
+ \scriptsize
+-\setlength{\tabcolsep}{3.0pt}
+-\begin{tabular}{@{}lrlrrr@{}}
++\setlength{\tabcolsep}{2.0pt}
++\begin{tabular}{@{}lr>{\raggedright\arraybackslash}p{0.32\linewidth}rrr@{}}
+ \toprule
+-Dataset & $h_1$ & Selected graph architectures & Het.-aware & Combined G & Regret \\
++Dataset & $h_1$ & Selected graph architectures & Het.-aware & \shortstack{Combined\\G} & Regret \\
+ \midrule
+ Roman-empire & 0.047 & LINKX 9, H2GCN 1 & 10/10 & 0 & 23.66 \\
+ Cornell & 0.114 & GPR-GNN 4, H2GCN 4, GraphSAGE 2 & 8/10 & 0 & 1.75 \\
+--- sections_tmlr\09a_threshold_headroom.tex
++++ sections_applied\09a_threshold_headroom.tex
+@@ -10,6 +10,7 @@
+ \caption{Post-hoc headroom and exact test-selected cutoff minimum. Regrets are percentage points, averaged equally over the 11 datasets. All six single architectures are reported; each row has its own oracle. The final column is the fraction of headroom closed by the best cutoff, not a held-out improvement estimate.}
+ \label{tab:threshold_headroom}
+ \small
++\setlength{\tabcolsep}{3.5pt}
+ \begin{tabular}{@{}lrrr@{}}
+ \toprule
+ Graph action & Headroom & Minimum cutoff regret & Headroom closed (\%) \\
+@@ -44,6 +45,7 @@
+ \caption{Full-portfolio action decomposition before the declared MLP fallback. Targets use the one-point margin; positive-regret counts use the raw accuracy difference. The contribution column divides each group's regret sum by all 110 units, so the entries add to the 7.457-point full-set regret.}
+ \label{tab:action_confusion}
+ \small
++\setlength{\tabcolsep}{3.5pt}
+ \begin{tabular}{@{}lrrrrr@{}}
+ \toprule
+ Action & Units & Graph target & MLP target & Positive regret & Contribution (pp) \\
+--- sections_tmlr\12_execution_details.tex
++++ sections_applied\12_execution_details.tex
+@@ -0,0 +1,24 @@
++\section{Execution Provenance and Supporting Displays}
++\label{app:execution_details}
++
++\subsection{Protocol Amendments and Provenance}
++
++The execution history contains two documented amendments. First, the v1 feasibility run stops before model training on Texas because one class contains a single node and cannot populate the frozen three-way split. Before comparative assembly or evaluation, an outcome-independent eligibility amendment excludes Texas, assigns a new run identifier, and restarts all remaining datasets from zero without changing models, splits, seeds, thresholds, metrics, or inference. Second, after a blinded wall-clock timeout on Squirrel, an execution-only amendment increases the per-dataset limit from 30 to 90 minutes. No comparative outcome is inspected, and all scientific settings remain unchanged. The completed v2 artifacts retain the amendments and exclude the aborted v1 records from analysis.
++
++Here ``prospective'' refers specifically to newly generated records for the pre-specified primary analysis, produced after the specification and scoring implementation were frozen. Legacy aggregate results inspected during exploratory work are not part of this analysis because they lack consistent paired outcomes and decision-time provenance. The public release provides the frozen snapshot, file digests, and mappings to execution provenance, but it does not expose the private predecessor history; the auditable claim is therefore about the released primary run rather than the entire earlier research timeline.
++
++\subsection{Threshold Provenance}
++
++The exact Combined thresholds were not inherited verbatim from an earlier committed rule or derived through a prospective threshold sweep. They first appeared in the frozen specification and scorer after legacy aggregate inspection and before the primary records. Dated source provenance remains in the author archive. The public snapshot documents the released run, while the private predecessor history remains inaccessible.
++
++\subsection{Regret--Coverage Display}
++\label{app:coverage_display}
++
++\begin{figure}[t]
++\centering
++\includegraphics[width=0.82\linewidth]{results/diagnostic/route_a_prospective_v2/analysis/prospective_regret_coverage.pdf}
++\caption{Descriptive regret--coverage display from the frozen confidence scores. For Combined and validation selection, coverage increases as lower-confidence eligible decisions enter. Always-graph and always-MLP have constant confidence and therefore appear only as full-set endpoints. The ordinate is covered-set mean raw-accuracy regret, not selection error under the one-point target margin. The Combined curve ends at 68.2\% because 35 units abstain and fallback decisions are not added to this display. The pre-specified primary analysis remains full-set regret with dataset-level inference.}
++\label{fig:regret_coverage}
++\end{figure}
++
++Figure~\ref{fig:regret_coverage} shows the precomputed descriptive curves for Combined and validation selection, together with the two constant policies at their identifiable full-set endpoints. Raising confidence within the Combined rule does not reveal a sustained regret region comparable to the low-regret reference policies: its final covered-set regret is 2.64 points at 68.2\% coverage, compared with full-set regrets of 0.26 for always-graph and 0.22 for validation selection. This display is a sensitivity summary only and does not replace the predeclared full-set comparison.
+--- main_tmlr.tex
++++ main_applied_intelligence.tex
+@@ -1,22 +1,11 @@
+-% Anonymous TMLR submission manuscript.
+-\documentclass[10pt]{article}
+-\makeatletter
+-\def\input@path{{templates/tmlr/}}
+-\makeatother
+-\usepackage{tmlr}
+-
++% Applied Intelligence manuscript. Original TMLR sources remain unchanged.
++% Official Springer Nature December 2024 v3.1 class, numbered Basic style.
++\documentclass[pdflatex,sn-basic,Numbered]{sn-jnl}
+ \usepackage{amsmath,amssymb,amsfonts,amsthm}
+-\usepackage{array}
+-\usepackage{booktabs}
+-\usepackage{graphicx}
+-\usepackage{multirow}
+-\usepackage{textcomp}
+-\usepackage{xcolor}
+-\usepackage{url}
+-\usepackage[hidelinks]{hyperref}
+-
++\usepackage{array,booktabs,multirow,graphicx,textcomp,xcolor,url}
++\usepackage{placeins}
++\hypersetup{hidelinks}
+ \graphicspath{{code/figures/}{figures/}}
+-
+ \newtheorem{theorem}{Theorem}
+ \newtheorem{proposition}{Proposition}
+ \newtheorem{definition}{Definition}
+@@ -25,47 +14,55 @@
+ \newtheorem{lemma}{Lemma}
+ \newtheorem{assumption}{Assumption}
+ 
+-\title{Diagnostic Utility Depends on the Model Portfolio:\\
+-A Frozen Graph-vs-MLP Decision Benchmark}
++\begin{document}
++\title{Diagnostic Utility Depends on the Model Portfolio: A Frozen Graph-vs-MLP Decision Benchmark}
++\author*[1]{\fnm{Mengdan} \sur{Xue}}\email{17326961775@163.com}
++\affil*[1]{\orgdiv{Faculty of Computational Mathematics and Cybernetics}, \orgname{Lomonosov Moscow State University}, \orgaddress{\city{Moscow}, \country{Russia}}}
+ 
+-\author{Anonymous Author(s)}
++\abstract{Graph diagnostics can guide model selection only when their decisions improve on a relevant reference policy. We evaluate nine graph-versus-multilayer-perceptron policies on 11 node-classification datasets and ten seeds using training-label statistics and validation-selected models. The pre-specified benchmark compares a six-architecture graph portfolio with 24 tuning trials against a feature-only multilayer perceptron with four. The combined diagnostic and its declared fallback incur 7.46 percentage points of oracle-portfolio regret, compared with 0.26 for always choosing graph and 0.22 for validation selection. Decisions that abstain and fall back to the multilayer perceptron contribute 75.9\% of the combined policy's loss. Post-hoc restrictions change the comparison while retaining the diagnostic's decisions: regret is lower than always-graph for a graph convolutional network (GCN; 1.74 versus 5.29 points) and a graph attention network (GAT; 2.08 versus 6.35). Only these architectures and their pair favor the rule among 63 candidate subsets; removing Cornell and Wisconsin eliminates those advantages. Two-dataset preprocessing experiments further show that the measured gap depends on baseline training. Dataset-level tests establish no superiority after multiplicity correction, and structural policy agreement makes rejection unattainable for the key comparison in the fixed test family. These findings locate the observed decision costs in candidate portfolios, fallback, and training choices. The accompanying evaluation protocol and retained records support direct comparison of regret, coverage, and available improvement over reference policies.}
+ 
+-\date{}
++\keywords{Graph neural networks, Model selection, Graph diagnostics, Node classification, Benchmark evaluation, Decision regret}
++\maketitle
++\raggedbottom
+ 
+-\begin{document}
++\input{sections_applied/01_introduction}
++\input{sections_applied/02_related_work}
++\input{sections_applied/03_decision_protocol}
++\input{sections_applied/04_prospective_results}
++\input{sections_applied/04a_equal_budget_sensitivity}
++\input{sections_applied/05_edge_intervention}
++\input{sections_applied/07_discussion}
++\input{sections_applied/08_conclusion}
+ 
+-\maketitle
++\FloatBarrier
++\backmatter
++\section*{Declarations}
++\subsection*{Funding}
++The author received no funding for this research.
++\subsection*{Competing interests}
++The author declares no competing interests.
++\subsection*{Author contributions}
++Mengdan Xue is the sole author and is responsible for the study design, interpretation of the results, and manuscript. AI assistance is described in Section~\ref{sec:research_tools}.
++\subsection*{Data and code availability}
++The accompanying research archive contains source code, configurations, compact summaries, and retained unit-level records supporting the reported results. File manifests support verification and reconstruction of the decision scores. The primary benchmark and subsequent sensitivity analyses are stored separately. Review copies retain consistent aliases for source revisions and artifact names; the author archive preserves the original identifiers and mappings. Large checkpoint tensors and the complete Git history are retained by the author and are omitted from the review archive, limiting independent checkpoint replay from that archive. The original public datasets and loaders are identified in Appendix~\ref{app:reproducibility}.
++\subsection*{Ethics approval and consent}
++This computational study uses existing public benchmark datasets and involves no recruitment of human participants or animal experiments. Consent for participation and publication is not applicable.
+ 
+-\begingroup
+-\renewcommand{\thefootnote}{}
+-\footnotetext{ChatGPT was used to suggest specific text and table edits.}
+-\endgroup
+-
+-\begin{abstract}
+-We evaluate the measured decision utility of fixed graph-versus-MLP policies on 11 datasets and ten seeds under a frozen protocol. Label-dependent statistics use training labels only, and validation selects models. The graph action searches six architectures with four trials each; MLP receives four trials. The combined rule with its declared MLP fallback incurs 7.46 percentage points of full-set oracle-portfolio regret, compared with 0.26 for always-graph and 0.22 for validation selection; 75.9\% of its regret occurs on abstaining units. Post-hoc restrictions of the evaluated portfolios reverse its relative performance: with unchanged diagnostic decisions, Combined has lower descriptive mean regret than always-graph for GCN (1.74 versus 5.29) and GAT (2.08 versus 6.35), but higher regret for the other four architectures. Across all 63 candidate subsets, only GCN, GAT, and their pair favor Combined; removing Cornell and Wisconsin eliminates those advantages. Two-dataset preprocessing and validation-only training diagnostics identify sensitivity to the tested training configurations. The dataset-level tests establish no superiority after multiplicity correction; structural policy agreement makes rejection unattainable for the key comparison under the realized dataset composition and fixed comparison family. The findings describe measured diagnostic utility within the evaluated protocol, without establishing external performance or equal-compute effects. We provide frozen records and a decision-evaluation protocol that makes candidate models, information boundaries, abstention, regret, and dataset-level uncertainty explicit.
+-\end{abstract}
+-
+-\input{sections_tmlr/01_introduction}
+-\input{sections_tmlr/02_related_work}
+-\input{sections_tmlr/03_decision_protocol}
+-\input{sections_tmlr/04_prospective_results}
+-\input{sections_tmlr/04a_equal_budget_sensitivity}
+-\input{sections_tmlr/05_edge_intervention}
+-\input{sections_tmlr/07_discussion}
+-\input{sections_tmlr/08_conclusion}
+-
+-\section*{Data and code availability}
+-The anonymous supplement provides source code, configurations, compact result summaries, and the retained unit-level records supporting this manuscript. Its manifest verifies the delivered files; review copies use consistent aliases for source revisions and artifact names, with identifying metadata removed. Unredacted identifiers, original-file fingerprints, and the alias mapping remain in the author archive. The supplement also includes archived protocol documents, whose historical terminology is preserved separately from the present interpretation. Large checkpoint tensors and the complete Git history remain in the author archive and are omitted from the review supplement; this omission limits independent checkpoint replay from that supplement. The original primary-analysis records and later post-hoc diagnostics remain separate, and the supplement does not represent a new experiment or a new test-set evaluation. Historical exploratory outputs are separate from the primary-analysis artifacts.
+-
+-\bibliographystyle{templates/tmlr/tmlr}
++\begin{appendices}
++% The class resets counters; appendix destinations must differ from main-text ones.
++\renewcommand{\theHtable}{appendix.\thetable}
++\renewcommand{\theHfigure}{appendix.\thefigure}
++\renewcommand{\theHequation}{appendix.\theequation}
++\input{sections_applied/09_reproducibility_appendix}
++\FloatBarrier
++\input{sections_applied/09a_threshold_headroom}
++\FloatBarrier
++\input{sections_applied/10_training_diagnostics}
++\FloatBarrier
++\input{sections_applied/11_fixed_degree_analysis}
++\FloatBarrier
++\input{sections_applied/12_execution_details}
++\FloatBarrier
++\end{appendices}
+ \bibliography{references}
+-
+-\clearpage
+-\appendix
+-% Keep table numbering continuous to avoid duplicate appendix labels and anchors.
+-\input{sections_tmlr/09_reproducibility_appendix}
+-\input{sections_tmlr/09a_threshold_headroom}
+-\input{sections_tmlr/10_training_diagnostics}
+-\input{sections/06_fixed_degree_analysis}
+-
+ \end{document}

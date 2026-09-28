@@ -1,0 +1,5 @@
+\section{Conclusion}
+
+The frozen 11-dataset benchmark shows that measured graph-diagnostic utility depends on the models and fallback selected by the policy. With the full six-architecture portfolio, Combined and its MLP fallback incur 7.46 percentage points of regret against 0.26 for always-graph, with most loss occurring after abstention. Post-hoc GCN and GAT restrictions reverse that descriptive ordering, but the advantages depend on Cornell and Wisconsin. These findings identify a portfolio-dependent comparison within the evaluated benchmark.
+
+The practical contribution is a decision-evaluation protocol that makes those dependencies visible. A diagnostic should be evaluated through full-set regret and coverage against a relevant reference, with candidate models, tuning budgets, fallback, and baseline training specified. The retained records support reconstruction of the reported scores, while the sensitivity analyses delimit their interpretation. This gives a concrete basis for evaluating graph-versus-MLP choices without treating a graph statistic alone as a model-selection guarantee.
