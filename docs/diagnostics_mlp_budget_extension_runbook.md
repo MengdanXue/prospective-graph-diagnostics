@@ -15,6 +15,7 @@ $supplementProof = Join-Path $supplementWork 'diagnostics-mlp24-verification-202
 $supplementBase = Join-Path $supplementWork 'input-robustness-11-formal-run-r2'
 $supplementBinding = Join-Path (Get-Location).Path 'results/diagnostic/posthoc_input_robustness_11_v1/preflight/data_binding.json'
 $supplementOutput = Join-Path $supplementWork 'diagnostics-mlp24-formal-run-v1'
+$supplementControl = Join-Path $supplementWork 'diagnostics-mlp24-formal-run-v1_control'
 $supplementLedger = Join-Path $supplementWork 'diagnostics-mlp24-budget-segment-001'
 
 & $supplementPython -m scripts.mlp_budget_extension_entry `
@@ -54,15 +55,20 @@ Dispatch order is dataset configuration order, seed 0–9, then the two conditio
 
 ## Pause, emergency stop and recovery
 
-For a normal pause, create `PAUSE_REQUESTED` in `$supplementOutput`. The active full model unit finishes and is saved; no next unit starts. For an emergency, create `EMERGENCY_STOP_REQUESTED` there. The guardian stops the owned worker and preserves its attempt, worker log, supervision receipt and all partial files.
+The stable control directory is the output directory's sibling with `_control` appended to its name (`$supplementControl` above). It is read during preparation, model units and final validation/analysis, and may be created before the formal output exists. Do not create the formal output directory to request an early pause or stop. Existing markers inside `$supplementOutput` remain supported for compatibility.
+
+For a normal pause, create `PAUSE_REQUESTED` in `$supplementControl`. An active full model unit finishes and is saved; no next unit starts. During preparation, preparation finishes and the immutable output manifest is initialized, then the entry returns paused with no model unit started; resume uses the normal `--resume` route. A pause during final validation/analysis allows that final stage to finish. For an emergency, create `EMERGENCY_STOP_REQUESTED` in the same stable directory. The guardian stops the owned worker and preserves its worker log, supervision receipt, failure and partial files. Preparation artifacts reside in the separately named `<output>_preparation_<attempt-prefix>` directory.
 
 ```powershell
-New-Item -ItemType File -Path (Join-Path $supplementOutput 'PAUSE_REQUESTED')
+New-Item -ItemType Directory -Force -Path $supplementControl
+New-Item -ItemType File -Path (Join-Path $supplementControl 'PAUSE_REQUESTED')
 # Emergency alternative:
-# New-Item -ItemType File -Path (Join-Path $supplementOutput 'EMERGENCY_STOP_REQUESTED')
+# New-Item -ItemType File -Path (Join-Path $supplementControl 'EMERGENCY_STOP_REQUESTED')
 ```
 
-Do not delete failed attempts, reset the ledger, change the grid or overwrite output. Before resuming, verify process termination and existing records, review any interruption, bind the new terminal ledger head in a newly named cumulative-handoff receipt, and archive the acknowledged control marker under a timestamped name. Preserve every earlier receipt and point `--budget-handoff` to the new one. Then use the same command with `--resume`, the same output and the same incremental ledger. A stale lock or unresolved stop requires review; the runner does not remove it automatically. Completed valid units are reused. An incomplete unit restarts its twenty additional trials under the same cumulative MLP unit and paired-batch identities.
+Do not delete failed attempts, reset the ledger, change the grid or overwrite output. Preparation and finalization interruptions close as `external_interruption` only when the supervision receipt proves that the owned worker exited and no owned processes remain. Missing or incomplete exit evidence leaves the attempt open. Neither path reviews or retries an interruption automatically.
+
+Before resuming, verify process termination and existing records, review any interruption, bind the new terminal ledger head in a newly named cumulative-handoff receipt, and archive acknowledged markers in the stable directory and any legacy output directory under timestamped names. Preserve every earlier receipt and point `--budget-handoff` to the new one. Then use the same command with `--resume`, the same output and the same incremental ledger. If an emergency interrupted preparation before a manifest was created, retain that preparation directory. After review, use a new output and new append-only ledger segment without `--resume`; the newly reviewed cumulative handoff must include the interrupted segment and all its usage. A stale lock or unresolved stop requires review; the runner does not remove it automatically. Completed valid units are reused. An incomplete unit restarts its twenty additional trials under the same cumulative MLP unit and paired-batch identities.
 
 ## Completion evidence
 

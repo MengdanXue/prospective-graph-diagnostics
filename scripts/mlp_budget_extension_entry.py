@@ -32,9 +32,17 @@ ACCEPTANCE_SOURCES = (
     "scripts/mlp_budget_extension.py", "scripts/mlp_budget_extension_entry.py",
     "scripts/mlp_budget_extension_worker.py", "scripts/mlp_budget_extension_e2e.py",
     "scripts/analyze_published_diagnostics.py", "scripts/published_graph_diagnostics.py",
+    "scripts/input_robustness_sensitivity.py", "scripts/input_robustness_budget.py",
+    "scripts/supplement_budget_handoff.py",
     "scripts/preflight_input_robustness_11.py",
     "tests/test_mlp_budget_extension.py",
 )
+
+
+def control_directory(output_root: Path) -> Path:
+    """Stable sibling controls can be requested before the immutable output exists."""
+    output_root = Path(output_root)
+    return output_root.parent / f"{output_root.name}_control"
 
 
 def validate_cumulative_attempts(snapshot: Mapping[str, Any], *, unit_id: str,
@@ -58,12 +66,78 @@ def validate_cumulative_attempts(snapshot: Mapping[str, Any], *, unit_id: str,
 class ExtensionExecutionController(FormalExecutionController):
     """Retain the existing continuous guardian and append-only accounting API."""
 
+    def __init__(self, *, control_root: Path | None = None,
+                 legacy_control_root: Path | None = None, **kwargs: Any):
+        super().__init__(**kwargs)
+        self.control_root = Path(control_root) if control_root is not None else control_directory(self.writer.root)
+        self.legacy_control_root = Path(legacy_control_root) if legacy_control_root is not None else self.writer.root
+
     def _monitor(self) -> None:
-        if (self.writer.root / PAUSE_FILE).exists():
+        roots = (self.control_root, self.legacy_control_root, self.writer.root)
+        if any((root / PAUSE_FILE).exists() for root in roots):
             self.request_normal_pause()
-        if (self.writer.root / STOP_FILE).exists():
+        if any((root / STOP_FILE).exists() for root in roots):
             self.request_emergency_stop()
         super()._monitor()
+
+    def _record_interruption(self, attempt_id: str, operation: str, error: BaseException,
+                             *, unit_id: str | None = None) -> None:
+        """Close only an observed stopped worker; retain unresolved attempts for review."""
+        failure: dict[str, Any] = {
+            "status": "external_interruption", "attempt_id": attempt_id,
+            "operation": operation, "reason": repr(error), "worker_exit_confirmed": False,
+        }
+        if unit_id is not None:
+            failure["unit_id"] = unit_id
+        supervision_path = self.writer.root / "workers" / f"{attempt_id}.supervision.json"
+        if supervision_path.is_file():
+            failure["supervision"] = {"path": str(supervision_path.resolve()),
+                                      "sha256": file_digest(supervision_path)}
+            try:
+                stopped = read_json(supervision_path)
+                failure["worker_exit_confirmed"] = (
+                    type(stopped.get("returncode")) is int
+                    and stopped.get("owned_processes_remaining") == []
+                    and isinstance(stopped.get("observed_process_ids"), list)
+                    and bool(stopped["observed_process_ids"])
+                    and all(type(pid) is int and pid > 0 for pid in stopped["observed_process_ids"])
+                )
+            except (OSError, ValueError, FormalRecordError) as exc:
+                failure["supervision_error"] = repr(exc)
+        failure_path = self.writer.root / "failures" / f"{attempt_id}.json"
+        _exclusive_json(failure_path, failure)
+        if failure["worker_exit_confirmed"]:
+            self.ledger.close_attempt(attempt_id, outcome="external_interruption",
+                                      record_sha256=file_digest(failure_path), reason=repr(error))
+
+    def run_preparation(self, request: Mapping[str, Any], *, attempt_id: str,
+                        activity_id: str) -> dict[str, Any]:
+        """Finish preparation on normal pause and retain its latched control state."""
+        self.power_request.acquire()
+        self.power_watcher.start()
+        started = False
+        try:
+            self._monitor()
+            self.ledger.begin_attempt(attempt_id, activity_id=activity_id, phase_id=self.runner.phase_id,
+                                      budget_group="control", estimated_seconds=0.0)
+            started = True
+            prepared = self._child(request, attempt_id=attempt_id, cap_seconds=7200)
+            self._monitor()
+            self.ledger.close_attempt(attempt_id, outcome="completed", record_sha256=digest(prepared))
+            return prepared
+        except (FormalEmergencyStop, KeyboardInterrupt) as exc:
+            if started:
+                self._record_interruption(attempt_id, "prepare", exc)
+            raise
+        except Exception as exc:
+            if started:
+                self.ledger.close_attempt(attempt_id, outcome="failed", reason=repr(exc))
+            raise
+        finally:
+            try:
+                self.power_watcher.stop()
+            finally:
+                self.power_request.release()
 
     def _child(self, request: Mapping[str, Any], *, attempt_id: str,
                cap_seconds: float = 28800) -> dict[str, Any]:
@@ -131,13 +205,7 @@ class ExtensionExecutionController(FormalExecutionController):
                     self._monitor()
                     snapshot = self.ledger.close_attempt(attempt, outcome="completed", record_sha256=file_digest(path))
                 except (FormalEmergencyStop, KeyboardInterrupt) as exc:
-                    self.writer.write_failure({"status": "external_interruption", "attempt_id": attempt,
-                                               "unit_id": unit_id, "reason": repr(exc)}, identity=attempt)
-                    supervision_path = self.writer.root / "workers" / f"{attempt}.supervision.json"
-                    if supervision_path.is_file():
-                        stopped = read_json(supervision_path)
-                        if stopped.get("returncode") is not None and not stopped.get("owned_processes_remaining"):
-                            self.ledger.close_attempt(attempt, outcome="external_interruption", reason=repr(exc))
+                    self._record_interruption(attempt, "unit", exc, unit_id=unit_id)
                     raise
                 except Exception as exc:
                     self.writer.write_failure({"status": "failed", "attempt_id": attempt,
@@ -166,7 +234,8 @@ class ExtensionExecutionController(FormalExecutionController):
                     self._monitor()
                     self.ledger.close_attempt(final_attempt_id, outcome="completed",
                                                record_sha256=file_digest(self.writer.root / "run_complete.json"))
-                except (FormalEmergencyStop, KeyboardInterrupt):
+                except (FormalEmergencyStop, KeyboardInterrupt) as exc:
+                    self._record_interruption(final_attempt_id, "finalize", exc)
                     raise
                 except Exception as exc:
                     self.ledger.close_attempt(final_attempt_id, outcome="failed", reason=repr(exc))
@@ -319,6 +388,10 @@ def main() -> int:
     parser.add_argument("--acceptance-record", type=Path)
     parser.add_argument("--execute", action="store_true")
     parser.add_argument("--resume", action="store_true")
+    parser.add_argument("--existing-analysis", action="store_true",
+                        help="Run the two existing-record additions under this guardian, with no training")
+    parser.add_argument("--prior-adapter", type=Path)
+    parser.add_argument("--prior-inference", type=Path)
     args = parser.parse_args()
     config = read_json(args.config)
     # Preparation reports real missing gates; it cannot turn on either switch.
@@ -337,6 +410,12 @@ def main() -> int:
     for name in ("budget_handoff", "budget_ledger", "ci_receipt", "acceptance_record", "data_root", "output_root"):
         if getattr(args, name) is None:
             errors.append(f"missing --{name.replace('_', '-')}")
+    if args.existing_analysis:
+        if args.resume:
+            errors.append("existing-record analysis uses a fresh output; preserve interrupted attempts")
+        for name in ("prior_adapter", "prior_inference"):
+            if getattr(args, name) is None:
+                errors.append(f"missing --{name.replace('_', '-')}")
     if not args.execute:
         print(json.dumps({"status": "preparation_only", "launch_enabled": False,
                           "base_metadata_present": evidence is not None, "strict_base_validation": "pending_guarded_prepare",
@@ -354,7 +433,7 @@ def main() -> int:
     with open_inherited_ledger(args.budget_handoff, args.budget_ledger, base_root=args.base_root.parent,
                               expected_config_sha=digest(config), expected_source_commit=commit,
                               required_inventory_roots=config["budget"]["inventory_roots"], resume=args.resume) as ledger:
-        phase = "mlp24_extension"
+        phase = "existing_record_additions" if args.existing_analysis else "mlp24_extension"
         ledger.register_phase(phase, provenance={
             "source_commit": commit, "config_sha256": digest(config),
             "data_binding_sha256": file_digest(args.binding),
@@ -364,30 +443,38 @@ def main() -> int:
         }, gate_receipt={"ci_receipt_file_sha256": file_digest(args.ci_receipt),
                         "review_record_sha256": file_digest(args.acceptance_record), "ci_receipt": ci})
         prefix = f"mlp24_{ledger.head['event_count']}"
-        scratch = args.output_root.parent / f"{args.output_root.name}_preparation_{prefix}"
-        proxy = SimpleNamespace(root=scratch, config=config, synthetic=False)
-        preparer = ExtensionExecutionController(writer=proxy, ledger=ledger, phase_id=phase)
-        preparer.power_request.acquire()
-        preparer.power_watcher.start()
-        attempt = f"{prefix}_prepare"
-        try:
-            ledger.begin_attempt(attempt, activity_id=f"{prefix}_preparation", phase_id=phase,
-                                 budget_group="control", estimated_seconds=0.0)
-            prepared = preparer._child({"operation": "prepare", "config_path": str(args.config.resolve()),
+        if args.existing_analysis:
+            if args.output_root.exists():
+                raise FormalRecordError("refusing to reuse or overwrite an existing analysis output")
+            proxy = SimpleNamespace(root=args.output_root, config=config, synthetic=False)
+            controller = ExtensionExecutionController(writer=proxy, ledger=ledger, phase_id=phase,
+                control_root=control_directory(args.output_root), legacy_control_root=args.output_root)
+            result = controller.run_preparation({
+                "operation": "existing_analysis", "config_path": str(args.config.resolve()),
                 "base_root": str(args.base_root.resolve()), "base_config_path": str(args.base_config.resolve()),
-                "binding_path": str(args.binding.resolve()), "acceptance_path": str(args.acceptance_record.resolve()),
-                "resume": args.resume, "output_root": str(args.output_root.resolve()),
-                "source_commit": commit}, attempt_id=attempt, cap_seconds=7200)
-            evidence = prepared["base_evidence"]
-            ledger.close_attempt(attempt, outcome="completed", record_sha256=digest(prepared))
-        except (FormalEmergencyStop, KeyboardInterrupt):
-            raise
-        except Exception as exc:
-            ledger.close_attempt(attempt, outcome="failed", reason=repr(exc))
-            raise
-        finally:
-            preparer.power_watcher.stop()
-            preparer.power_request.release()
+                "binding_path": str(args.binding.resolve()), "data_root": str(args.data_root.resolve()),
+                "acceptance_path": str(args.acceptance_record.resolve()), "source_commit": commit,
+                "output_root": str(args.output_root.resolve()),
+                "adapter_path": str(args.prior_adapter.resolve()), "inference_path": str(args.prior_inference.resolve()),
+            }, attempt_id=f"{prefix}_existing_analysis", activity_id=f"{prefix}_existing_analysis")
+            _exclusive_json(args.output_root / "execution.json", {
+                "result": result, "monitor_samples": controller.monitor_samples, "monitor_gap_seconds": 5,
+                "power_request": controller.power_request.snapshot(), "power_watcher": controller.power_watcher.snapshot(),
+                "ledger": ledger.snapshot(), "normal_pause_observed": controller.pause_requested})
+            print(json.dumps(result, sort_keys=True))
+            return 0
+        scratch = args.output_root.parent / f"{args.output_root.name}_preparation_{prefix}"
+        control_root = control_directory(args.output_root)
+        proxy = SimpleNamespace(root=scratch, config=config, synthetic=False)
+        preparer = ExtensionExecutionController(writer=proxy, ledger=ledger, phase_id=phase,
+            control_root=control_root, legacy_control_root=args.output_root)
+        attempt = f"{prefix}_prepare"
+        prepared = preparer.run_preparation({"operation": "prepare", "config_path": str(args.config.resolve()),
+            "base_root": str(args.base_root.resolve()), "base_config_path": str(args.base_config.resolve()),
+            "binding_path": str(args.binding.resolve()), "acceptance_path": str(args.acceptance_record.resolve()),
+            "resume": args.resume, "output_root": str(args.output_root.resolve()),
+            "source_commit": commit}, attempt_id=attempt, activity_id=f"{prefix}_preparation")
+        evidence = prepared["base_evidence"]
         writer = ExtensionRecordWriter(args.output_root, config_path=args.config,
             base_evidence=evidence, source_commit=commit, resume=args.resume)
         existing = {tuple(key) for key in prepared["completed_keys"]}
@@ -397,7 +484,10 @@ def main() -> int:
                  for index, (dataset, seed, condition) in enumerate(
                     (d, s, c) for d in config["datasets"] for s in config["seeds"] for c in config["conditions"])
                  if (dataset, condition, seed) not in existing]
-        controller = ExtensionExecutionController(writer=writer, ledger=ledger, phase_id=phase)
+        controller = ExtensionExecutionController(writer=writer, ledger=ledger, phase_id=phase,
+            control_root=control_root, legacy_control_root=args.output_root)
+        if preparer.pause_requested:
+            controller.request_normal_pause()
         result = controller.run_units(units, launch_authorized=True, formal_training_enabled=True,
                                       final_attempt_id=f"{prefix}_finalize", analysis_data_root=args.data_root)
         _exclusive_json(writer.root / "attempt_summaries" / f"{prefix}.json", result)

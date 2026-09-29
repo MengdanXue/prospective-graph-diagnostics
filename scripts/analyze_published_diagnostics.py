@@ -147,6 +147,41 @@ def analyze_complete_extension(*, base_root: Path, extension_root: Path,
     return analyses
 
 
+def analyze_complete_base(*, base_root: Path, base_config_path: Path,
+                          binding_path: Path, data_root: Path) -> dict[str, Any]:
+    """Evaluate the two published statistics before additional MLP training.
+
+    This is the same calibration adapter used after the extension. It cannot
+    accept a success summary in place of the complete checkpoint-bound run.
+    """
+    from scripts.validate_input_robustness_formal_records import validate_complete_run
+    source = Path(__file__).resolve().parents[1]
+    paths = {"base_complete": base_root / "complete.json", "base_manifest": base_root / "manifest.json",
+             "base_config": base_config_path, "data_binding": binding_path,
+             "analysis_script": Path(__file__), "metric_script": source / "scripts/published_graph_diagnostics.py"}
+    before = {name: file_digest(path) for name, path in paths.items()}
+    commit = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=source, text=True).strip()
+    print("validating the complete checkpoint-bound base for published metrics", flush=True)
+    base = validate_complete_run(base_root, config_path=base_config_path, data_binding_path=binding_path)
+    if base["record_count"] != 1540 or base["trial_count"] != 6160:
+        raise FormalRecordError("published base analysis requires all 1540 records and 6160 trials")
+    metric_records = compute_bound_metric_records(base["records"], data_root=data_root, binding_path=binding_path)
+    print("calibrating both training-label metrics in all 63 portfolios", flush=True)
+    results = adapt_published_records(base["records"], metric_records, include_optimistic=False)
+    if before != {name: file_digest(path) for name, path in paths.items()} or commit != subprocess.check_output(
+            ["git", "rev-parse", "HEAD"], cwd=source, text=True).strip():
+        raise FormalRecordError("published analysis evidence/source changed during execution")
+    results["mlp_trials"] = 4
+    results["metric_records"] = metric_records
+    results["provenance"] = {
+        "analysis_source_commit": commit, "base_run_id": base["run_id"],
+        "base_record_digest": base["record_digest"], "record_count": base["record_count"],
+        "trial_count": base["trial_count"],
+        "input_files": {name: {"path": str(path.resolve()), "sha256": before[name]} for name, path in paths.items()},
+    }
+    return results
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--base-root", type=Path, required=True)
