@@ -1,8 +1,10 @@
 # Prospective Graph Diagnostics
 
-This repository accompanies **Diagnostic Utility Depends on the Model Portfolio: A Frozen Graph-vs-MLP Decision Benchmark**. The current manuscript is prepared in the anonymous TMLR format in [`main_tmlr.tex`](main_tmlr.tex); it has not been submitted to TMLR. The original Neurocomputing manuscript is preserved in [`main_neurocomputing.tex`](main_neurocomputing.tex).
+This repository accompanies **Diagnostic Utility Depends on the Model Portfolio: A Frozen Graph-vs-MLP Decision Benchmark**. The current manuscript is prepared for Applied Intelligence in [`main_applied_intelligence.tex`](main_applied_intelligence.tex). The earlier TMLR submission, which received a desk rejection, remains in [`main_tmlr.tex`](main_tmlr.tex); the original Neurocomputing version remains in [`main_neurocomputing.tex`](main_neurocomputing.tex). This revision has not been submitted to Applied Intelligence.
 
-The study asks whether inexpensive diagnostics whose label-dependent graph statistics use training labels only can decide between a tuned graph-model portfolio and a tuned feature-only MLP. Under the frozen prospective protocol, the evaluated diagnostics do not reliably characterize when graph structure is useful. The TMLR revision examines how this result depends on the model portfolio, using explicitly post-hoc analyses of the retained records and bounded training diagnostics.
+The study evaluates graph-versus-MLP policies whose label-dependent graph statistics use training labels only. Under the frozen protocol, the combined rule and its declared fallback incur higher regret than always choosing the full graph portfolio. The manuscript examines the dependence of this comparison on the evaluated portfolios, fallback, and training choices through post-hoc analyses of retained records and bounded training diagnostics. It supports offline policy evaluation, with information requirements made explicit for each decision stage.
+
+The journal-facing supplement and every table's reconstruction inputs are documented in the [journal reconstruction index](docs/applied-intelligence/journal-reconstruction-index.md). It excludes internal submission preparations and uses a documented path-redacted copy of the bounded repeatability archive. The earlier full author companion remains preserved, with its [original reconstruction index](docs/applied-intelligence/reconstruction-index.md). The [provenance amendment](docs/applied-intelligence/provenance-amendment-2026-09-28.md) preserves the earlier appendix summary and explains the corrected audit-byte binding; all scientific fields remain unchanged.
 
 The scope is the [September 9 manuscript freeze](docs/submission_freeze_2026-09-09.md). Later eleven-dataset input-robustness preparation is separate work and supplies no results to this manuscript.
 
@@ -22,7 +24,8 @@ A separate degree-preserving intervention changes GCN accuracy by -45.5, -29.9, 
 
 ## Repository map
 
-- `main_tmlr.tex`, `sections_tmlr/`: current TMLR manuscript; shared sections remain in `sections/`.
+- `main_applied_intelligence.tex`, `sections_applied/`: current Applied Intelligence manuscript.
+- `main_tmlr.tex`, `sections_tmlr/`: preserved TMLR manuscript; shared historical sections remain in `sections/`.
 - `main_neurocomputing.tex`, `sections/`: preserved historical Neurocomputing manuscript.
 - `configs/`: frozen machine-readable benchmark specifications.
 - `experiments/`: prospective runner, models, diagnostics, evaluator, and degree-preserving intervention.

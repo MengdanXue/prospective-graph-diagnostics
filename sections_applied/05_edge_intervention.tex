@@ -3,7 +3,7 @@
 
 \subsection{Paired Intervention Design}
 
-We separately test whether GCN uses edge organization beyond degree on Cora, CiteSeer, and PubMed. This is auxiliary evidence about graph signal on the three citation networks; the largest diagnostic-loss settings involve different graphs and selected architectures. For each dataset and seed, verified double-edge swaps randomize the graph while preserving the complete node set, edge count, and degree of every node. The runner stores both edge lists and recomputes the simple-graph, self-loop, duplicate-edge, per-node-degree, connectivity, and homophily checks before training.
+We separately test whether GCN uses edge organization beyond degree on Cora, CiteSeer, and PubMed. This is auxiliary evidence about graph signal on the three citation networks; the largest diagnostic-loss settings involve different graphs and selected architectures. For each dataset and seed, verified double-edge swaps randomize the graph while preserving the complete node set, edge count, and degree of every node. The procedure completes five successful swaps per original edge, with randomization seed equal to the split seed plus 100,000. The runner stores both edge lists and recomputes the simple-graph, self-loop, duplicate-edge, per-node-degree, connectivity, and homophily checks before training.
 
 The original and randomized conditions use the same node features, labels, split, GCN architecture, and four-trial hyperparameter grid. They select hyperparameters independently by validation accuracy and evaluate the selected test state once. The paired estimand is randomized minus original test accuracy for the same dataset, split, and seed. This design isolates sensitivity to edge organization beyond the degree sequence, but it does not isolate a single changed property: swaps jointly alter class mixing, connectivity patterns, motifs, and higher-order neighborhoods.
 
@@ -11,7 +11,7 @@ The original and randomized conditions use the same node features, labels, split
 
 \begin{table}[t]
 \centering
-\caption{Degree-Preserving Edge-Randomization Results. Differences and confidence intervals are percentage points.}
+\caption{Degree-Preserving Edge-Randomization Results. Differences and confidence intervals are percentage points. Each interval is a percentile-bootstrap interval for the mean of ten paired seed differences within that dataset, using 10,000 resamples. It describes variation under the fixed dataset and specified randomization procedure; the three-dataset interval is reported separately in the text.}
 \label{tab:degree_intervention}
 \small
 \begin{tabular}{@{}lcccc@{}}

@@ -210,6 +210,51 @@ def load_dataset_metadata(data_root: Path, dataset_names: list[str]) -> dict[str
     return metadata
 
 
+def verify_audit_binding(summary: dict[str, Any], audit_bytes: bytes) -> None:
+    """Check the actual input bytes, including metadata irrelevant to scoring."""
+    observed = hashlib.sha256(audit_bytes).hexdigest()
+    declared = summary.get("provenance", {}).get("source_audit_sha256")
+    if declared != observed:
+        raise ValueError(f"source audit SHA-256 mismatch: declared {declared}, observed {observed}")
+
+
+def rebuild_from_retained_metadata(
+    audit_bytes: bytes,
+    retained_summary_bytes: bytes,
+    *,
+    audit_name: str,
+    retained_summary_name: str,
+    expected_seeds: int = 10,
+) -> dict[str, Any]:
+    """Recompute every score and require exact agreement with retained science.
+
+    Only the four dataset shape/count fields come from the historical summary.
+    Its old source hash is evidence to retain, not an authenticated input hash.
+    No dataset loader, model evaluation, or training is needed by this path.
+    """
+    previous = json.loads(retained_summary_bytes)
+    metadata = {
+        dataset: {key: row[key] for key in ("node_count", "edge_count", "class_count", "feature_count")}
+        for dataset, row in previous["datasets"].items()
+    }
+    summary = summarize_audit(json.loads(audit_bytes), metadata, expected_seeds=expected_seeds)
+    previous_science = {key: value for key, value in previous.items() if key != "provenance"}
+    if summary != previous_science:
+        raise ValueError("retained summary scientific fields differ from the rebuilt audit summary")
+    summary["provenance"] = {
+        "source_audit": audit_name,
+        "source_audit_sha256": hashlib.sha256(audit_bytes).hexdigest(),
+        "dataset_metadata_source": "retained_summary_dataset_counts; not reloaded from raw data",
+        "retained_metadata_summary": retained_summary_name,
+        "retained_metadata_summary_sha256": hashlib.sha256(retained_summary_bytes).hexdigest(),
+        "previous_declared_source_audit_sha256": previous["provenance"]["source_audit_sha256"],
+        "scientific_comparison": "exact equality of every top-level field except provenance",
+        "primary_evaluator_unchanged": True,
+    }
+    verify_audit_binding(summary, audit_bytes)
+    return summary
+
+
 def _write_exclusive(path: Path, payload: dict[str, Any]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("x", encoding="utf-8", newline="\n") as handle:
@@ -220,21 +265,34 @@ def _write_exclusive(path: Path, payload: dict[str, Any]) -> None:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--audit", type=Path, required=True)
-    parser.add_argument("--data-root", type=Path, required=True)
+    metadata_source = parser.add_mutually_exclusive_group(required=True)
+    metadata_source.add_argument("--data-root", type=Path)
+    metadata_source.add_argument(
+        "--metadata-summary", type=Path,
+        help="Retained appendix summary: reuse dataset counts and require exact scientific agreement",
+    )
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--expected-seeds", type=int, default=10)
     args = parser.parse_args()
     audit_bytes = args.audit.read_bytes()
-    audit = json.loads(audit_bytes)
-    dataset_names = sorted({str(unit["dataset"]) for unit in audit.get("units", [])})
-    metadata = load_dataset_metadata(args.data_root, dataset_names)
-    summary = summarize_audit(audit, metadata, expected_seeds=args.expected_seeds)
-    summary["provenance"] = {
-        "source_audit": args.audit.name,
-        "source_audit_sha256": hashlib.sha256(audit_bytes).hexdigest(),
-        "dataset_metadata_source": "read_only_pyg_cache",
-        "primary_evaluator_unchanged": True,
-    }
+    if args.metadata_summary:
+        summary = rebuild_from_retained_metadata(
+            audit_bytes, args.metadata_summary.read_bytes(),
+            audit_name=args.audit.name,
+            retained_summary_name=args.metadata_summary.as_posix(),
+            expected_seeds=args.expected_seeds,
+        )
+    else:
+        audit = json.loads(audit_bytes)
+        dataset_names = sorted({str(unit["dataset"]) for unit in audit.get("units", [])})
+        metadata = load_dataset_metadata(args.data_root, dataset_names)
+        summary = summarize_audit(audit, metadata, expected_seeds=args.expected_seeds)
+        summary["provenance"] = {
+            "source_audit": args.audit.name,
+            "source_audit_sha256": hashlib.sha256(audit_bytes).hexdigest(),
+            "dataset_metadata_source": "read_only_pyg_cache",
+            "primary_evaluator_unchanged": True,
+        }
     _write_exclusive(args.output, summary)
     print(json.dumps(summary, indent=2, sort_keys=True, allow_nan=False))
     return 0

@@ -231,14 +231,10 @@
     "combined_vs_homophily_primary_action_differences": 0
   },
   "provenance": {
-    "dataset_metadata_source": "retained_summary_dataset_counts; not reloaded from raw data",
-    "previous_declared_source_audit_sha256": "4bf33130bad67d2a6330abb1e3efb2ebf51b6fc6e50984b8c67d73610df0c131",
+    "dataset_metadata_source": "read_only_pyg_cache",
     "primary_evaluator_unchanged": true,
-    "retained_metadata_summary": "docs/applied-intelligence/provenance/reviewer_appendix_summary.pre-2026-09-28.json",
-    "retained_metadata_summary_sha256": "d826f13959469402862fcd96c4e39b8255bc9a4b75a60192dd1395793d28e7d2",
-    "scientific_comparison": "exact equality of every top-level field except provenance",
     "source_audit": "diagnostic_audit.json",
-    "source_audit_sha256": "3c5aa160ac420536fd3f0be58b880fc99b3fe5912215a54d149e4cb62905b3bd"
+    "source_audit_sha256": "4bf33130bad67d2a6330abb1e3efb2ebf51b6fc6e50984b8c67d73610df0c131"
   },
   "record_counts": {
     "datasets": 11,

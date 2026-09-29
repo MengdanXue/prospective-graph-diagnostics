@@ -40,13 +40,15 @@ Selection and test & Validation accuracy descending, validation loss ascending, 
 \end{tabular}
 \end{table}
 
-The split targets 60/20/20 for train/validation/test and is regenerated deterministically for seeds 0--9. Integer per-class floors and the requirement of at least one validation and two test examples make the realized proportions approximate, especially for small WebKB graphs; the actual counts are reported in the reproducibility summary. Every unit stores the source commit, canonical configuration digest, processed-data checksums, split identifier, four trial records, selected checkpoint, and environment provenance. The v1 and v2 JSON specifications differ only in the pre-outcome eligibility amendment described in Section~\ref{sec:prospective}; the later Squirrel amendment changes only the execution timeout.
+The split targets 60/20/20 for train/validation/test and is regenerated deterministically for seeds 0--9. Each class must contain at least three nodes, with at least one assigned to each of the training, validation, and test sets. Integer per-class floors make the realized proportions approximate, especially for small WebKB graphs; the actual counts are reported in the reproducibility summary. Every unit stores the source commit, canonical configuration digest, processed-data checksums, split identifier, four trial records, selected checkpoint, and environment provenance. The v1 and v2 JSON specifications differ only in the pre-outcome eligibility amendment described in Section~\ref{sec:prospective}; the later Squirrel amendment changes only the execution timeout.
 
 The frozen protocol in this section governs the original benchmark. Subsequent portfolio analyses are post-hoc, and the additional preprocessing and training diagnostics use separately recorded configurations and information boundaries. Their status and scope are identified where they are reported.
 
 \subsection{Decision-Time Information and Policies}
 
-Full node features and graph structure are available because they are model inputs. Label-dependent graph statistics may use training labels only. In particular, edge homophily uses edges whose endpoints are both labeled for training, and the two-hop statistic uses training-labeled endpoint pairs. We denote the resulting one-hop and path-weighted length-two endpoint agreement rates by $h_1$ and $h_2$, respectively. Validation accuracy is available because model tuning precedes the decision. Test labels, test accuracy, and any statistic computed from test labels are forbidden diagnostic inputs; the evaluator rejects records that violate this boundary.
+Full node features and graph structure are available because they are model inputs. Label-dependent statistics use the subgraph induced by training nodes. Edge homophily $h_1$ is the label-agreement fraction on its edges. For the two-hop statistic $h_2$, a center with training-subgraph degree $d_T$ is sampled with probability proportional to $d_T(d_T-1)$, then two distinct neighbors are sampled uniformly without replacement. All three nodes therefore belong to the training set. The estimate is the mean endpoint-label agreement over 50,000 sampled ordered length-two paths, using the split seed plus 200,000 as the NumPy generator seed. Paths may repeat across draws, and adjacent endpoints are included when they form a length-two path; this is a path-weighted statistic, not strict distance-two homophily. If no eligible edge or path exists, the corresponding statistic is missing. Test labels, test accuracy, and statistics computed from test labels are forbidden diagnostic inputs; the evaluator rejects records that violate this boundary.
+
+This is an offline audit of predictive decision utility: all candidate models are trained to supply common outcomes, and regret measures the test accuracy lost by selecting among them. Table~\ref{tab:diagnostic_policies} distinguishes each policy's required information and decision stage. An early family choice still requires fitting and selecting a model within that family. Validation selection provides a reference for decisions made after both families have been tuned. The evaluation measures accuracy loss and coverage; training-cost savings and deployment efficiency are outside its measured outcomes.
 
 Table~\ref{tab:diagnostic_policies} lists the nine policies. The Combined rule has an exploratory origin: its exact $0.55/0.40$ thresholds were fixed in the specification and scorer on 8 August 2026, after inspection of legacy aggregates and before generation of the primary records. The final 110 units were not used to adjust them. Appendix~\ref{app:execution_details} retains the threshold provenance; the scope is a pre-specified primary analysis rather than whole-project preregistration. The policy chooses graph when training-only edge homophily is at least $0.55$; below that threshold, it chooses MLP when MLP validation accuracy is at least $0.40$ and otherwise abstains. Missing inputs also cause abstention. For full-set evaluation, every abstention uses the same predeclared MLP fallback, while coverage remains separately visible.
 
@@ -56,22 +58,23 @@ For the descriptive regret--coverage curves, the frozen scorer maps a margin $v$
 
 \begin{table}[t]
 \centering
-\caption{Frozen Graph-vs-MLP Decision Policies}
+\caption{Frozen Graph-vs-MLP Decision Policies. Stages indicate when the listed inputs are available for the pre-fallback rule, including abstention and coverage. A trained predictor still requires within-family fitting and selection.}
 \label{tab:diagnostic_policies}
 \small
-\begin{tabular}{@{}lp{0.67\linewidth}@{}}
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{@{}>{\raggedright\arraybackslash}p{0.20\linewidth}>{\raggedright\arraybackslash}p{0.46\linewidth}>{\raggedright\arraybackslash}p{0.27\linewidth}@{}}
 \toprule
-Policy & Decision rule \\
+Policy & Decision rule & Information / stage \\
 \midrule
-Always-MLP & Select MLP for every unit. \\
-Always-graph & Select the validation-chosen graph model for every unit. \\
-Random 50/50 & Use the analytic expectation of equally likely graph and MLP actions. \\
-Homophily-only & Select graph when training-only edge homophily is at least $0.50$. \\
-Degree-only & Select graph when mean degree is at least $10$. \\
-Homophily+degree & Select graph when $\tfrac12(2h_1-1)+\tfrac12\tanh\!\left(\ln\!\frac{\max(d,10^{-12})}{10}\right)\geq0$, where $d$ is mean degree; otherwise select MLP. \\
-Two-hop-only & Select graph when training-only $h_2-h_1>0.05$. \\
-Combined & Apply the historical homophily/MLP-validation rule described in the text; otherwise abstain. \\
-Validation selection & Select graph when its validation advantage exceeds $\delta$. \\
+Always-MLP & Select MLP for every unit. & Fixed family / before fitting. \\
+Always-graph & Select the validation-chosen graph model for every unit. & Fixed family / before fitting. \\
+Random 50/50 & Use the analytic expectation of equally likely graph and MLP actions. & Random family / before fitting. \\
+Homophily-only & Select graph when training-only edge homophily is at least $0.50$. & Training-label $h_1$ / before fitting. \\
+Degree-only & Select graph when mean degree is at least $10$. & Graph degree / before fitting. \\
+Homophily+\allowbreak degree & Select graph when $\tfrac12(2h_1-1)$\newline $+\tfrac12\tanh\!\left(\ln\!\frac{\max(d,10^{-12})}{10}\right)\geq0$, where $d$ is mean degree; otherwise select MLP. & Training-label $h_1$ and degree / before fitting. \\
+Two-hop-only & Select graph when training-only $h_2-h_1>0.05$. & Training-label $h_1,h_2$ / before fitting. \\
+Combined & Apply the historical homophily/MLP-validation rule described in the text; otherwise abstain. & $h_1$ and MLP validation / after MLP tuning. \\
+Validation selection & Select graph when its validation advantage exceeds $\delta$. & Both families' validation results / after both are tuned. \\
 \bottomrule
 \end{tabular}
 \end{table}

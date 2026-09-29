@@ -5,6 +5,8 @@ This appendix reports descriptive heterogeneity and implementation details for r
 
 \subsection{Dataset Properties and Decision Heterogeneity}
 
+The companion's root README provides the table-to-input reconstruction index and distinguishes audit reaggregation, reconstruction from unit-level records, and retraining. It also identifies the retained evidence archives and the appendix provenance amendment.
+
 Table~\ref{tab:dataset_properties} reports graph properties after the common canonicalization step. Here, $|E|$ counts unique undirected non-loop edges, $h_1$ is the training-label edge-homophily statistic averaged over the ten splits, and $\Delta h=h_2-h_1$ uses the path-weighted two-hop statistic defined in Section~\ref{sec:protocol}.
 
 \begin{table}[ht]
@@ -115,7 +117,7 @@ GAT & Two \texttt{GATConv} layers: four concatenated attention heads in the firs
 GraphSAGE & Two mean-aggregating \texttt{SAGEConv} layers with root transforms, ReLU, and hidden dropout. No explicit self-loop edges or output normalization are added. \\
 H2GCN & Author implementation with a linear ReLU embedding and two propagation rounds over separately symmetrically normalized one-hop and strict two-hop adjacencies. All layer representations are concatenated, followed by dropout and a linear classifier; these fixed adjacencies contain no self-loops. \\
 LINKX & PyG \texttt{LINKX} with one sparse edge layer, two node-MLP layers, and two outer layers. The PyG MLP blocks use ReLU and BatchNorm on hidden transitions; selected dropout is applied in the final MLP. \\
-GPR-GNN & Author implementation with input dropout, linear--ReLU--dropout--linear prediction, and ten trainable PPR-initialized propagation coefficients ($\alpha=0.1$). Propagation uses GCN normalization with self-loops. \\
+GPR-GNN & Author implementation with input dropout, linear--ReLU--dropout--linear prediction, and ten propagation steps with eleven trainable PPR-initialized coefficients for orders zero through ten ($\alpha=0.1$). Propagation uses GCN normalization with self-loops. \\
 \bottomrule
 \end{tabular}
 \end{table}
