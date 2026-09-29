@@ -42,6 +42,33 @@ def analyze_fixture_extension(*, evidence, output, config_path):
 def execute_request(request):
     config = read_json(Path(request["config_path"]))
     _configure_runtime(config)
+    if request["operation"] == "existing_analysis":
+        from scripts.mlp_budget_extension_entry import validate_acceptance
+        from scripts.mlp_budget_extension import validate_extension_config
+        from scripts.input_robustness_sensitivity import run as run_sensitivity
+        from scripts.analyze_published_diagnostics import analyze_complete_base
+        validate_extension_config(config, read_json(Path(request["base_config_path"])))
+        validate_acceptance(Path(request["acceptance_path"]), config_path=Path(request["config_path"]),
+                            commit=request["source_commit"])
+        output = Path(request["output_root"])
+        sensitivity = output / "sensitivity.json"
+        published = output / "published_metrics.json"
+        if any(path.exists() for path in (sensitivity, published, output / "run_complete.json")):
+            raise FormalRecordError("existing-record analysis output must be fresh; preserve prior attempts")
+        run_sensitivity(Path(request["base_root"]), Path(request["base_config_path"]),
+                        Path(request["binding_path"]), Path(request["adapter_path"]),
+                        Path(request["inference_path"]), sensitivity)
+        result = analyze_complete_base(base_root=Path(request["base_root"]),
+            base_config_path=Path(request["base_config_path"]), binding_path=Path(request["binding_path"]),
+            data_root=Path(request["data_root"]))
+        _exclusive_json(published, result)
+        summary = {"status": "complete", "source_commit": request["source_commit"],
+                   "config_sha256": digest(config), "base_record_digest": result["provenance"]["base_record_digest"],
+                   "analysis_status": "post_hoc_existing_records", "research_training_started": False,
+                   "sensitivity": {"path": str(sensitivity.resolve()), "sha256": file_digest(sensitivity)},
+                   "published_metrics": {"path": str(published.resolve()), "sha256": file_digest(published)}}
+        _exclusive_json(output / "run_complete.json", summary)
+        return summary
     if request["operation"] == "prepare":
         from scripts.mlp_budget_extension_entry import validate_acceptance
         validate_acceptance(Path(request["acceptance_path"]), config_path=Path(request["config_path"]),

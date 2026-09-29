@@ -357,6 +357,24 @@ def _apply_event(state, kind, payload):
     elif kind == "dispatch_denied":
         _require(_identifier(payload["reason"]), "dispatch denial requires a reason")
         state["dispatch_denials"].append(payload["reason"])
+    elif kind == "reviewed_historical_control_charge":
+        # Reviewed old validation/analysis has no historical dual-clock trace.
+        # Preserve the evidence windows, charge only control/total, and retain
+        # every existing cap. This is never a refund or a new budget authority.
+        required = {"charge_id", "charge_ns", "source_spec_sha256", "review_record_sha256", "evidence_windows", "evidence"}
+        _require(set(payload) == required and _identifier(payload["charge_id"]), "invalid historical control charge")
+        _require(type(payload["charge_ns"]) is int and payload["charge_ns"] > 0, "historical control charge must be positive integer nanoseconds")
+        _require(_hex(payload["source_spec_sha256"]) and _hex(payload["review_record_sha256"]), "historical control charge requires source/review hashes")
+        windows, evidence = payload["evidence_windows"], payload["evidence"]
+        _require(isinstance(windows, list) and windows and all(isinstance(w, dict) and type(w.get("start_wall_ns")) is int and type(w.get("end_wall_ns")) is int and w["end_wall_ns"] > w["start_wall_ns"] for w in windows), "historical control charge requires real evidence windows")
+        _require(payload["charge_ns"] == sum(w["end_wall_ns"] - w["start_wall_ns"] for w in windows), "historical control charge differs from evidence windows")
+        _require(isinstance(evidence, list) and evidence and all(isinstance(e, dict) and _identifier(e.get("path")) and _hex(e.get("sha256")) for e in evidence), "historical control charge requires evidence hashes")
+        charges = state.setdefault("reviewed_historical_control_charges", {})
+        _require(payload["charge_id"] not in charges, "duplicate historical control charge")
+        _require(not any(a["outcome"] == "open" for a in state["attempts"].values()) and state["unfinished_close"] is None and state["pending_finalization_id"] is None, "historical control charge requires settled attempts")
+        charges[payload["charge_id"]] = copy.deepcopy(payload)
+        state["usage_ns"]["control"] += payload["charge_ns"]
+        state["usage_ns"]["total"] += payload["charge_ns"]
     else:
         raise BudgetIntegrityError(f"unknown budget journal event: {kind}")
 
