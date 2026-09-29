@@ -247,11 +247,49 @@ def _register_increment(base, target, spec_sha):
         os.fsync(stream.fileno())
 
 
+def _own_launcher_chain(own, *, max_hops=6, max_create_time_gap_seconds=2.0):
+    """PIDs of this invocation's own trusted Python launcher ancestors only.
+
+    A venv ``Scripts/python.exe`` on Windows is a real parent process that
+    spawns a separate base-interpreter child rather than replacing itself;
+    measured on the target machine the launcher/interpreter create_time gap
+    is ~0.03-0.1s, so 2s leaves wide margin without risking exempting an
+    old, unrelated, coincidentally-python ancestor (see
+    tests/test_active_research_processes.py, which pins this boundary with
+    a 5s-old ancestor that must still be reported).
+
+    The walk stops at the first ancestor that is not a python-named process
+    or whose create_time is not close to its child's, and never continues
+    past that point -- a non-python hop (shell, IDE, wsl.exe, ...) is never
+    leapfrogged to exempt something further up the chain.
+    """
+    import psutil
+    chain = set()
+    current = own
+    for _ in range(max_hops):
+        try:
+            parent = current.parent()
+        except (psutil.NoSuchProcess, psutil.AccessDenied):
+            break
+        if parent is None:
+            break
+        try:
+            name_is_python = "python" in (parent.name() or "").lower()
+            close_enough = abs(parent.create_time() - current.create_time()) <= max_create_time_gap_seconds
+        except (psutil.NoSuchProcess, psutil.AccessDenied):
+            break
+        if not (name_is_python and close_enough):
+            break
+        chain.add(parent.pid)
+        current = parent
+    return chain
+
+
 def active_research_processes():
     """Read process identities; absence does not establish historical exit time."""
     import psutil
     own = psutil.Process(os.getpid())
-    allowed = {own.pid, *(p.pid for p in own.children(recursive=True))}
+    allowed = {own.pid, *(p.pid for p in own.children(recursive=True)), *_own_launcher_chain(own)}
     found = []
     markers = ("scripts.run_input_robustness_formal", "scripts.input_robustness_formal_worker",
                "scripts.run_mlp_budget_supplement", "scripts.run_mlp24",
