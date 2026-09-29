@@ -1,0 +1,154 @@
+{
+  "schema_version": "1.0",
+  "run_id": "posthoc_input_robustness_11_v1",
+  "analysis_status": "post_hoc_training_recipe_robustness",
+  "design_date": "2026-09-13",
+  "stage": "design_resource_preflight_only",
+  "formal_training_enabled": false,
+  "parent_source_commit": "8847de65822552558144c4a472fd53fae4f021a0",
+  "parent_run_id": "route_a_prospective_v2",
+  "reference_config": "configs/prospective_benchmark_v2.json",
+  "reference_audit": "results/diagnostic/route_a_prospective_v2/analysis/diagnostic_audit.json",
+  "datasets": ["Cora", "CiteSeer", "PubMed", "Wisconsin", "Cornell", "Chameleon", "Squirrel", "Actor", "Roman-empire", "Amazon-ratings", "Coauthor-CS"],
+  "conditions": ["normalize_features", "normalize_centered_scaled"],
+  "seeds": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+  "models": ["MLP", "GCN", "GAT", "GraphSAGE", "H2GCN", "LINKX", "GPR-GNN"],
+  "eligibility": {
+    "minimum_class_count": 3,
+    "scope": "the complete original v2 set; Texas is outside this inherited 11-dataset scope",
+    "on_inapplicable_dataset": "stop with incomplete scope; no deletion, substitution, or alternate condition"
+  },
+  "split": {"train": 0.6, "validation": 0.2, "test": 0.2},
+  "training": {
+    "hidden_channels": 64,
+    "max_epochs": 500,
+    "patience": 100,
+    "weight_decay": 0.0005,
+    "trials": [
+      {"learning_rate": 0.01, "dropout": 0.5},
+      {"learning_rate": 0.01, "dropout": 0.7},
+      {"learning_rate": 0.005, "dropout": 0.5},
+      {"learning_rate": 0.005, "dropout": 0.7}
+    ],
+    "selection_order": ["validation_accuracy_desc", "validation_loss_asc", "trial_id_asc"],
+    "test_evaluations_after_selection": 1
+  },
+  "model_parameters": {
+    "GAT": {"heads": 4},
+    "H2GCN": {"propagation_layers": 2, "strict_two_hop": true},
+    "LINKX": {"num_layers": 2, "num_edge_layers": 1, "num_node_layers": 2},
+    "GPR-GNN": {"propagation_steps": 10, "alpha": 0.1, "initialization": "PPR"}
+  },
+  "transform": {
+    "implementation": "scripts.input_robustness_data.fit_transform_features_bounded; same historical formula and float64 training statistics, one training block at a time and chunked float32 output, with exact parity tests against scripts.run_mlp_optimization_diagnostic.fit_transform_features",
+    "normalization": "unchanged PyG NormalizeFeatures on the complete transductive feature matrix",
+    "fit_partition": "train_features_only",
+    "statistics_dtype": "float64",
+    "output_dtype": "float32",
+    "scale": "one scalar: sqrt(mean((raw_train - mean(raw_train, axis=0))**2)) / sqrt(mean((normalized_train - mean(normalized_train, axis=0))**2))",
+    "centering": "subtract normalized train column means from every node",
+    "epsilon": 1e-12,
+    "on_nonfinite_or_near_zero_rms": "fail; no clamp, per-column scaling, or condition substitution"
+  },
+  "diagnostics": {
+    "label_scope": "train_only",
+    "two_hop_walks": 50000,
+    "two_hop_estimand": "path_weighted_length_two_endpoint_agreement",
+    "exclude_identical_endpoints": true,
+    "uses_test_labels": false
+  },
+  "data_binding": {
+    "cache_policy": "read only; preserve original node ordering, labels, features, and graph version",
+    "required": ["original_release_manifest_sha256", "raw_file_sha256", "processed_file_sha256", "raw_feature_sha256", "label_sha256", "canonical_edge_sha256", "all_110_split_ids", "all_train_only_diagnostics", "transformed_feature_sha256_per_condition_seed", "fit_statistics_per_condition_seed"],
+    "on_missing_or_mismatch": "stop; no silent download, reprocessing, cleaned-graph replacement, or relaxed match"
+  },
+  "execution": {
+    "device": "cuda",
+    "model_devices": {"MLP": "cuda", "GCN": "cuda", "GAT": "cuda", "GraphSAGE": "cuda", "H2GCN": "cpu", "LINKX": "cuda", "GPR-GNN": "cuda"},
+    "device_policy": "fixed before preflight: H2GCN uses CPU for every dataset and condition; its CUDA sparse.mm path lacks a strict deterministic-dispatch guarantee; no runtime fallback",
+    "workers": 1,
+    "torch_num_threads": 4,
+    "torch_num_interop_threads": 1,
+    "deterministic_algorithms": true,
+    "deterministic_warn_only": false,
+    "cublas_workspace_config": ":4096:8",
+    "allow_tf32": false,
+    "cudnn_benchmark": false,
+    "cudnn_deterministic": true,
+    "hash_seed_before_worker_start": "same as the requested seed",
+    "on_unsupported_deterministic_operation": "fail; no warn-only mode, implementation substitution, or device fallback"
+  },
+  "preflight": {
+    "mode": "preflight_only",
+    "seed": 0,
+    "repeats": 2,
+    "training_steps": 3,
+    "all_configured_trials": true,
+    "retain_all_four_trial_states": true,
+    "expected_workers": 44,
+    "expected_model_trial_probes": 1232,
+    "validation_evaluations": 0,
+    "test_evaluations": 0,
+    "formal_records": 0,
+    "determinism_comparison": ["transformed_feature_sha256", "initial_state_sha256", "final_state_sha256", "final_gradient_sha256", "evaluation_logits_sha256"],
+    "timing_projection": "2 * [sum(max_repeat_mean_epoch_seconds across all model/trial/dataset/condition cells) * 500 * 10 + sum(max transform/setup seconds + max worker nontraining overhead seconds per dataset/condition) * 70 + sum(max H2 preparation seconds per dataset/condition) * 10]; bounded probe estimate, not a guaranteed upper bound",
+    "limitations": "seed 0 and three steps are a bounded deterministic/resource probe, not a proof for all ten seeds or 500 epochs"
+  },
+  "resource_budget": {
+    "preflight_wall_seconds": 7200,
+    "preflight_worker_wall_seconds": 1200,
+    "formal_model_unit_wall_seconds": 7200,
+    "formal_total_worker_wall_seconds": 604800,
+    "max_worker_rss_gib": 8,
+    "min_system_available_gib": 4,
+    "max_cuda_allocated_gib": 6,
+    "max_cuda_reserved_gib": 6,
+    "min_disk_free_gib": 20,
+    "on_cap_or_estimate_exceeded": "stop before formal launch or stop active execution; preserve incomplete artifacts and require a documented outcome-blind resource amendment"
+  },
+  "expected_records": 1540,
+  "expected_trials": 6160,
+  "expected_evaluation_units_per_condition": 110,
+  "expected_unique_diagnostic_units": 110,
+  "evaluator": {
+    "specification_version": "route_a_diagnostic_v1",
+    "practical_margin": 0.01,
+    "bootstrap": {"samples": 10000, "seed": 20260808},
+    "permutation": {"samples": 10000, "seed": 20260809},
+    "architecture_selection_order": ["validation_accuracy_desc", "model_id_asc"],
+    "abstention_fallback": "mlp",
+    "cross_condition_bootstrap_seed": 20260913,
+    "inference_status": "post hoc; dataset-level descriptive uncertainty, no independent confirmatory claim"
+  },
+  "sensitivity": {
+    "all_nonempty_graph_portfolios": 63,
+    "single_architecture_equal_trial_budget": true,
+    "leave_one_dataset_out_influence": true,
+    "fixed_exclusions": {
+      "without_webkb_pair": ["Cornell", "Wisconsin"],
+      "without_wikipedia_pair": ["Chameleon", "Squirrel"]
+    },
+    "graph_fallback_on_combined_abstention": true,
+    "exclusions_are_analysis_only": true
+  },
+  "calibration": {
+    "method": "leave_one_dataset_out",
+    "portfolios": ["GAT", "GCN", "GPR-GNN", "GraphSAGE", "H2GCN", "LINKX", "full"],
+    "threshold_grid": {"constants": [-1.0, 2.0], "inclusive_start": 0.0, "inclusive_stop": 1.0, "step": 0.01},
+    "tie_rule": "smallest threshold within 1e-12 of minimum equal-weight training-dataset mean raw regret",
+    "fit_scope": "other ten datasets within the same condition and fixed portfolio; selected-model test outcomes are explicit meta-training targets",
+    "heldout_scope": "held-out dataset outcomes never select its threshold",
+    "non_nested_limit": "condition and portfolio are fixed analysis strata, not nested-selected candidates; their prior post-hoc choice and overlapping dataset folds preclude independent confirmation"
+  },
+  "failure_and_resume": {
+    "automatic_retries": 0,
+    "write_policy": "atomic exclusive append-only output in a new run directory",
+    "resume_unit": "whole completed model unit; interrupted units remain incomplete",
+    "resume_requires": ["identical_config_digest", "identical_source_commit_and_file_hashes", "identical_environment_and_device", "identical_data_split_and_transform_bindings", "validation_of_every_existing_record_before_new_work", "no_unresolved_failure_artifacts"],
+    "failure_artifacts": "retain every failed attempt; a validated external-interruption resume requires an explicit attempt record, never deletion of failures",
+    "outcome_adaptation": "forbidden: no changed seeds, datasets, grid, conditions, architecture implementations, or selected favorable subset based on validation/test outcomes"
+  },
+  "launch_gates": ["complete_data_and_split_binding", "all_preflight_probes_pass", "determinism_hashes_match", "resource_caps_and_projected_budget_pass", "formal_runner_and_analysis_adapter_reviewed_and_tested", "clean_committed_source", "remote_sync_verified", "actual_ci_status_reported"],
+  "pairing": "both conditions retrain all seven original architectures with identical data, split, initialization seed, grid, runtime and device; never mix new MLP and historical graph records",
+  "inference": "post-hoc robustness of this candidate input treatment under the fixed 11-dataset training recipe; no universally optimal preprocessing or new independent confirmatory-validation claim"
+}

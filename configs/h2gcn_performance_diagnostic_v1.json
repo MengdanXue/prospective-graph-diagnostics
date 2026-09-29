@@ -1,0 +1,139 @@
+{
+  "schema_version": "1.0",
+  "run_id": "h2gcn_cpu_performance_v1",
+  "phase": "performance_diagnostic_only",
+  "analysis_status": "post_hoc_training_recipe_robustness",
+  "design_date": "2026-09-14",
+  "formal_training_enabled": false,
+  "parent_config": "configs/input_robustness_11_v1.json",
+  "parent_config_sha256": "55657a1cf20521333fd4120b48e12d904fc13a4b41a06c7f2f20a3fd658496ef",
+  "resource_profile": "results/diagnostic/posthoc_input_robustness_11_v1/preflight/resource_profile.json",
+  "resource_profile_sha256": "31168a93a594f521269bd88aa93e29600394fd3987a62d0e22dcacb1f97a13f4",
+  "data_binding": "results/diagnostic/posthoc_input_robustness_11_v1/preflight/data_binding.json",
+  "data_binding_sha256": "01c2a5692a1c3c00fa9e6d27657ee6ad5347a559ad81a7fd41ae1962efc61ab7",
+  "base_preserved_commit": "8847de65822552558144c4a472fd53fae4f021a0",
+  "selection": {
+    "datasets": ["Squirrel", "Actor"],
+    "trial_ids": {"Squirrel": "trial_000", "Actor": "trial_001"},
+    "trials": {
+      "Squirrel": {"learning_rate": 0.01, "dropout": 0.5},
+      "Actor": {"learning_rate": 0.01, "dropout": 0.7}
+    },
+    "dataset_rule": "top two descending sums of v2 H2GCN measured_seconds_per_epoch over both conditions and all four trials; dataset name ascending breaks ties",
+    "trial_rule": "within each selected dataset take the original trial with largest summed v2 measured_seconds_per_epoch over both conditions; original trial_id ascending breaks ties",
+    "dataset_cost_seconds": {"Squirrel": 39.14996983326274, "Actor": 13.518469099964326},
+    "selected_trial_cost_seconds": {"Squirrel": 9.992672833323013, "Actor": 3.7434771333355457},
+    "ranking_limit": "ranking uses the existing three-step v2 probe only; Actor and third-ranked Coauthor-CS are close, so it does not identify a general worst-case ordering or a causal adjacency bottleneck",
+    "scope_note": "timing fixtures only; does not reduce the formal eleven-dataset, two-condition, seven-model, ten-seed, four-trial scope"
+  },
+  "conditions": ["normalize_features", "normalize_centered_scaled"],
+  "model": "H2GCN",
+  "seed": 0,
+  "cpu_threads": [1, 4, 8],
+  "checkpoint_modes": ["full_state_copy", "static_adjacency_once"],
+  "repeats": 2,
+  "steps": {"total": 10, "cold": [0], "warmup": [1, 2], "steady": [3, 4, 5, 6, 7, 8, 9]},
+  "worker_order": {
+    "first_repeat": "nested dataset order, condition order, cpu_thread_order, checkpoint_mode order",
+    "cpu_thread_order": [4, 1, 8],
+    "second_repeat": "reverse the entire first-repeat 24-worker sequence"
+  },
+  "execution": {
+    "device": "cpu",
+    "cuda_visible_devices": "-1",
+    "cuda_startup_guard": "set CUDA_VISIBLE_DEVICES=-1 before importing Torch in each fresh interpreter; reject visible GPUs or initialized CUDA before measurement and after the probe",
+    "workers": 1,
+    "torch_num_interop_threads": 1,
+    "deterministic_algorithms": true,
+    "deterministic_warn_only": false,
+    "architecture": "unchanged original H2GCNModel and original CPU sparse COO adjacencies",
+    "forbidden_changes": ["CSR substitution", "precision change", "architecture change", "feature-condition change", "optimizer change", "CUDA fallback"]
+  },
+  "training": {
+    "hidden_channels": 64,
+    "optimizer": "Adam",
+    "weight_decay": 0.0005,
+    "label_scope": "train_only",
+    "checkpoint_schedule": "one snapshot after every optimization step; replace slot step modulo four; no score-based checkpoint selection",
+    "retained_checkpoint_slots": 4,
+    "checkpoint_prefills": 0,
+    "static_buffer_names": ["one_hop", "two_hop"],
+    "full_state_copy": "clone every original model state_dict tensor for each snapshot",
+    "static_adjacency_once": "clone the two immutable adjacency buffers once per worker and share read-only references; independently clone all remaining state tensors for each snapshot",
+    "restore_semantics": "reconstruct the complete original state_dict from each slot; optimizer state is audited but is not added to the original model-checkpoint definition"
+  },
+  "timing": {
+    "one_time_components": ["input_load_and_binding", "feature_transform", "adjacency_preparation", "model_setup", "adam_setup", "static_adjacency_snapshot", "initial_static_hash"],
+    "step_components": ["zero_grad", "train_forward", "train_loss", "backward", "optimizer_update", "unscored_eval_forward", "checkpoint_parameter_copy", "checkpoint_static_copy", "correctness_hash_instrumentation", "json_serialization", "exclusive_write_and_fsync"],
+    "step_total": "end-to-end wall time including identical per-step audit/recording tasks in both modes; separately report compute-only subtotal and each component",
+    "post_trajectory_components": ["checkpoint_restore_validation", "cross_thread_audit_serialization", "final_record_write_and_fsync"],
+    "additional_step_components": ["rng_capture", "gradient_finite_check", "output_finite_check", "audit_array_copy"],
+    "nested_component_groups": {
+      "checkpoint_store_setup": ["static_adjacency_snapshot", "initial_static_hash", "initial_checkpoint_schema_validation", "initial_static_boundary_validation"],
+      "checkpoint_total": ["checkpoint_parameter_copy", "checkpoint_static_copy"],
+      "correctness_hash_instrumentation": ["static_buffer_hash", "dense_state_hash"]
+    },
+    "no_double_counting": "report parent and nested timings separately; sum only nonoverlapping parent components when reconciling end-to-end step and worker time",
+    "worker_reconciliation": "report coordinator-observed whole-worker wall, accounted nonoverlapping setup/step/post-trajectory time, unattributed worker residual, final record write, and launch/import/completion/coordinator residual separately",
+    "steady_summary": "median of steps 3 through 9 within each worker; use the slower of two independent repeat medians for every dataset-condition-thread-mode fixture",
+    "cold_and_warmup": "report step 0 and steps 1-2 separately; never discard or reclassify a slow step after observing timing"
+  },
+  "resource_budget": {
+    "total_wall_seconds": 7200,
+    "worker_wall_seconds": 900,
+    "max_worker_rss_gib": 8,
+    "min_system_available_gib": 4,
+    "min_disk_free_gib": 20,
+    "max_cuda_allocated_bytes": 0,
+    "memory_scope": "entire owned worker process tree including Windows high-water memory",
+    "all_attempts_count_against_total": true
+  },
+  "correctness": {
+    "rtol": 0.00001,
+    "atol": 0.000001,
+    "within_thread_between_modes": "bitwise-identical ten-step dense parameter, gradient, Adam-state, training-loss, training-logit and unscored-logit trajectories, with exact RNG states before and after every step",
+    "within_setting_between_fresh_repeats": "bitwise-identical ten-step trajectories and checkpoint fingerprints",
+    "across_threads": "each non-four-thread setting compared with four threads in the same condition/mode/repeat at every step: all dense parameters, gradients, Adam state, training loss, training logits and unscored logits satisfy fixed allclose tolerances",
+    "rng_state": "integer RNG state arrays before and after every step must match exactly in all comparisons, including across threads; never apply floating tolerances to RNG states",
+    "static_adjacency": "exact invariant hashes across steps, both checkpoint modes, all retained slots and restored checkpoints",
+    "checkpoint_restoration": "after the complete ten-step trajectory, restore retained snapshots and require identical complete-state and unscored-output behavior; do not perturb the training RNG stream",
+    "finite_values_required": true,
+    "on_failure": "retain and report; reject the setting; never relax tolerances or substitute seeds"
+  },
+  "qualification": {
+    "reference": {"cpu_threads": 4, "checkpoint_mode": "full_state_copy"},
+    "candidate_unit": "one fixed joint cpu-thread/checkpoint-mode setting across all four dataset-condition fixtures",
+    "requires_all_four_fixtures": ["complete fixed scope", "correctness checks pass", "fresh repeats match bitwise", "resource caps pass"],
+    "minimum_geometric_speed_ratio": 1.10,
+    "maximum_fixture_time_ratio": 1.10,
+    "geometric_speed_ratio": "exp(mean(log(reference_slower_repeat_steady_median / candidate_slower_repeat_steady_median))) with four fixtures equally weighted",
+    "fixture_time_ratio": "candidate_slower_repeat_steady_median / reference_slower_repeat_steady_median",
+    "tie_order": ["geometric_speed_ratio_desc", "maximum_process_tree_rss_asc", "cpu_threads_asc", "checkpoint_mode_asc"],
+    "if_any_qualify": "recommend adopting the verified execution setting within the measured scope, subject to later fixed all-eleven acceptance before formal use",
+    "if_none_qualify_or_scope_incomplete": "recommend retaining the existing implementation and revising the proposed resource budget",
+    "selection_inputs": "timing, memory, correctness and repeatability only; no accuracy-based choice"
+  },
+  "expected_workers": 48,
+  "expected_optimization_steps": 480,
+  "expected_fresh_repeat_pairs": 24,
+  "validation_evaluations": 0,
+  "test_evaluations": 0,
+  "formal_records": 0,
+  "failure_and_resume": {
+    "rounds": 1,
+    "automatic_retries": 0,
+    "writes": "exclusive append-only files in a new diagnostic directory; preserve every interrupted/failed attempt",
+    "stop_on_resource_breach": true,
+    "no_post_observation_expansion": "no added datasets, threads, modes, trials, steps or substitute implementations in this round",
+    "resume_note": "no automatic diagnostic resume; formal stop/resume rules are a separate proposed budget item for user confirmation"
+  },
+  "launch_gates": ["meaningful tests pass", "clean source committed and pushed", "same-SHA CI all three jobs successful", "CI receipt saved and hashed into diagnostic manifest", "input/config/source hashes match"],
+  "ci_receipt": {"required_cli_argument": "--ci-receipt", "requires_current_head_sha": true, "required_successful_jobs": 3},
+  "formal_budget_proposal": {
+    "user_confirmation_required": true,
+    "must_specify": ["total cumulative runtime ceiling including attempts", "single-model four-trial ceiling", "batch arrangement and batch ceiling", "stop rules", "resume and provenance rules"],
+    "do_not_change_parent_caps_or_formal_switch": true,
+    "extrapolation": "do not replace the all-eleven v2 estimate by two-fixture speed ratios; retain v2 all-eleven budget evidence until a later complete resource acceptance"
+  },
+  "inference": "one bounded post-hoc CPU execution diagnostic; no accuracy conclusion, independent confirmation, universal speedup or previously assumed bottleneck mechanism"
+}
