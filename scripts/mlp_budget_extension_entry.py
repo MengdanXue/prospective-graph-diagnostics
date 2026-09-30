@@ -11,6 +11,7 @@ import os
 from pathlib import Path
 import subprocess
 import sys
+import time
 from types import SimpleNamespace
 from typing import Any, Iterable, Mapping
 
@@ -39,10 +40,104 @@ ACCEPTANCE_SOURCES = (
 )
 
 
+WORKER_ARTIFACT_SUFFIXES = (".pt", ".json", ".log", ".supervision.json")
+PREFLIGHT_SCHEMA = "mlp24-environment-preflight/1"
+
+
+class EnvironmentPreflightError(FormalRecordError):
+    def __init__(self, message: str, *, evidence: Mapping[str, Any]):
+        super().__init__(message)
+        self.evidence = dict(evidence)
+
+
 def control_directory(output_root: Path) -> Path:
     """Stable sibling controls can be requested before the immutable output exists."""
     output_root = Path(output_root)
     return output_root.parent / f"{output_root.name}_control"
+
+
+def attempt_prefix(ledger: Any) -> str:
+    """Segment-qualified prefix; a bare event count repeats in every new segment."""
+    return f"mlp24_s{int(ledger.segment_sequence):03d}e{int(ledger.head['event_count'])}"
+
+
+def unit_attempt_id(prefix: str, ordinal: int, *, retry_ordinal: int | None = None) -> str:
+    identity_ = f"{prefix}_u{int(ordinal):06d}"
+    return identity_ if retry_ordinal is None else f"{identity_}_retry{int(retry_ordinal)}"
+
+
+def _known_attempt_ids(ledger: Any) -> set[str]:
+    known = getattr(ledger, "known_attempt_ids", None)
+    return set(known()) if callable(known) else set(ledger.snapshot()["attempts"])
+
+
+def assert_fresh_attempt_identity(attempt_id: str, *, ledger: Any, roots: Iterable[Path]) -> None:
+    """Refuse a reused identity before any budget attempt, charge or failed outcome."""
+    conflicts = ["budget ledger attempt"] if attempt_id in _known_attempt_ids(ledger) else []
+    for root in map(Path, roots):
+        conflicts += [str(path) for path in (
+            *(root / "workers" / f"{attempt_id}{suffix}" for suffix in WORKER_ARTIFACT_SUFFIXES),
+            root / "failures" / f"{attempt_id}.json") if path.exists()]
+    if conflicts:
+        raise FormalRecordError(f"attempt identity collision for {attempt_id}: " + "; ".join(conflicts))
+
+
+def runtime_environment_probe(device: str) -> dict[str, Any]:
+    """Read the actual interpreter; never initialize CUDA on a build without it."""
+    import platform
+    facts: dict[str, Any] = {
+        "sys_executable": sys.executable, "python": platform.python_version(), "torch": torch.__version__,
+        "torch_cuda": torch.version.cuda, "cuda_available": False, "device_count": 0, "cuda_device": None,
+        "environment_snapshot": None}
+    if torch.version.cuda is not None:
+        facts["cuda_available"] = bool(torch.cuda.is_available())
+        if facts["cuda_available"]:
+            facts["device_count"] = int(torch.cuda.device_count())
+            facts["cuda_device"] = torch.cuda.get_device_name(0)
+    if device == "cpu" or facts["cuda_available"]:
+        from experiments.run_prospective_benchmark import environment_snapshot
+        facts["environment_snapshot"] = environment_snapshot(torch.device(device))
+    return facts
+
+
+def formal_environment_preflight(config: Mapping[str, Any], base_root: Path, *,
+                                 probe=None) -> dict[str, Any]:
+    """Compare the real interpreter with the frozen device policy and base records.
+
+    This runs before any budget phase or attempt exists. The unit trainer later
+    applies the same record-environment equality; failing here costs no budget.
+    """
+    base_root = Path(base_root)
+    device = config["execution"]["model_devices"]["MLP"]
+    facts = (probe or runtime_environment_probe)(device)
+    manifest_environment = read_json(base_root / "manifest.json").get("environment", {})
+    record_environments: list[Any] = []
+    for path in sorted((base_root / "records").glob("*/*/MLP/*.json")):
+        environment = read_json(path).get("environment")
+        if environment not in record_environments:
+            record_environments.append(environment)
+    evidence = {"schema_version": PREFLIGHT_SCHEMA, "model_devices": {"MLP": device}, "runtime": facts,
+                "base_manifest_environment": manifest_environment,
+                "base_record_environments": record_environments}
+    reasons = []
+    if device not in {"cuda", "cpu"}:
+        reasons.append(f"unsupported MLP device policy {device!r}")
+    if device == "cuda":
+        if facts.get("torch_cuda") is None:
+            reasons.append("CPU-only PyTorch build for the frozen MLP=cuda policy")
+        elif facts.get("cuda_available") is not True or int(facts.get("device_count") or 0) < 1:
+            reasons.append("CUDA unavailable for the frozen MLP=cuda policy")
+    if len(record_environments) != 1 or not isinstance(record_environments[0], dict):
+        reasons.append("base MLP records do not share exactly one environment")
+    if not reasons:
+        keys = ("python", "torch", "torch_cuda", "cuda_available", "cuda_device") if device == "cuda" else ("python", "torch")
+        reasons += [f"runtime {key} differs from the base manifest" for key in keys
+                    if key in manifest_environment and manifest_environment[key] != facts.get(key)]
+        if facts.get("environment_snapshot") != record_environments[0]:
+            reasons.append("runtime environment snapshot differs from the base MLP records")
+    if reasons:
+        raise EnvironmentPreflightError("; ".join(reasons), evidence={**evidence, "status": "refused", "reasons": reasons})
+    return {**evidence, "status": "passed", "reasons": []}
 
 
 def validate_cumulative_attempts(snapshot: Mapping[str, Any], *, unit_id: str,
@@ -118,6 +213,7 @@ class ExtensionExecutionController(FormalExecutionController):
         started = False
         try:
             self._monitor()
+            self._assert_fresh(attempt_id)
             self.ledger.begin_attempt(attempt_id, activity_id=activity_id, phase_id=self.runner.phase_id,
                                       budget_group="control", estimated_seconds=0.0)
             started = True
@@ -138,6 +234,9 @@ class ExtensionExecutionController(FormalExecutionController):
                 self.power_watcher.stop()
             finally:
                 self.power_request.release()
+
+    def _assert_fresh(self, attempt_id: str) -> None:
+        assert_fresh_attempt_identity(attempt_id, ledger=self.ledger, roots=(self.writer.root,))
 
     def _child(self, request: Mapping[str, Any], *, attempt_id: str,
                cap_seconds: float = 28800) -> dict[str, Any]:
@@ -187,6 +286,7 @@ class ExtensionExecutionController(FormalExecutionController):
                 dataset, seed, condition = request["dataset"], int(request["seed"]), request["condition"]
                 unit_id = f"unit_{dataset}_{condition}_MLP_{seed:03d}"
                 batch_id = f"pair_{dataset}_seed_{seed:03d}_MLP"
+                self._assert_fresh(attempt)
                 self.ledger.begin_attempt(
                     attempt, activity_id=f"mlp24_{unit_id}", phase_id=self.runner.phase_id,
                     budget_group="formal", estimated_seconds=self.writer.evidence["unit_estimates_seconds"][
@@ -222,6 +322,7 @@ class ExtensionExecutionController(FormalExecutionController):
             if status == "completed" and finalize:
                 if not final_attempt_id:
                     raise FormalRecordError("final validation requires a unique accounted attempt identity")
+                self._assert_fresh(final_attempt_id)
                 self.ledger.begin_attempt(final_attempt_id, activity_id=f"{final_attempt_id}_validation",
                     phase_id=self.runner.phase_id, budget_group="control", estimated_seconds=0.0)
                 try:
@@ -430,6 +531,18 @@ def main() -> int:
     if (read_json(args.acceptance_record).get("source_commit") != commit
             or read_json(args.acceptance_record).get("config_sha256") != digest(config)):
         raise FormalRecordError("acceptance source/config differs before preparation")
+    preflight_reference = None
+    if not args.existing_analysis:
+        # Refuse a wrong interpreter before a budget phase, attempt or charge exists.
+        preflight_directory = args.output_root.parent / f"{args.output_root.name}_environment_preflight"
+        try:
+            preflight = formal_environment_preflight(config, args.base_root)
+        except EnvironmentPreflightError as exc:
+            _exclusive_json(preflight_directory / f"refused_{time.time_ns()}.json", exc.evidence)
+            raise SystemExit(f"extension launch refused before budget registration: {exc}") from exc
+        preflight_path = preflight_directory / f"passed_{time.time_ns()}.json"
+        _exclusive_json(preflight_path, preflight)
+        preflight_reference = {"path": str(preflight_path.resolve()), "sha256": file_digest(preflight_path)}
     with open_inherited_ledger(args.budget_handoff, args.budget_ledger, base_root=args.base_root.parent,
                               expected_config_sha=digest(config), expected_source_commit=commit,
                               required_inventory_roots=config["budget"]["inventory_roots"], resume=args.resume) as ledger:
@@ -439,10 +552,11 @@ def main() -> int:
             "data_binding_sha256": file_digest(args.binding),
             "source_files": {f"scripts/{name}.py": file_digest(ROOT / "scripts" / f"{name}.py")
                              for name in ("mlp_budget_extension", "mlp_budget_extension_entry", "mlp_budget_extension_worker")},
-            "environment": _environment_binding(),
+            "environment": {**_environment_binding(), **(
+                {"formal_environment_preflight": preflight_reference} if preflight_reference else {})},
         }, gate_receipt={"ci_receipt_file_sha256": file_digest(args.ci_receipt),
                         "review_record_sha256": file_digest(args.acceptance_record), "ci_receipt": ci})
-        prefix = f"mlp24_{ledger.head['event_count']}"
+        prefix = attempt_prefix(ledger)
         if args.existing_analysis:
             if args.output_root.exists():
                 raise FormalRecordError("refusing to reuse or overwrite an existing analysis output")
@@ -464,6 +578,8 @@ def main() -> int:
             print(json.dumps(result, sort_keys=True))
             return 0
         scratch = args.output_root.parent / f"{args.output_root.name}_preparation_{prefix}"
+        if scratch.exists():
+            raise FormalRecordError(f"attempt identity collision: preparation scratch already exists: {scratch}")
         control_root = control_directory(args.output_root)
         proxy = SimpleNamespace(root=scratch, config=config, synthetic=False)
         preparer = ExtensionExecutionController(writer=proxy, ledger=ledger, phase_id=phase,
@@ -478,12 +594,20 @@ def main() -> int:
         writer = ExtensionRecordWriter(args.output_root, config_path=args.config,
             base_evidence=evidence, source_commit=commit, resume=args.resume)
         existing = {tuple(key) for key in prepared["completed_keys"]}
-        # Ledger event sequence disambiguates attempts across reviewed resumes.
-        units = [{"dataset": dataset, "seed": seed, "condition": condition,
-                  "attempt_id": f"{prefix}_{index:06d}", "data_root": str(args.data_root.resolve())}
-                 for index, (dataset, seed, condition) in enumerate(
-                    (d, s, c) for d in config["datasets"] for s in config["seeds"] for c in config["conditions"])
-                 if (dataset, condition, seed) not in existing]
+        # Segment sequence and event count disambiguate attempts across segments
+        # and reviewed resumes; an authorized retry uses its bound identity.
+        authorized = ledger.snapshot().get("retry_authorizations", {})
+        units = []
+        for index, (dataset, seed, condition) in enumerate(
+                (d, s, c) for d in config["datasets"] for s in config["seeds"] for c in config["conditions"]):
+            if (dataset, condition, seed) in existing:
+                continue
+            retry = authorized.get(f"unit_{dataset}_{condition}_MLP_{seed:03d}")
+            units.append({"dataset": dataset, "seed": seed, "condition": condition,
+                          "attempt_id": retry["retry_attempt_id"] if retry else unit_attempt_id(prefix, index),
+                          "data_root": str(args.data_root.resolve())})
+        for attempt_id in [row["attempt_id"] for row in units] + [f"{prefix}_finalize"]:
+            assert_fresh_attempt_identity(attempt_id, ledger=ledger, roots=(args.output_root,))
         controller = ExtensionExecutionController(writer=writer, ledger=ledger, phase_id=phase,
             control_root=control_root, legacy_control_root=args.output_root)
         if preparer.pause_requested:

@@ -404,10 +404,20 @@ class InheritedLedger:
         self._closed = False
         registered, self._index_head = _increment_index(inherited["budget_base_root"])
         _require(self.path.resolve() in registered, "active increment is absent from shared index")
+        self._segment_sequence = registered.index(self.path.resolve())
 
     @property
     def path(self):
         return self._ledger.path
+
+    @property
+    def segment_sequence(self):
+        """Position in the shared append-only increment index; never reused."""
+        return self._segment_sequence
+
+    def known_attempt_ids(self):
+        inherited = {name for source in self._inherited["sources"] for name in source["attempts"]}
+        return inherited | set(self._ledger.snapshot()["attempts"])
 
     @property
     def head(self):
