@@ -141,6 +141,13 @@ def formal_environment_preflight(config: Mapping[str, Any], base_root: Path, *,
     return {**evidence, "status": "passed", "reasons": []}
 
 
+def preflight_identity(preflight: Mapping[str, Any]) -> str:
+    """Canonical digest of the environment facts; artifact paths and times are excluded."""
+    return digest({key: preflight[key] for key in (
+        "schema_version", "model_devices", "runtime", "base_manifest_environment", "base_record_environments",
+        "status")})
+
+
 def validate_cumulative_attempts(snapshot: Mapping[str, Any], *, unit_id: str,
                                  attempt_ids: list[str]) -> dict[str, Any]:
     """Check the journal's integer nanoseconds; seconds are display-only."""
@@ -538,6 +545,10 @@ def main() -> int:
     parser.add_argument("--acceptance-record", type=Path)
     parser.add_argument("--execute", action="store_true")
     parser.add_argument("--resume", action="store_true")
+    parser.add_argument("--authorize-only", action="store_true",
+                        help="Stage 1 of a reviewed retry: new segment, phase and authorization; no attempt")
+    parser.add_argument("--new-output-root", action="store_true",
+                        help="Stage 2 of a reviewed retry: reopen the segment (--resume) but write a new output")
     parser.add_argument("--existing-analysis", action="store_true",
                         help="Run the two existing-record additions under this guardian, with no training")
     parser.add_argument("--prior-adapter", type=Path)
@@ -560,6 +571,10 @@ def main() -> int:
     for name in ("budget_handoff", "budget_ledger", "ci_receipt", "acceptance_record", "data_root", "output_root"):
         if getattr(args, name) is None:
             errors.append(f"missing --{name.replace('_', '-')}")
+    if args.authorize_only and (args.resume or args.new_output_root or args.existing_analysis):
+        errors.append("--authorize-only creates a new segment and runs nothing else")
+    if args.new_output_root and (not args.resume or args.existing_analysis):
+        errors.append("--new-output-root reopens an authorized segment; it requires --resume")
     if args.existing_analysis:
         if args.resume:
             errors.append("existing-record analysis uses a fresh output; preserve interrupted attempts")
@@ -573,6 +588,8 @@ def main() -> int:
         return 0
     if errors:
         raise SystemExit("extension launch refused: " + "; ".join(errors))
+    if args.new_output_root and args.output_root.exists():
+        raise FormalRecordError("the new output root already exists; an output is never reused or overwritten")
     from scripts.supplement_budget_handoff import open_inherited_ledger
     commit = _source_commit()
     ci = strict_ci_gate(args.ci_receipt, commit)
@@ -589,9 +606,9 @@ def main() -> int:
         except EnvironmentPreflightError as exc:
             _exclusive_json(preflight_directory / f"refused_{time.time_ns()}.json", exc.evidence)
             raise SystemExit(f"extension launch refused before budget registration: {exc}") from exc
-        preflight_path = preflight_directory / f"passed_{time.time_ns()}.json"
-        _exclusive_json(preflight_path, preflight)
-        preflight_reference = {"path": str(preflight_path.resolve()), "sha256": file_digest(preflight_path)}
+        # The timestamped artifact is evidence only; the phase binds its stable content identity.
+        _exclusive_json(preflight_directory / f"passed_{time.time_ns()}.json", preflight)
+        preflight_reference = preflight_identity(preflight)
     with open_inherited_ledger(args.budget_handoff, args.budget_ledger, base_root=args.base_root.parent,
                               expected_config_sha=digest(config), expected_source_commit=commit,
                               required_inventory_roots=config["budget"]["inventory_roots"], resume=args.resume) as ledger:
@@ -602,7 +619,7 @@ def main() -> int:
             "source_files": {f"scripts/{name}.py": file_digest(ROOT / "scripts" / f"{name}.py")
                              for name in ("mlp_budget_extension", "mlp_budget_extension_entry", "mlp_budget_extension_worker")},
             "environment": {**_environment_binding(), **(
-                {"formal_environment_preflight": preflight_reference} if preflight_reference else {})},
+                {"formal_environment_preflight_sha256": preflight_reference} if preflight_reference else {})},
         }, gate_receipt={"ci_receipt_file_sha256": file_digest(args.ci_receipt),
                         "review_record_sha256": file_digest(args.acceptance_record), "ci_receipt": ci})
         prefix = attempt_prefix(ledger)
@@ -619,6 +636,18 @@ def main() -> int:
             retry_id = unit_attempt_id(prefix, ordinals[row["unit_id"]], retry_ordinal=1)
             assert_fresh_attempt_identity(retry_id, ledger=ledger, roots=(args.output_root,))
             ledger.authorize_failure_retry(row["review_record_sha256"], retry_attempt_id=retry_id, phase_id=phase)
+        if args.authorize_only:
+            if not granted:
+                raise FormalRecordError("--authorize-only requires a granted reviewed retry in the handoff")
+            print(json.dumps({"status": "retry_authorized", "segment": str(ledger.path),
+                              "segment_sequence": ledger.segment_sequence,
+                              "retry_authorizations": ledger.snapshot()["retry_authorizations"]}, sort_keys=True))
+            return 0
+        if args.new_output_root and not any(row["consumed_by"] is None for row in
+                                            ledger.snapshot().get("retry_authorizations", {}).values()):
+            raise FormalRecordError("--new-output-root is only for an authorized, not yet started retry")
+        # Stage 2 reopens the ledger but never the earlier output.
+        output_resume = args.resume and not args.new_output_root
         if args.existing_analysis:
             if args.output_root.exists():
                 raise FormalRecordError("refusing to reuse or overwrite an existing analysis output")
@@ -650,11 +679,11 @@ def main() -> int:
         prepared = preparer.run_preparation({"operation": "prepare", "config_path": str(args.config.resolve()),
             "base_root": str(args.base_root.resolve()), "base_config_path": str(args.base_config.resolve()),
             "binding_path": str(args.binding.resolve()), "acceptance_path": str(args.acceptance_record.resolve()),
-            "resume": args.resume, "output_root": str(args.output_root.resolve()),
+            "resume": output_resume, "output_root": str(args.output_root.resolve()),
             "source_commit": commit}, attempt_id=attempt, activity_id=f"{prefix}_preparation")
         evidence = prepared["base_evidence"]
         writer = ExtensionRecordWriter(args.output_root, config_path=args.config,
-            base_evidence=evidence, source_commit=commit, resume=args.resume)
+            base_evidence=evidence, source_commit=commit, resume=output_resume)
         existing = {tuple(key) for key in prepared["completed_keys"]}
         # Segment sequence and event count disambiguate attempts across segments
         # and reviewed resumes; an authorized retry uses its bound identity.

@@ -172,8 +172,9 @@ class ExtensionStageControlTests(unittest.TestCase):
                 stack.enter_context(patch.object(entry, "strict_ci_gate", return_value={}))
                 stack.enter_context(patch.object(entry, "_environment_binding", return_value={}))
                 # The environment gate is exercised in test_mlp24_retry_prerequisites.
-                stack.enter_context(patch.object(entry, "formal_environment_preflight",
-                                                 return_value={"status": "passed"}))
+                stack.enter_context(patch.object(entry, "formal_environment_preflight", return_value={
+                    "schema_version": entry.PREFLIGHT_SCHEMA, "model_devices": {"MLP": "cpu"}, "runtime": {},
+                    "base_manifest_environment": {}, "base_record_environments": [{}], "status": "passed"}))
                 opener = stack.enter_context(patch("scripts.supplement_budget_handoff.open_inherited_ledger",
                                                    side_effect=lambda *a, **k: nullcontext(ledger)))
                 with patch.object(sys, "argv", arguments):
