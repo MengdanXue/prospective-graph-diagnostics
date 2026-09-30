@@ -185,6 +185,32 @@ class CrossSegmentAttemptIdentityTests(unittest.TestCase):
         # The historical failed identity has no segment tag and can never be produced.
         self.assertNotEqual(entry.unit_attempt_id(entry.attempt_prefix(FakeLedger(1)), 0), "mlp24_2_000000")
 
+    def test_entry_records_a_granted_retry_before_dispatch_and_uses_its_bound_identity(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            parent = Path(temporary)
+            harness = EntryHarness(parent)
+            calls = []
+
+            class RetryLedger(FakeLedger):
+                def pending_failure_retries(self):
+                    if self.retry_authorizations:
+                        return []
+                    return [{"review_record_sha256": "7" * 64, "unit_id": "unit_Cora_normalize_features_MLP_000"}]
+
+                def authorize_failure_retry(self, review_sha, *, retry_attempt_id, phase_id):
+                    calls.append((review_sha, retry_attempt_id, phase_id, sorted(self.attempts)))
+                    self.events += 1
+                    self.retry_authorizations["unit_Cora_normalize_features_MLP_000"] = {
+                        "retry_attempt_id": retry_attempt_id, "consumed_by": None}
+                    return self.snapshot()
+
+            ledger = RetryLedger(segment_sequence=1)
+            self.assertEqual(harness.run(parent / "run", ledger), 0)
+            expected = entry.unit_attempt_id("mlp24_s001e1", 0, retry_ordinal=1)
+            self.assertEqual(calls, [("7" * 64, expected, "mlp24_extension", [])])
+            self.assertIn(("unit", expected), harness.operations)
+            self.assertEqual([name for name in ledger.attempts if "_u" in name], [expected])
+
 
 class ArtifactCollisionTests(unittest.TestCase):
     def assert_refused_before_attempt(self, controller, calls, result=None):

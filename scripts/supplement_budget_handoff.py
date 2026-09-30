@@ -23,8 +23,12 @@ import re
 import time
 
 from scripts import input_robustness_budget as budget
+from scripts import terminal_failure_review as failure_review
 
-SCHEMA = "supplement-budget-handoff/1"
+# Version 2 adds hash-bound terminal failure reviews. Every historical stop
+# reason is still reported; a valid signed review only changes the current set.
+SCHEMA = "supplement-budget-handoff/2"
+SCHEMAS = ("supplement-budget-handoff/1", SCHEMA)
 MAX_EVENT_BYTES = 2 * 1024 * 1024
 MAX_RECEIPT_BYTES = 4 * 1024 * 1024
 SCALARS = ("total", "resource", "control", "formal")
@@ -182,6 +186,7 @@ def stream_snapshot(path, *, authority, expected_head=None, anchors=(), now_samp
             "conservative_ns": conservative_state["usage_ns"], "inspection_sample": now,
             "open_attempts": open_attempts,
             "attempts": copy.deepcopy(state["attempts"]),
+            "retry_authorizations": copy.deepcopy(state.get("retry_authorizations", {})),
             "must_stop": bool(reasons), "stop_reasons": list(dict.fromkeys(reasons)),
             "terminal_time_limitation": "An open attempt has unknown process-exit time. The conservative bound is not a measured duration or proof of actual exhaustion."}
 
@@ -232,14 +237,33 @@ def _increment_index(base):
                 previous = sha
     paths = [Path(row["ledger_path"]).resolve() for row in rows]
     _require(len(paths) == len(set(paths)), "duplicated incremental ledger index entry")
+    consumed = [sha for row in rows for sha in row.get("consumed_failure_reviews", [])]
+    _require(all(budget._hex(sha) for sha in consumed) and len(consumed) == len(set(consumed)),
+             "a failure review was consumed twice in the incremental index")
     return paths, {"event_count": len(rows), "sha256": previous}
 
 
-def _register_increment(base, target, spec_sha):
+def consumed_review_map(base):
+    """Review-record digest -> the one increment that consumed it."""
+    path = Path(base) / INCREMENT_INDEX
+    _increment_index(base)
+    if not path.exists():
+        return {}
+    with path.open("rb") as stream:
+        rows = [json.loads(line) for line in stream]
+    return {sha: str(Path(row["ledger_path"]).resolve())
+            for row in rows for sha in row.get("consumed_failure_reviews", [])}
+
+
+def _register_increment(base, target, spec_sha, *, consumed_failure_reviews=()):
     paths, head = _increment_index(base)
     _require(target not in paths, "increment already registered")
+    consumed = sorted(consumed_failure_reviews)
+    already = consumed_review_map(base)
+    _require(not any(sha in already for sha in consumed), "failure review already consumed by another segment")
     row = {"sequence": head["event_count"], "previous_sha256": head["sha256"],
-           "ledger_path": str(target), "handoff_spec_sha256": spec_sha}
+           "ledger_path": str(target), "handoff_spec_sha256": spec_sha,
+           **({"consumed_failure_reviews": consumed} if consumed else {})}
     payload = {**row, "sha256": budget.canonical_hash(row)}
     with (Path(base) / INCREMENT_INDEX).open("ab") as stream:
         stream.write(budget._canonical(payload) + b"\n")
@@ -316,7 +340,9 @@ def inspect_handoff(spec, *, base_root, process_probe=None, now_sample=None):
     No ``passed`` flag, supplied aggregate total, or successful record count is
     trusted. All accounting is reconstructed from journal events.
     """
-    _require(spec.get("schema_version") == SCHEMA, "unsupported budget handoff schema")
+    _require(spec.get("schema_version") in SCHEMAS, "unsupported budget handoff schema")
+    _require(spec["schema_version"] == SCHEMA or not any(s.get("failure_reviews") for s in spec["sources"]),
+             "failure reviews require the version 2 handoff schema")
     _require(budget._hex(spec.get("source_commit"), 40) and budget._hex(spec.get("config_sha256")),
              "handoff requires execution source and configuration binding")
     authority = spec["authority"]
@@ -341,17 +367,23 @@ def inspect_handoff(spec, *, base_root, process_probe=None, now_sample=None):
     # separate runs still contributes; matching model-unit identities accumulate.
     usage = _sum_usage(item["charged_ns"] for item in snapshots)
     conservative = _sum_usage(item["conservative_ns"] for item in snapshots)
-    reasons = [f"{item['ledger_path']}: {reason}" for item in snapshots for reason in item["stop_reasons"]]
-    reasons += _cap_reasons(usage)
+    authorizations, consumed = _apply_failure_reviews(spec["sources"], snapshots, base_root)
+    historical = [f"{item['ledger_path']}: {reason}" for item in snapshots for reason in item["historical_stop_reasons"]]
+    waived = [row for item in snapshots for row in item["waived_by_review"]]
+    reasons = [f"{item['ledger_path']}: {reason}" for item in snapshots
+               for reason in item["current_blocking_stop_reasons"]]
+    global_reasons = _cap_reasons(usage)
     processes = (process_probe or active_research_processes)()
     if processes:
-        reasons.append("existing_research_processes_active")
+        global_reasons.append("existing_research_processes_active")
     after_increments, after_index_head = _increment_index(base_root)
     if sorted(set(discover_journals(roots) + after_increments)) != inventory or after_index_head != index_head:
-        reasons.append("budget_inventory_changed_during_inspection")
+        global_reasons.append("budget_inventory_changed_during_inspection")
     for source in snapshots:
         if _signature(Path(source["ledger_path"]) / "budget_events.jsonl") != source["signature"]:
-            reasons.append("journal_changed_after_its_inspection")
+            global_reasons.append("journal_changed_after_its_inspection")
+    reasons += global_reasons
+    historical += global_reasons
     seen = set()
     for source in snapshots:
         for identity, attempt in source["attempts"].items():
@@ -369,7 +401,58 @@ def inspect_handoff(spec, *, base_root, process_probe=None, now_sample=None):
             "remaining_recorded_ns": {key: budget.CAPS_SECONDS[key] * budget.NS - usage[key] for key in SCALARS},
             "actual_terminal_use_known": not any(item["open_attempts"] for item in snapshots),
             "active_processes": processes, "must_stop": bool(reasons),
-            "stop_reasons": list(dict.fromkeys(reasons)), "formal_launch_authorized": False}
+            "stop_reasons": list(dict.fromkeys(reasons)),
+            "historical_stop_reasons": list(dict.fromkeys(historical)),
+            "current_blocking_stop_reasons": list(dict.fromkeys(reasons)),
+            "waived_by_review": waived, "failure_retry_authorizations": authorizations,
+            "consumed_failure_reviews": consumed, "formal_launch_authorized": False}
+
+
+def _apply_failure_reviews(specs, snapshots, base_root):
+    """Split each source's stop reasons into historical and current sets.
+
+    Only ``unreviewed_failed:<attempt>`` can be waived, only by a valid signed
+    approval, and the historical list always keeps it. Returns the approvals
+    not yet consumed by an increment, and every consumed review.
+    """
+    consumed = consumed_review_map(base_root)
+    retried_units = {unit for item in snapshots for unit in item.get("retry_authorizations", {})}
+    seen_records, seen_attempts, available = set(), set(), []
+    for spec, item in zip(specs, snapshots):
+        historical = list(item["stop_reasons"])
+        current, waived, reports = list(historical), [], []
+        receipt = spec.get("terminal_receipt") or {}
+        for reference in spec.get("failure_reviews", []):
+            _require(reference.get("sha256") not in seen_records, "the same failure review is listed twice")
+            seen_records.add(reference.get("sha256"))
+            owner = consumed.get(reference.get("sha256"))
+            # A review consumed by an increment is that increment's own retry;
+            # it no longer counts against the unit's single retry.
+            units = retried_units if owner is None else set()
+            result = failure_review.evaluate_review(
+                reference, snapshot=item, ledger_path=item["ledger_path"],
+                terminal_receipt_sha256=receipt.get("sha256"), retried_units=units)
+            attempt = result["attempt_id"] or "unknown"
+            if result["attempt_id"] is not None:
+                _require((item["ledger_path"], attempt) not in seen_attempts,
+                         "one failed attempt cannot carry two failure reviews")
+                seen_attempts.add((item["ledger_path"], attempt))
+            blocker = f"unreviewed_failed:{attempt}"
+            if result["retry_allowed"] and blocker in current:
+                current.remove(blocker)
+                row = {"ledger_path": item["ledger_path"], "attempt_id": attempt, "reason": blocker,
+                       "review_record_sha256": result["review_record_sha256"],
+                       "review_plan_sha256": result["review_plan_sha256"], "consumed_by": owner}
+                waived.append(row)
+                if owner is None:
+                    available.append({**result["authorization"], "waived": dict(row)})
+            elif not result["valid"] or result["retry_allowed"]:
+                current.append(f"failure_review_invalid:{attempt}")
+            reports.append({key: result[key] for key in ("attempt_id", "review_record_sha256", "review_plan_sha256",
+                                                          "valid", "retry_allowed", "errors")})
+        item.update(historical_stop_reasons=historical, current_blocking_stop_reasons=list(dict.fromkeys(current)),
+                    waived_by_review=waived, failure_reviews=reports)
+    return available, consumed
 
 
 def validate_handoff(receipt_path, *, base_root, expected_config_sha, expected_source_commit,
@@ -416,8 +499,41 @@ class InheritedLedger:
         return self._segment_sequence
 
     def known_attempt_ids(self):
-        inherited = {name for source in self._inherited["sources"] for name in source["attempts"]}
+        # Sources are stream_snapshot() results; boundary fixtures may carry heads only.
+        inherited = {name for source in self._inherited["sources"] for name in source.get("attempts", {})}
         return inherited | set(self._ledger.snapshot()["attempts"])
+
+    def _granted_failure_retries(self):
+        """Approved reviews consumed by this increment when it was registered."""
+        mine = str(self.path.resolve())
+        owned = {sha for sha, owner in consumed_review_map(self._inherited["budget_base_root"]).items() if owner == mine}
+        return [row for row in self._inherited.get("failure_retry_authorizations", [])
+                if row["review_record_sha256"] in owned]
+
+    def pending_failure_retries(self):
+        recorded = {row["review_record_sha256"]
+                    for row in self._ledger.snapshot().get("retry_authorizations", {}).values()}
+        return [copy.deepcopy(row) for row in self._granted_failure_retries()
+                if row["review_record_sha256"] not in recorded]
+
+    def authorize_failure_retry(self, review_record_sha256, *, retry_attempt_id, phase_id):
+        """Append the one-time authorization after phase registration, before the retry."""
+        _require(not self._external_reasons(), "external inventory/ownership prevents retry authorization")
+        granted = next((row for row in self.pending_failure_retries()
+                        if row["review_record_sha256"] == review_record_sha256), None)
+        _require(granted is not None, "failure retry was not granted to this increment by its handoff")
+        _require(retry_attempt_id not in self.known_attempt_ids(),
+                 "retry attempt identity already exists in the inherited or current ledgers")
+        payload = {key: copy.deepcopy(granted[key]) for key in
+                   ("review_record_sha256", "review_plan_sha256", "original", "unit_id", "batch_id",
+                    "activity_id", "research_identity", "required_environment")}
+        payload.update(phase_id=phase_id, retry_attempt_id=retry_attempt_id, retry_ordinal=1)
+        return self._combine(self._ledger.authorize_failure_retry(payload))
+
+    def _inherited_failed_units(self):
+        return {attempt["unit_id"] for source in self._inherited["sources"]
+                for attempt in source.get("attempts", {}).values()
+                if attempt["outcome"] == "failed" and attempt["unit_id"] is not None}
 
     @property
     def head(self):
@@ -478,6 +594,9 @@ class InheritedLedger:
                       unit_id=None, batch_id=None, started_at=None):
         current = self.poll(force=True)
         _require(not current["must_stop"], "cumulative budget prevents dispatch")
+        if unit_id in self._inherited_failed_units():
+            _require(unit_id in current.get("retry_authorizations", {}),
+                     "a unit with an inherited failed attempt requires a reviewed retry authorization")
         estimate = budget._seconds_ns(estimated_seconds)
         limits = [(budget_group, budget.CAPS_SECONDS[budget_group] * budget.NS - current["charged_ns"][budget_group]),
                   ("total", budget.CAPS_SECONDS["total"] * budget.NS - current["charged_ns"]["total"])]
@@ -559,6 +678,8 @@ def open_inherited_ledger(receipt_path, ledger_path, *, base_root, expected_conf
             _require(target in registered, "resume requires a registered existing incremental ledger")
             current = next((s for s in inherited["sources"] if Path(s["ledger_path"]) == target), None)
             _require(current is not None, "resume handoff must contain the current incremental terminal head")
+            _require(not inherited.get("failure_retry_authorizations"),
+                     "a reviewed failure retry must start in a new segment, never on resume")
             ledger = budget.BudgetLedger.open(target, authority=inherited["authority"], expected_head=current["head"])
             inherited["sources"] = [s for s in inherited["sources"] if Path(s["ledger_path"]) != target]
             inherited["charged_ns"] = _sum_usage(s["charged_ns"] for s in inherited["sources"])
@@ -568,7 +689,9 @@ def open_inherited_ledger(receipt_path, ledger_path, *, base_root, expected_conf
             _require(all(target != Path(p) and Path(p) not in target.parents for p in inherited["inventory_roots"]),
                      "increment must not be inside immutable old inventory")
             ledger = budget.BudgetLedger.create(target, authority=inherited["authority"], monitor_gap_seconds=5)
-            _register_increment(base, target, inherited["handoff_spec_sha256"])
+            # Registering the increment consumes each approved review exactly once.
+            _register_increment(base, target, inherited["handoff_spec_sha256"], consumed_failure_reviews=[
+                row["review_record_sha256"] for row in inherited.get("failure_retry_authorizations", [])])
         created = True
         archive_name = f"inherited_budget_resume_{ledger.head['event_count']}.json" if resume else "inherited_budget.json"
         with (target / archive_name).open("x", encoding="utf-8") as stream:

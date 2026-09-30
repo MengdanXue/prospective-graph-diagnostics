@@ -260,6 +260,13 @@ def _validate_start(state, payload):
     active = [a for a in state["attempts"].values() if a["outcome"] == "open"]
     groups = [a["budget_group"] for a in active] + [descriptor["budget_group"]]
     _require(len(groups) <= 2 and (len(groups) == 1 or sorted(groups) == ["control", "formal"]), "only one formal activity and one control activity may overlap", BudgetAdmissionError)
+    authorizations = state.get("retry_authorizations", {})
+    for unit, authorization in authorizations.items():
+        if authorization["retry_attempt_id"] == attempt_id:
+            _require(authorization["consumed_by"] is None and (descriptor["unit_id"], descriptor["batch_id"], descriptor["activity_id"], descriptor["phase_id"]) == (unit, authorization["batch_id"], authorization["activity_id"], authorization["phase_id"]), "retry identity differs from its authorization", BudgetAdmissionError)
+    authorization = authorizations.get(descriptor["unit_id"])
+    if authorization is not None and authorization["consumed_by"] is None:
+        _require(attempt_id == authorization["retry_attempt_id"], "authorized retry must use its bound attempt identity", BudgetAdmissionError)
     activity = state["activities"].get(descriptor["activity_id"])
     if activity is not None:
         _require(activity["descriptor"] == descriptor, "activity provenance, estimate or budget identity changed", BudgetAdmissionError)
@@ -319,6 +326,25 @@ def _apply_event(state, kind, payload):
             state["unit_owners"][descriptor["unit_id"]] = descriptor["activity_id"]
         if descriptor["budget_group"] == "formal":
             state["batch_phases"][descriptor["batch_id"]] = descriptor["phase_id"]
+        authorization = state.get("retry_authorizations", {}).get(descriptor["unit_id"])
+        if authorization is not None and authorization["retry_attempt_id"] == attempt_id:
+            authorization["consumed_by"] = attempt_id
+    elif kind == "failure_retry_authorized":
+        # One reviewed retry of an inherited failed unit; the failed journal and
+        # its charge stay in their own segment and are never rewritten here.
+        required = {"review_record_sha256", "review_plan_sha256", "original", "unit_id", "batch_id", "activity_id",
+                    "phase_id", "research_identity", "retry_attempt_id", "retry_ordinal", "required_environment"}
+        _require(set(payload) == required and _hex(payload["review_record_sha256"]) and _hex(payload["review_plan_sha256"]), "invalid failure retry authorization")
+        original = payload["original"]
+        _require(isinstance(original, dict) and original.get("outcome") == "failed" and _identifier(original.get("attempt_id")) and type(original.get("charged_ns")) is int and _hex(original.get("terminal_receipt_sha256")) and _hex(original.get("journal_sha256")), "retry authorization must bind the original failed attempt")
+        _require(payload["phase_id"] in state["phases"] and payload["retry_ordinal"] == 1, "retry authorization requires a registered phase and ordinal one")
+        _require(all(_identifier(payload[key]) for key in ("unit_id", "batch_id", "activity_id", "retry_attempt_id")), "invalid retry unit or attempt identity")
+        authorizations = state.setdefault("retry_authorizations", {})
+        _require(payload["unit_id"] not in authorizations and all(a["review_record_sha256"] != payload["review_record_sha256"] for a in authorizations.values()), "failure review or unit already authorized")
+        _require(payload["retry_attempt_id"] not in state["attempts"] and not any(a["unit_id"] == payload["unit_id"] for a in state["attempts"].values()), "retry authorization must precede any attempt identity of its unit")
+        environment, required_environment = state["phases"][payload["phase_id"]]["provenance"]["environment"], payload["required_environment"]
+        _require(isinstance(required_environment, dict) and required_environment and all(environment.get(k) == v for k, v in required_environment.items()), "phase environment differs from the reviewed retry requirement")
+        authorizations[payload["unit_id"]] = {**copy.deepcopy(payload), "consumed_by": None}
     elif kind == "heartbeat":
         _require(payload["observations"] and len({o["attempt_id"] for o in payload["observations"]}) == len(payload["observations"]), "empty or duplicate heartbeat")
         for observation in payload["observations"]:
@@ -420,7 +446,8 @@ def _public_snapshot(state, head):
             "remaining_seconds": remaining, "attempts": attempts, "head": copy.deepcopy(head),
             "completed_activities": sorted({a["activity_id"] for a in state["attempts"].values() if a["outcome"] == "completed"}),
             "authority_sha256": state["authority_sha256"], "phases": copy.deepcopy(state["phases"]),
-            "dispatch_denials": list(state["dispatch_denials"])}
+            "dispatch_denials": list(state["dispatch_denials"]),
+            "retry_authorizations": copy.deepcopy(state.get("retry_authorizations", {}))}
 
 
 def inspect_ledger(path, *, authority=None, expected_head=None, wall_clock=None, monotonic_clock=None):
@@ -639,4 +666,11 @@ class BudgetLedger:
         _require(activity_id in self._state["activities"], "unknown interrupted activity")
         attempt_id = self._state["activities"][activity_id]["attempt_ids"][-1]
         self._append("external_interruption_reviewed", {"attempt_id": attempt_id, "provenance": copy.deepcopy(provenance), "review_receipt": copy.deepcopy(review_receipt)})
+        return self.snapshot()
+
+    def authorize_failure_retry(self, authorization):
+        """Record one reviewed retry; the inherited adapter supplies the verified review."""
+        self._settle_pending()
+        _require(not self._guards, "stop all owned activities before authorizing a retry")
+        self._append("failure_retry_authorized", copy.deepcopy(authorization))
         return self.snapshot()
