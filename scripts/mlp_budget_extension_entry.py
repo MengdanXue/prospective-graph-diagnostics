@@ -34,8 +34,9 @@ ACCEPTANCE_SOURCES = (
     "scripts/mlp_budget_extension_worker.py", "scripts/mlp_budget_extension_e2e.py",
     "scripts/analyze_published_diagnostics.py", "scripts/published_graph_diagnostics.py",
     "scripts/input_robustness_sensitivity.py", "scripts/input_robustness_budget.py",
-    "scripts/supplement_budget_handoff.py",
+    "scripts/supplement_budget_handoff.py", "scripts/terminal_failure_review.py",
     "scripts/preflight_input_robustness_11.py",
+    "docs/protocol_amendment_mlp24_environmental_failure_retry_v1.md",
     "tests/test_mlp_budget_extension.py",
 )
 
@@ -367,6 +368,51 @@ def strict_ci_gate(path: Path, commit: str) -> dict[str, Any]:
     return receipt
 
 
+def _validate_environmental_failure_retry(proof: Mapping[str, Any]) -> None:
+    """Re-read the isolated amendment rehearsal from its journals, not its summary flags."""
+    from scripts.supplement_budget_handoff import stream_snapshot
+    from tests.test_input_robustness_budget import AUTHORITY
+    original, retry = proof["original"], proof["retry"]
+    failed = stream_snapshot(Path(original["ledger_path"]), authority=AUTHORITY, expected_head=original["head"])
+    attempt = failed["attempts"][original["attempt_id"]]
+    segment = stream_snapshot(Path(retry["segment_path"]), authority=AUTHORITY, expected_head=retry["segment_head"])
+    authorization = segment["retry_authorizations"].get(proof["unit_id"], {})
+    retried = segment["attempts"].get(retry["retry_attempt_id"], {})
+    blocker = f"unreviewed_failed:{original['attempt_id']}"
+    draft, signed, second = proof["draft_handoff"], proof["signed_handoff"], proof["second_handoff"]
+    independent = proof["independent_handoff"]
+    preflight = proof["environment_preflight"]
+    checks = {
+        "original failed outcome and charge preserved": attempt["outcome"] == "failed" and not attempt["reviewed"]
+            and attempt["charged_ns"] > 0 and original["preserved_sha256_before"] == original["preserved_sha256_after"]
+            and all(file_digest(Path(p)) == v for p, v in original["preserved_sha256_after"].items()),
+        "draft review keeps the blocker": draft["must_stop"] and any(
+            r.endswith(f"failure_review_invalid:{original['attempt_id']}") for r in draft["current_blocking_stop_reasons"]),
+        "signed review waives only the current blocker": not signed["must_stop"]
+            and any(r.endswith(blocker) for r in signed["historical_stop_reasons"])
+            and not any(r.endswith(blocker) for r in signed["current_blocking_stop_reasons"])
+            and [w["attempt_id"] for w in signed["waived_by_review"]] == [original["attempt_id"]],
+        "authorization consumed by a new attempt identity": authorization.get("consumed_by") == retry["retry_attempt_id"]
+            and retry["retry_attempt_id"] != original["attempt_id"]
+            and authorization.get("original", {}).get("attempt_id") == original["attempt_id"]
+            and retried.get("outcome") == "completed" and retry["status"] == "completed" and len(retry["units"]) == 1
+            and all(file_digest(Path(u["record_path"])) == u["record_sha256"] for u in retry["units"])
+            and "retry authorization" in retry["unauthorized_unit_attempt"],
+        "review consumed once": not second["must_stop"] and second["failure_retry_authorizations"] == []
+            and proof["second_consumption"]["pending_after_consumption"] == 0
+            and "not granted" in proof["second_consumption"]["authorize_again"]
+            and "already consumed" in proof["second_consumption"]["forged_index_consumption"],
+        "independent failure blocks": independent["must_stop"]
+            and any(r.endswith("unreviewed_failed:independent_000") for r in independent["current_blocking_stop_reasons"])
+            and not any(r.endswith(blocker) for r in independent["current_blocking_stop_reasons"]),
+        "environment gate": preflight["simulated_cpu_only_for_cuda_policy"].get("status") == "refused"
+            and preflight["actual_interpreter"].get("status") == "passed",
+    }
+    failed_checks = [name for name, passed in checks.items() if not passed]
+    if failed_checks:
+        raise FormalRecordError("environmental failure retry rehearsal failed: " + ", ".join(failed_checks))
+
+
 def validate_acceptance(path: Path, *, config_path: Path, commit: str,
                         require_native_power: bool = True) -> dict[str, Any]:
     """Bind the actual rehearsal tree, source and logs, never a bare passed flag."""
@@ -426,7 +472,8 @@ def validate_acceptance(path: Path, *, config_path: Path, commit: str,
         if file_digest(Path(row["path"])) != row["sha256"]:
             raise FormalRecordError("acceptance log hash mismatch")
     checks = receipt.get("checks", {})
-    for name in ("normal_pause", "emergency_stop", "cumulative_budget", "continuous_monitoring"):
+    for name in ("normal_pause", "emergency_stop", "cumulative_budget", "continuous_monitoring",
+                 "environmental_failure_retry"):
         evidence = checks.get(name, {})
         if not evidence.get("path") or file_digest(Path(evidence["path"])) != evidence.get("sha256"):
             raise FormalRecordError(f"acceptance missing bound {name} evidence")
@@ -453,6 +500,8 @@ def validate_acceptance(path: Path, *, config_path: Path, commit: str,
                     or observed.get("clock_guard", {}).get("statistics", {}).get("sample_count", 0) < 20
                     or observed.get("clock_guard", {}).get("statistics", {}).get("maximum_poll_gap_ns", 5_000_000_001) > 5_000_000_000):
                 raise FormalRecordError("continuous monitoring did not cover a >5 second live workload")
+        elif name == "environmental_failure_retry":
+            _validate_environmental_failure_retry(proof)
         else:
             from scripts.supplement_budget_handoff import stream_snapshot
             ledger = stream_snapshot(Path(proof["ledger_path"]), authority=proof["authority"], expected_head=proof["head"])
@@ -557,6 +606,19 @@ def main() -> int:
         }, gate_receipt={"ci_receipt_file_sha256": file_digest(args.ci_receipt),
                         "review_record_sha256": file_digest(args.acceptance_record), "ci_receipt": ci})
         prefix = attempt_prefix(ledger)
+        # A retry granted by a signed failure review is recorded once, after
+        # phase registration and before any attempt, with a bound new identity.
+        granted = getattr(ledger, "pending_failure_retries", lambda: [])()
+        if granted and args.existing_analysis:
+            raise FormalRecordError("a reviewed failure retry must run in a training segment")
+        ordinals = {f"unit_{d}_{c}_MLP_{s:03d}": index for index, (d, s, c) in enumerate(
+            (d, s, c) for d in config["datasets"] for s in config["seeds"] for c in config["conditions"])}
+        for row in granted:
+            if row["unit_id"] not in ordinals:
+                raise FormalRecordError("granted retry unit is outside the frozen configuration")
+            retry_id = unit_attempt_id(prefix, ordinals[row["unit_id"]], retry_ordinal=1)
+            assert_fresh_attempt_identity(retry_id, ledger=ledger, roots=(args.output_root,))
+            ledger.authorize_failure_retry(row["review_record_sha256"], retry_attempt_id=retry_id, phase_id=phase)
         if args.existing_analysis:
             if args.output_root.exists():
                 raise FormalRecordError("refusing to reuse or overwrite an existing analysis output")
