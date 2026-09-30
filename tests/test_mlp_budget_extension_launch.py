@@ -103,6 +103,8 @@ class ExtensionStageControlTests(unittest.TestCase):
     def test_preparation_pause_creates_resumable_manifest_without_starting_a_unit(self):
         """Exercise the CLI orchestration with worker results supplied at its interface."""
         class Ledger:
+            segment_sequence = 0
+
             def __init__(self):
                 self.attempts, self.events = {}, 0
             @property
@@ -169,6 +171,9 @@ class ExtensionStageControlTests(unittest.TestCase):
                 stack.enter_context(patch.object(entry, "_source_commit", return_value="a" * 40))
                 stack.enter_context(patch.object(entry, "strict_ci_gate", return_value={}))
                 stack.enter_context(patch.object(entry, "_environment_binding", return_value={}))
+                # The environment gate is exercised in test_mlp24_retry_prerequisites.
+                stack.enter_context(patch.object(entry, "formal_environment_preflight",
+                                                 return_value={"status": "passed"}))
                 opener = stack.enter_context(patch("scripts.supplement_budget_handoff.open_inherited_ledger",
                                                    side_effect=lambda *a, **k: nullcontext(ledger)))
                 with patch.object(sys, "argv", arguments):
