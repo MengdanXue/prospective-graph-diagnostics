@@ -1,0 +1,129 @@
+\section{Post-Hoc Input-Parameterization Retraining and MLP-Budget Extension}
+\label{app:mlp_budget}
+
+This appendix supplements Sections~\ref{sec:input_robustness} and~\ref{sec:mlp_budget}. It concerns three separate record sets: the frozen benchmark of Sections~\ref{sec:prospective}--\ref{sec:preprocessing_sensitivity}, which is unchanged; a post-hoc retraining of all seven architectures on the same 11 datasets and 110 splits under two inputs (1,540 records, 4 trials per architecture); and a post-hoc extension of the MLP search within that retraining. Numbers from different record sets are not pooled, and no number below revises a frozen-benchmark result.
+
+\subsection{Protocol and Record Integrity}
+
+The extension covers 220 MLP units. Each inherits the 4 trials of the matching retraining record, including their saved checkpoints, and adds 20 trials (4,400 in total) to complete a 24-trial grid over learning rates $\{0.001,0.005,0.01\}$, dropouts $\{0,0.3,0.5,0.7\}$, and weight decays $\{0,5\times10^{-4}\}$; every trial uses the unit's original seed initialization. Selection uses validation accuracy, then validation loss, then trial identifier. The selected checkpoint is reloaded and evaluated on the test split exactly once, also when an inherited trial remains selected; earlier test results are kept only as historical evidence and are never assigned to a different winner. Test-once violations: 0. The graph records and all decision rules are those of the retraining, and the extension design, including two additional published statistics, was fixed after inspecting partial results of that retraining.
+
+The first execution attempt of one unit failed before any training because its worker started in an environment without GPU support. That attempt and its budget charge are retained as failed; after a recorded review, a single retry in the specified environment produced the unit's only record. Decision scores are computed with the released implementations (\path{scripts/input_robustness_analysis_adapter.py}, \path{scripts/mlp_budget_extension.py}, and the dataset-bootstrap and paired-comparison functions in \path{experiments/evaluate_diagnostics.py}); the frozen analysis outputs, including all intervals in Table~\ref{tab:mlp_budget_intervals}, were reproduced exactly from the validated records.
+
+\subsection{Policy Regrets}
+
+\begin{table}[ht]
+\centering
+\caption{Full-set mean regret (percentage points) of all evaluated policies for the six-architecture portfolio in the post-hoc retraining, with four and 24 MLP trials. The three calibrated rules fit thresholds on the other ten datasets; the two published statistics are not reproductions of their authors' selectors. Descriptive values; no interval was specified for the 24-trial extension.}
+\label{tab:mlp_budget_policies}
+\small
+\begin{tabular}{@{}lrrrr@{}}
+\toprule
+ & \multicolumn{2}{c}{$N$} & \multicolumn{2}{c}{CS} \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}
+Policy & 4 trials & 24 trials & 4 trials & 24 trials \\
+\midrule
+Combined & 7.60 & 6.72 & 6.22 & 5.75 \\
+Always-graph & 0.40 & 0.44 & 0.45 & 0.53 \\
+Validation selection & 0.32 & 0.21 & 0.20 & 0.28 \\
+Always-MLP & 9.81 & 8.47 & 7.99 & 7.48 \\
+Homophily only & 7.60 & 6.72 & 6.22 & 5.75 \\
+Degree only & 6.36 & 5.14 & 4.24 & 3.88 \\
+Homophily + degree & 5.94 & 5.14 & 4.11 & 3.81 \\
+Two-hop only & 8.59 & 7.33 & 6.88 & 6.51 \\
+Random 50/50 & 5.11 & 4.46 & 4.22 & 4.01 \\
+\midrule
+Calibrated $h_1$ (LODO) & 2.84 & 2.04 & 1.80 & 1.88 \\
+Adjusted homophily (LODO) & 0.27 & 0.34 & 0.10 & 0.15 \\
+Edge label informativeness (LODO) & 2.36 & 0.44 & 2.53 & 2.59 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[ht]
+\centering
+\caption{Combined/always-graph mean regret (percentage points) for single-architecture graph actions in the post-hoc retraining. Each row has its own oracle; these records are separate from Table~\ref{tab:equal_budget}.}
+\label{tab:mlp_budget_single}
+\small
+\begin{tabular}{@{}lrrrr@{}}
+\toprule
+ & \multicolumn{2}{c}{$N$} & \multicolumn{2}{c}{CS} \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}
+Graph action & 4 trials & 24 trials & 4 trials & 24 trials \\
+\midrule
+GCN & 1.78/5.07 & 1.70/5.91 & 3.83/7.24 & 3.50/7.47 \\
+GAT & 2.09/6.25 & 2.34/7.41 & 3.96/9.00 & 3.68/9.27 \\
+GPR-GNN & 1.47/1.00 & 1.36/1.81 & 3.17/0.74 & 2.78/0.90 \\
+GraphSAGE & 2.95/0.44 & 2.39/0.79 & 4.36/1.13 & 3.83/1.15 \\
+H2GCN & 2.51/0.17 & 1.68/0.25 & 3.50/0.36 & 3.01/0.42 \\
+LINKX & 8.09/2.74 & 7.30/2.87 & 4.44/3.44 & 3.95/3.50 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Across all 63 subsets, the portfolios favoring Combined are GAT, GCN, GCN+GAT with $N$ and four MLP trials; GAT, GCN, GCN+GAT, GPR-GNN with $N$ and 24 trials; and GAT, GCN, GCN+GAT with CS at both budgets. After excluding Cornell and Wisconsin, only GPR-GNN with $N$ and 24 trials still favors Combined.
+
+\subsection{Intervals Specified for the Retraining}
+
+The retraining's frozen analysis configuration specifies dataset-bootstrap intervals for the eight comparisons with Combined and for the CS-minus-$N$ contrasts: 10,000 resamples of the 11 equal-weight dataset means, 95\% percentile intervals, without multiplicity adjustment. They apply only to the four-trial records; none was specified or computed for the 24-trial extension.
+
+\begin{table}[ht]
+\centering
+\caption{Specified dataset-bootstrap intervals for the four-trial retraining, six-architecture portfolio. Upper panel: policy minus Combined mean regret (percentage points). Lower panel: CS minus $N$ equal-weight dataset means (percentage points). Unadjusted, post hoc, and descriptive.}
+\label{tab:mlp_budget_intervals}
+\small
+\begin{tabular}{@{}lrrrr@{}}
+\toprule
+ & \multicolumn{2}{c}{$N$} & \multicolumn{2}{c}{CS} \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}
+Difference & Mean & 95\% interval & Mean & 95\% interval \\
+\midrule
+Always-graph $-$ Combined & $-$7.20 & [$-$13.67, $-$1.39] & $-$5.78 & [$-$11.23, $-$0.90] \\
+Validation $-$ Combined & $-$7.29 & [$-$13.64, $-$1.53] & $-$6.03 & [$-$11.47, $-$1.23] \\
+Always-MLP $-$ Combined & 2.21 & [0.38, 4.71] & 1.77 & [0.19, 4.11] \\
+\midrule
+CS $-$ $N$ & \multicolumn{2}{r}{Mean} & \multicolumn{2}{r}{95\% interval} \\
+\midrule
+Selected-MLP accuracy & \multicolumn{2}{r}{+5.94} & \multicolumn{2}{r}{[0.70, 15.01]} \\
+Selected-graph accuracy & \multicolumn{2}{r}{+4.08} & \multicolumn{2}{r}{[0.22, 10.99]} \\
+Combined regret & \multicolumn{2}{r}{$-$1.38} & \multicolumn{2}{r}{[$-$3.95, 0.40]} \\
+Combined $-$ always-graph regret & \multicolumn{2}{r}{$-$1.43} & \multicolumn{2}{r}{[$-$3.92, 0.43]} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Selected MLP Accuracy and Input Contrast by Dataset}
+
+\begin{table}[ht]
+\centering
+\caption{Mean selected-MLP test accuracy (\%) over ten seeds in the post-hoc retraining, and the CS-minus-$N$ paired difference with 24 trials (mean, median, and seeds with CS higher/lower/tied). Descriptive values.}
+\label{tab:mlp_budget_datasets}
+\scriptsize
+\setlength{\tabcolsep}{3.2pt}
+\begin{tabular}{@{}lrrrrrrr@{}}
+\toprule
+ & \multicolumn{2}{c}{$N$} & \multicolumn{2}{c}{CS} & \multicolumn{3}{c}{CS $-$ $N$, 24 trials} \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-8}
+Dataset & 4 & 24 & 4 & 24 & Mean & Median & H/L/T \\
+\midrule
+Cora & 76.37 & 76.35 & 75.86 & 75.66 & $-$0.69 & $-$0.46 & 1/9/0 \\
+CiteSeer & 72.43 & 72.86 & 73.40 & 73.44 & +0.58 & +0.52 & 8/1/1 \\
+PubMed & 87.53 & 87.41 & 88.09 & 88.08 & +0.67 & +0.71 & 10/0/0 \\
+Wisconsin & 85.28 & 85.09 & 88.11 & 88.49 & +3.40 & +2.83 & 6/1/3 \\
+Cornell & 76.00 & 76.00 & 78.75 & 78.75 & +2.75 & +3.75 & 7/2/1 \\
+Chameleon & 46.51 & 47.93 & 47.52 & 48.85 & +0.92 & $-$0.11 & 4/5/1 \\
+Squirrel & 31.22 & 31.07 & 30.90 & 31.20 & +0.13 & +0.05 & 5/3/2 \\
+Actor & 37.97 & 37.77 & 37.21 & 37.27 & $-$0.50 & $-$0.53 & 2/7/1 \\
+Roman-empire & 16.71 & 25.91 & 66.09 & 66.06 & +40.15 & +40.13 & 10/0/0 \\
+Amazon-ratings & 36.76 & 36.76 & 41.98 & 45.99 & +9.22 & +9.31 & 10/0/0 \\
+Coauthor-CS & 89.76 & 94.46 & 93.99 & 94.60 & +0.14 & +0.07 & 7/2/1 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Leaving out one dataset at a time, the mean CS-minus-$N$ difference with 24 trials ranges from 1.66 to 5.75 points, and CS remains higher on 8 or 9 of the remaining ten datasets. The minimum occurs when Roman-empire is omitted; the remaining 100 paired seeds then split 60/30/10 (CS higher/lower/tied), with median 0.31 points. On Chameleon the mean and median differences have opposite signs. The input effect is therefore dataset-dependent, and no claim of consistent improvement is made.
+
+\subsection{Amazon-ratings and Roman-empire with Normalized Features}
+
+On Amazon-ratings with $N$, the selected test accuracy is identical in all ten seeds at both budgets: 1,802 correct of 4,902 test nodes in every seed; each test split contains exactly 1,802 majority-class nodes, so the observed accuracy equals the majority-class proportion of the test split. The ten selected checkpoints are distinct (10 different files), all 24 trials of every seed reach the same selected validation accuracy, no epoch of any trial exceeds the majority-class validation proportion, and the mean selected validation cross-entropy (1.4108) is close to the entropy of the class prior (1.4111). This behavior is consistent with majority-class collapse, which Appendix~\ref{app:training_diagnostics} observed directly as majority-class validation predictions in a separate run. The extension records store accuracies and checkpoints but not prediction vectors, so they do not verify constant predictions directly. The cause of the collapse is not identified.
+
+On Roman-empire with $N$, mean selected-MLP test accuracy is 16.71\% with four trials and 25.91\% with 24 (range 25.57--26.12\%). The number of seeds whose selected validation accuracy lies at the majority-class rate falls from 5 to 0. With CS the mean is 66.06\%, higher in 10 of 10 seeds by 39.64 to 40.57 points, so no single seed drives the dataset difference. The data binding, splits, transformed inputs, metric, and execution environment of every record match the frozen contract; we treat the low accuracy as a valid result of this input and training configuration, not as a pipeline failure, and no rerun is required.
