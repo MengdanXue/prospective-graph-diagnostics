@@ -5,7 +5,7 @@
 
 The graph action searches six architectures with 24 trials; MLP receives four. This post-hoc reanalysis restricts the graph action to one architecture, matching four trials per action. Training time, FLOPs, preprocessing cost, and parameter count remain unequal. Because the restriction changes architecture availability and search breadth together, it measures portfolio sensitivity without isolating a causal compute-budget effect.
 
-The portfolio and threshold analyses reuse recorded models. Portfolio restrictions leave diagnostic inputs and actions unchanged while recomputing graph selection, the margin-defined target, regret, and validation selection under the frozen rules. Enlarging a candidate set guarantees nondecreasing maximum validation accuracy, but the selected test result can worsen: H2GCN alone has lower always-graph regret than the unrestricted portfolio. Section~\ref{sec:preprocessing_sensitivity} separately reports retraining for preprocessing sensitivity.
+The portfolio and threshold analyses reuse recorded models. Portfolio restrictions leave diagnostic inputs and actions unchanged while recomputing graph selection, the margin-defined target, regret, and validation selection under the frozen rules. Enlarging a candidate set guarantees nondecreasing maximum validation accuracy, but the selected test result can worsen: H2GCN alone has lower always-graph regret than the unrestricted portfolio. Sections~\ref{sec:preprocessing_sensitivity}--\ref{sec:mlp_budget} separately report retraining for preprocessing sensitivity and the expanded multilayer-perceptron search; Tables~\ref{tab:equal_budget}--\ref{tab:calibrated_threshold} refer only to the frozen benchmark records.
 
 Before computing restrictions, reconstruction verifies record checksums, configuration, provenance, trial selection, unique record scope, and splits for every architecture. The unrestricted reconstruction recovers 89 graph targets and regrets of 0.26, 7.46, and 0.22 points for always-graph, Combined, and validation selection, respectively.
 
@@ -14,7 +14,7 @@ Before computing restrictions, reconstruction verifies record checksums, configu
 
 \begin{table}[t]
 \centering
-\caption{Post-hoc single-architecture sensitivity at matched trial count. Each single-architecture graph action receives four trials against the MLP's four. Regret is mean full-set oracle-portfolio regret in percentage points. W/L/T counts datasets on which the combined rule attains lower, higher, or equal mean regret than always-graph.}
+\caption{Post-hoc single-architecture sensitivity at matched trial count, frozen benchmark records. Each single-architecture graph action receives four trials against the MLP's four. Regret is mean full-set oracle-portfolio regret in percentage points. W/L/T counts datasets on which the combined rule attains lower, higher, or equal mean regret than always-graph.}
 \label{tab:equal_budget}
 \small
 \setlength{\tabcolsep}{3.5pt}
@@ -48,11 +48,11 @@ The restrictions demonstrate that a diagnostic's measured performance against on
 \subsection{All Candidate Subsets and Dataset Sensitivity}
 \label{sec:subset_robustness}
 
-We enumerate all $2^6-1=63$ nonempty graph-architecture subsets with unchanged validation selection and diagnostic actions. Define $\Delta$ as Combined minus always-graph mean regret in percentage points. Only GAT, GCN, and their pair have negative $\Delta$, favoring Combined (Table~\ref{tab:subset_sensitivity}). The overlapping models and datasets make these counts descriptive, rather than independent replications or generalization probabilities.
+We enumerate all $2^6-1=63$ nonempty graph-architecture subsets with unchanged validation selection and diagnostic actions. Define $\Delta$ as Combined minus always-graph mean regret in percentage points. In these frozen records, only GAT, GCN, and their pair have negative $\Delta$, favoring Combined (Table~\ref{tab:subset_sensitivity}); Section~\ref{sec:mlp_budget} reports one additional favorable subset in a later retraining. The overlapping models and datasets make these counts descriptive, rather than independent replications or generalization probabilities.
 
 \begin{table}[t]
 \centering
-\caption{Post-hoc enumeration of all available graph portfolios. Each architecture contributes four trials. The range is over candidate subsets, not a confidence interval.}
+\caption{Post-hoc enumeration of all available graph portfolios, frozen benchmark records. Each architecture contributes four trials. The range is over candidate subsets, not a confidence interval.}
 \label{tab:subset_sensitivity}
 \small
 \setlength{\tabcolsep}{3.5pt}
@@ -105,7 +105,7 @@ We separate threshold choice from the homophily statistic by fitting graph-if-$h
 
 \begin{table}[t]
 \centering
-\caption{Post-hoc held-out threshold control. Regrets are percentage points, using each row's own graph/MLP oracle. Calibration is performed separately for each portfolio; it is not an independent prospective experiment.}
+\caption{Post-hoc held-out threshold control, frozen benchmark records. Regrets are percentage points, using each row's own graph/MLP oracle. Calibration is performed separately for each portfolio; it is not an independent prospective experiment.}
 \label{tab:calibrated_threshold}
 \small
 \setlength{\tabcolsep}{3.5pt}
@@ -133,7 +133,7 @@ PyG 2.7.0 \texttt{NormalizeFeatures} subtracts the feature matrix's global minim
 
 \begin{table}[t]
 \centering
-\caption{Post-hoc paired feature-preprocessing sensitivity on two heterophilous datasets. Values are mean test accuracy or full-set oracle regret in percentage points; graph targets are out of ten seeds. Each graph action still searches six architectures and 24 trials.}
+\caption{Post-hoc paired feature-preprocessing sensitivity on two heterophilous datasets (a separate run from the frozen benchmark and from Section~\ref{sec:input_robustness}). Values are mean test accuracy or full-set oracle regret in percentage points; graph targets are out of ten seeds. Each graph action still searches six architectures and 24 trials.}
 \label{tab:preprocessing_sensitivity}
 \small
 \setlength{\tabcolsep}{3.5pt}
@@ -149,9 +149,9 @@ Amazon-ratings & Raw & 41.35 & 53.17 & 11.82 & 11.82 & 10/10 \\
 \end{tabular}
 \end{table}
 
-Raw features raise MLP accuracy by 49.48 points on Roman-empire and 4.59 on Amazon-ratings; selected graph accuracy changes by 38.81 and 0.11 points. Graph remains better in all 20 units under both conditions, giving always-graph and validation selection zero regret. Homophily still selects MLP because both datasets fall below $h_1=0.55$. Preprocessing materially changes the graph--MLP gaps on these two datasets; its contribution to the full benchmark's negative result remains unmeasured.
+Raw features raise MLP accuracy by 49.48 points on Roman-empire and 4.59 on Amazon-ratings; selected graph accuracy changes by 38.81 and 0.11 points. Graph remains better in all 20 units under both conditions, giving always-graph and validation selection zero regret. Homophily still selects MLP because both datasets fall below $h_1=0.55$. Preprocessing materially changes the graph--MLP gaps on these two datasets. This two-dataset comparison does not show that normalization caused the full benchmark's negative result; Section~\ref{sec:input_robustness} tests one different, training-fitted alternative on all 11 datasets with separately trained records.
 
-Validation-only input-parameterization and training-repeatability audits appear in Appendix~\ref{app:training_diagnostics}. Centering and scalar scaling of normalized features recover MLP validation performance in the tested conditions, while repeated LINKX training with identical inputs can diverge substantially. The retrained normalized-feature condition differs from the original models: graph--MLP gaps are 25.45 versus 23.66 points for Roman-empire and 16.30 versus 16.45 for Amazon-ratings. Table~\ref{tab:preprocessing_sensitivity} therefore reports paired sensitivity outcomes, rather than an exact replay or repeatable graph effect size. Preprocessing robustness of the complete 11-dataset benchmark remains untested by these bounded audits.
+Validation-only input-parameterization and training-repeatability audits appear in Appendix~\ref{app:training_diagnostics}. Centering and scalar scaling of normalized features recover MLP validation performance in the tested conditions, while repeated LINKX training with identical inputs can diverge substantially. The retrained normalized-feature condition differs from the original models: graph--MLP gaps are 25.45 versus 23.66 points for Roman-empire and 16.30 versus 16.45 for Amazon-ratings. Table~\ref{tab:preprocessing_sensitivity} therefore reports paired sensitivity outcomes, rather than an exact replay or repeatable graph effect size. These bounded audits do not establish preprocessing robustness of the complete 11-dataset benchmark; the 11-dataset retraining in Section~\ref{sec:input_robustness} shows that the direction of the full-portfolio comparison holds under one training-fitted alternative, not under preprocessing choices in general.
 
 \paragraph{Fallback within the paired preprocessing run.}
 Table~\ref{tab:preprocessing_fallback} evaluates both fallbacks on this experiment's per-seed records. All 20 normalized-feature units abstain; all 20 raw-feature units explicitly select MLP because validation accuracy exceeds 0.40. Graph fallback therefore changes only normalized-feature outcomes. The absolute 0.40 cutoff alone does not establish graph superiority. These alternative configurations remain separate from the original 11-dataset records and cannot be pooled into a corrected benchmark effect.
@@ -171,3 +171,57 @@ Raw & 13.299 & 13.299 & 0.000 \\
 \bottomrule
 \end{tabular}
 \end{table}
+
+
+\subsection{Eleven-Dataset Input-Parameterization Retraining}
+\label{sec:input_robustness}
+
+A later post-hoc run retrained all seven architectures on all 11 datasets and the same 110 splits under two inputs: the frozen \texttt{NormalizeFeatures} transform $N$ and its training-fitted centered-scaled reparameterization $a(N-\mu_T(N))$ from Appendix~\ref{app:training_diagnostics}, abbreviated CS. Training grids, the checkpoint rule, validation selection, the practical margin, and the MLP fallback follow Section~\ref{sec:protocol}; each selected model received one test evaluation. These 1,540 records come from a different execution environment and are not a replay of the frozen benchmark, whose results above are unchanged. Their frozen analysis configuration specifies unadjusted dataset-bootstrap intervals (10,000 resamples of the 11 equal-weight dataset means, 95\% percentile), which we report as descriptive post-hoc uncertainty rather than as tests.
+
+With $N$, Combined incurs 7.60 points of full-set regret, against 0.40 for always-graph and 0.32 for validation selection; with CS the values are 6.22, 0.45, and 0.20. Always-graph minus Combined regret is $-$7.20 points [$-$13.67, $-$1.39] with $N$ and $-$5.78 [$-$11.23, $-$0.90] with CS, so the direction of the full-portfolio comparison is the same under both inputs. Changing the input from $N$ to CS raises the equal-weight mean selected-MLP accuracy by 5.94 points [0.70, 15.01], but Roman-empire accounts for 75.6\% of the summed dataset differences, and the mean without it is 1.60 points. The CS-minus-$N$ change in Combined-minus-always-graph regret is $-$1.43 points [$-$3.92, 0.43]. The effect of the input on the feature-only baseline is therefore predominantly positive but strongly dataset-dependent, and these records test one alternative parameterization, not preprocessing in general.
+
+The paired input comparison uses the declared MLP fallback. Appendix~\ref{app:mlp_budget}, Section~\ref{sec:retraining_fallback}, separately crosses fallback and dataset exclusion. Under $N$, graph fallback together with Chameleon/Squirrel exclusion yields a local descriptive reversal (Combined 0.308 versus always-graph 0.494 points); CS does not reverse in that configuration. Thus the default-fallback ordering should not be extended to every alternative evaluation configuration.
+
+\subsection{Sensitivity to an Expanded MLP Search Budget}
+\label{sec:mlp_budget}
+
+A second post-hoc extension, designed after inspecting partial results of the run above, expands only the MLP search within those records. For each of the 220 MLP units (11 datasets, two inputs, ten seeds), the four original trials and their checkpoints are inherited unchanged and 20 new trials complete a grid of learning rates $\{0.001,0.005,0.01\}$, dropouts $\{0,0.3,0.5,0.7\}$, and weight decays $\{0,5\times10^{-4}\}$, for 24 trials. The frozen validation rule selects among all of them, and the selected checkpoint receives exactly one new post-selection test evaluation, also when an inherited trial remains selected. Graph models are not retrained; their records and the decision rules are those of Section~\ref{sec:input_robustness}. The extension matches the graph portfolio's 24 trials only in count: it searches the hyperparameters of one MLP architecture, whereas the graph action still chooses among six architectures. It does not equalize architecture diversity, time, or FLOPs, and no interval was specified for it, so its results are descriptive.
+
+\begin{table}[t]
+\centering
+\caption{Post-hoc MLP-budget sensitivity of the six-architecture portfolio in the 11-dataset retraining (Section~\ref{sec:input_robustness}); these records are separate from Table~\ref{tab:equal_budget}. Within each input, the 4- and 24-trial columns share units, splits, graph records, and decision rules and differ only in the MLP candidates. Entries are mean full-set oracle-portfolio regret in percentage points; $\Delta$ is 24 minus 4 trials. Descriptive values.}
+\label{tab:mlp_budget}
+\small
+\setlength{\tabcolsep}{3.5pt}
+\begin{tabular}{@{}llrrr@{}}
+\toprule
+Input & Policy & 4 trials & 24 trials & $\Delta$ \\
+\midrule
+$N$ & Combined & 7.60 & 6.72 & $-$0.88 \\
+ & Always-graph & 0.40 & 0.44 & +0.03 \\
+ & Validation selection & 0.32 & 0.21 & $-$0.11 \\
+ & Always-MLP & 9.81 & 8.47 & $-$1.34 \\
+ & Graph targets (of 110) & 86 & 78 & -- \\
+\midrule
+CS & Combined & 6.22 & 5.75 & $-$0.47 \\
+ & Always-graph & 0.45 & 0.53 & +0.08 \\
+ & Validation selection & 0.20 & 0.28 & +0.08 \\
+ & Always-MLP & 7.99 & 7.48 & $-$0.51 \\
+ & Graph targets (of 110) & 82 & 77 & -- \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The expanded search changed the selected MLP in 145 of the 220 units (72 of 110 with $N$ and 73 with CS); 75 units kept an inherited trial. Per-unit MLP test accuracy rose, fell, or was unchanged in 91, 34, and 95 units, respectively. A stronger MLP removes some graph targets and lowers the regret of every fixed heuristic that can choose MLP, while always-graph regret rises slightly (Table~\ref{tab:mlp_budget}); validation selection improves with $N$ but not with CS. Across the 12 policies evaluated on the full portfolio, including the calibrated and published-statistic rules in Appendix~\ref{app:mlp_budget}, regret changes by $-$1.92 to +0.08 points. Combined remains well above always-graph. Its actions are identical in all 220 units under both budgets (0 changed), so the decisions are unchanged and the change in regret magnitude comes from changed MLP test accuracies and the resulting oracle values; target changes affect selection accuracy.
+
+The portfolio reversal is not invariant to the MLP budget. The GCN and GAT restrictions favor Combined under both inputs and both budgets, and with CS the favorable subsets remain GCN, GAT, and their pair. With $N$ and 24 MLP trials, GPR-GNN alone also favors Combined (1.36 versus 1.81 points), including after excluding Cornell and Wisconsin. On Amazon-ratings with $N$, every seed's selected test accuracy equals the majority-class proportion of its test split at both budgets; on Roman-empire with $N$, mean MLP accuracy rises from 16.71\% to 25.91\%, still far below 66.06\% with CS. Appendix~\ref{app:mlp_budget} reports these cases and the complete tables.
+
+Expanding the MLP trial budget therefore materially changed the selected MLP configurations and several regret values, but it did not reverse the main comparison with always-graph in this extension and did not remove the architecture-level asymmetry of the two portfolios. It quantifies the sensitivity of the conclusions to a larger MLP trial search; it does not show that the graph and MLP actions received comparable search budgets.
+
+\paragraph{Published-statistic comparison.}
+Using the same selected-model records, we evaluate adjusted homophily and edge label informativeness with leave-one-dataset-out calibration (Appendix~\ref{app:mlp_budget}). With 24 MLP trials, adjusted homophily attains 0.34 points of full-portfolio regret under $N$ and 0.15 under CS, below always-graph's 0.44 and 0.53. Edge label informativeness gives 0.44 and 2.59. These descriptive results establish that the fixed-rule loss pattern does not extend uniformly to the additional statistics; their calibration and information boundary are specified in the appendix.
+
+The CS/24 adjusted-homophily advantage over always-graph is concentrated entirely in Cornell and Wisconsin; the other nine dataset means tie. Appendix~\ref{sec:calibration_readout} gives its eleven saved folds and the loss concentrations of LI and ordinary $h_1$.
+
+\paragraph{Input effect with the expanded search.}
+This contrast compares inputs at a fixed budget and is separate from the budget effect above. With 24 MLP trials, CS gives the higher mean MLP accuracy on 9 of 11 datasets and in 70 of 110 paired seeds (30 lower, 10 tied). The mean paired difference is 5.16 points but the median is 0.51. Roman-empire accounts for 70.7\% of the summed dataset differences; without it the mean is 1.66 points, and leaving out any single dataset keeps CS ahead on 8 or 9 of the remaining ten. The input effect is predominantly positive but strongly dataset-dependent.

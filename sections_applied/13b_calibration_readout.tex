@@ -1,0 +1,31 @@
+\subsection{Interpreting the Saved Calibration Folds}
+\label{sec:calibration_readout}
+
+The CS, 24-trial adjusted-homophily policy selects MLP on all ten Cornell and all ten Wisconsin units, and graph on the other 90 units. Its mean gain over always-graph, 0.383 points, comes entirely from those two datasets (Table~\ref{tab:calibration_folds}); the other nine tie exactly. This supports a local descriptive improvement, not transport to independent graph tasks. All 11 folds choose finite cutoffs. Neither published statistic is missing in any of the 110 metric records, so coverage is complete.
+
+\begin{table}[tbp]
+\centering
+\caption{Saved adjusted-homophily LODO folds, CS input and 24 MLP trials, full portfolio. G/M counts graph/MLP actions among ten seeds; no fold abstains. Regrets and gain (always-graph minus diagnostic) are percentage points. Thresholds are rounded only for display; exact values and all 132 folds across the three rules, two inputs, and two budgets are supplied in the archive.}
+\label{tab:calibration_folds}
+\small
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{@{}lrrrrr@{}}
+\toprule
+Held-out dataset & Threshold & G/M & Diagnostic & Always-graph & Gain \\
+\midrule
+Actor & -0.07880 & 10/0 & 0.407 & 0.407 & +0.000 \\
+Amazon-ratings & -0.07880 & 10/0 & 0.000 & 0.000 & +0.000 \\
+Chameleon & -0.07880 & 10/0 & 0.000 & 0.000 & +0.000 \\
+CiteSeer & -0.07880 & 10/0 & 0.000 & 0.000 & +0.000 \\
+Coauthor-CS & -0.07880 & 10/0 & 0.000 & 0.000 & +0.000 \\
+Cora & -0.07880 & 10/0 & 0.000 & 0.000 & +0.000 \\
+Cornell & -0.07880 & 0/10 & 1.000 & 2.000 & +1.000 \\
+PubMed & -0.07880 & 10/0 & 0.000 & 0.000 & +0.000 \\
+Roman-empire & -0.05504 & 10/0 & 0.000 & 0.000 & +0.000 \\
+Squirrel & -0.07880 & 10/0 & 0.000 & 0.000 & +0.000 \\
+Wisconsin & -0.10270 & 0/10 & 0.189 & 3.396 & +3.208 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Under the same CS/24 configuration, edge label informativeness selects MLP only on Squirrel's ten units, producing 22.658 points of dataset-level regret there; its other ten dataset means equal always-graph. Ordinary $h_1$ selects MLP only on Roman-empire's ten units, producing 14.859 points there, and ties always-graph elsewhere. LI uses a constant-graph candidate only in the Actor fold; ordinary $h_1$ does so in ten folds. These saved-fold readouts locate the respective mean regrets of 2.587 and 1.878 points without fitting new thresholds or adding tests.

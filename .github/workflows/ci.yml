@@ -90,8 +90,19 @@ jobs:
           mkdir -p tmp/manuscript
           "$RUNNER_TEMP/tectonic" main_tmlr.tex --outdir tmp/manuscript --keep-logs --untrusted
           python scripts/check_latex_log.py tmp/manuscript/main_tmlr.log
+      - name: Compile Applied Intelligence manuscript and check references and layout
+        run: |
+          mkdir -p tmp/applied-intelligence
+          "$RUNNER_TEMP/tectonic" main_applied_intelligence.tex --outdir tmp/applied-intelligence --keep-logs --untrusted
+          python scripts/check_latex_log.py tmp/applied-intelligence/main_applied_intelligence.log
+          python scripts/audit_route_a_claims.py --root . --main main_applied_intelligence.tex
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: tmlr-manuscript
           path: tmp/manuscript/
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: applied-intelligence-manuscript
+          path: tmp/applied-intelligence/

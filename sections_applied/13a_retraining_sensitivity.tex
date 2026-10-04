@@ -1,0 +1,35 @@
+\subsection{Dataset Exclusion and Abstention Fallback}
+\label{sec:retraining_fallback}
+
+A separate post-hoc reanalysis of the four-trial retraining crosses three abstention fallbacks with all datasets, joint Chameleon/Squirrel exclusion, joint Cornell/Wisconsin exclusion, and each single-dataset omission. It evaluates the full portfolio, GCN, GAT, and their pair, yielding 336 condition--portfolio--exclusion--fallback cases. Only Combined's abstentions change with fallback; explicit actions and other policies retain their recorded decisions. The analysis reconstructs the earlier unrestricted scores and intervals before scoring these cases.
+
+\begin{table}[tbp]
+\centering
+\caption{Post-hoc fallback and dataset-exclusion sensitivity in the four-trial retraining, six-architecture portfolio. Regrets are percentage points; $\Delta$ is Combined minus always-graph. These are separate records from Table~\ref{tab:fallback_sensitivity} and are not the 24-trial extension. Ch./Sq. denotes Chameleon and Squirrel.}
+\label{tab:retraining_fallback}
+\small
+\setlength{\tabcolsep}{3.2pt}
+\begin{tabular}{@{}lllrrr@{}}
+\toprule
+Input & Datasets & Fallback & Combined & Always-graph & $\Delta$ \\
+\midrule
+N & All 11 & MLP & 7.605 & 0.404 & +7.200 \\
+N & All 11 & Graph & 1.747 & 0.404 & +1.343 \\
+N & All 11 & Validation & 1.730 & 0.404 & +1.326 \\
+N & Exclude Ch./Sq. & MLP & 5.079 & 0.494 & +4.584 \\
+N & Exclude Ch./Sq. & Graph & 0.308 & 0.494 & -0.187 \\
+N & Exclude Ch./Sq. & Validation & 0.287 & 0.494 & -0.207 \\
+\midrule
+CS & All 11 & MLP & 6.223 & 0.448 & +5.775 \\
+CS & All 11 & Graph & 4.122 & 0.448 & +3.674 \\
+CS & All 11 & Validation & 4.136 & 0.448 & +3.688 \\
+CS & Exclude Ch./Sq. & MLP & 3.022 & 0.547 & +2.475 \\
+CS & Exclude Ch./Sq. & Graph & 3.005 & 0.547 & +2.457 \\
+CS & Exclude Ch./Sq. & Validation & 3.022 & 0.547 & +2.475 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Under the declared MLP fallback, every single-dataset omission retains Combined's higher full-portfolio regret: the excess ranges from 5.240 to 8.046 points under $N$ and from 4.057 to 6.636 under CS. Joint Cornell/Wisconsin exclusion reverses the favorable default-fallback averages for GCN, GAT, and their pair under both inputs.
+
+The combined fallback/exclusion change has a different outcome. Under $N$, graph fallback and Chameleon/Squirrel exclusion give Combined 0.308 points against always-graph's 0.494; validation fallback gives 0.287 (Table~\ref{tab:retraining_fallback}). For graph fallback, the always-graph-minus-Combined dataset-bootstrap interval is [0.000, 0.464] points, with raw sign-flip $p=0.25$ and within-case Holm $p=0.75$. This local descriptive reversal qualifies the default-fallback comparison. CS retains higher Combined regret in the same configuration. Exclusion does not test cleaned graph versions, and these results do not cover the 24-trial extension. The accompanying records retain all cases and unadjusted intervals; within-case Holm correction does not adjust across the post-hoc sensitivity family.
