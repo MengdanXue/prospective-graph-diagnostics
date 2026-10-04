@@ -44,3 +44,9 @@ The current manuscript is compiled with the existing Tectonic runtime and checke
 The delivered record reader uses the executed analysis functions to reconstruct both budgets, both inputs, all 63 portfolios, and the published-statistic policies. Its local acceptance is run through the existing monitored control-phase controller using the latest closed budget handoff. Its execution receipt, package digest, same-SHA CI, and resulting closed budget receipt are archived separately after completion.
 
 Full checkpoint tensors and private cumulative ledgers remain in author storage. Their indexes and provenance are supplied, but the journal archive promises reconstruction from saved scores, not independent checkpoint replay. No journal submission is performed by this revision.
+
+## Exact-replay platform qualification
+
+The first Ubuntu CI run on 528baa4 failed two strict decision-dictionary assertions and the same existing guard in the fallback summarizer. A separate Ubuntu replay located 30 confidence-only differences across 20 of 110 units (maximum absolute difference 1.11e-16); all 990 actions, rank orders and tied-score groups matched exactly. Test-field perturbations left complete recomputed dictionaries exactly unchanged in that runtime. The scorer is byte-identical to the accepted execution source.
+
+No assertion, tolerance, scorer or saved result was changed. The two archival-record CI jobs now run on Windows, the source platform of those records; the manuscript build remains on Ubuntu. Linux bitwise replay remains unsupported, rather than being declared repaired. The failed CI and its diagnosis are retained. This change establishes the platform scope of exact reconstruction and does not justify changing numerical or scientific conclusions.
