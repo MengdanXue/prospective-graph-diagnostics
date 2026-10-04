@@ -31,6 +31,14 @@ ALLOWED_RESULTS = {
     "results/discriminability/route_a_grid_v1/summary/summary.json",
     "results/discriminability/route_a_grid_v1/summary/validation_figure.pdf",
     "results/discriminability/route_a_grid_v1/summary/validation_figure.png",
+    "results/diagnostic/h2gcn_cpu_performance_v1/budget_proposal.json",
+    "results/diagnostic/h2gcn_cpu_performance_v1/source_ci_receipt.json",
+    "results/diagnostic/h2gcn_cpu_performance_v1/summary.json",
+    "results/diagnostic/posthoc_input_robustness_11_v1/preflight/acceptance.json",
+    "results/diagnostic/posthoc_input_robustness_11_v1/preflight/data_binding.json",
+    "results/diagnostic/posthoc_input_robustness_11_v1/preflight/data_binding_stage1.json",
+    "results/diagnostic/posthoc_input_robustness_11_v1/preflight/resource_profile.json",
+    "results/diagnostic/posthoc_input_robustness_11_v2/budget_authorization.json",
 }
 ACTIVE_SECTIONS = [
     "01_introduction",
