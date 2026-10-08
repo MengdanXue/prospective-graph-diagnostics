@@ -11,7 +11,7 @@ import numpy as np
 from scipy.stats import ttest_ind
 from scripts.cpm_probe import aggregation_operator, directional_score, probe_training_rows, seed_for
 from scripts import cpm_extension_guarded as guard
-from scripts.cpm_extension_worker import bind_probe_record
+from scripts.cpm_extension_worker import bind_probe_record, retained_records
 
 
 class CPMTests(unittest.TestCase):
@@ -134,6 +134,42 @@ class CPMTests(unittest.TestCase):
                  patch.object(guard.importlib,'import_module',side_effect=AssertionError('runtime import')),redirect_stdout(StringIO()):
                 self.assertEqual(guard.main(args),0)
             self.assertFalse((root/'ledger-root').exists())
+
+    def test_resume_prefix_requires_hash_split_features_and_replicates(self):
+        with tempfile.TemporaryDirectory() as temp:
+            path=Path(temp)/'records.jsonl'
+            x=np.arange(60,dtype=float).reshape(20,3); labels=np.arange(20)%2
+            metric=probe_training_rows(x,x,labels,seed=seed_for('fixture','split'),repeats=3)
+            row=bind_probe_record({'dataset':'fixture','seed':0,'condition':'N','split_id':'split'},metric)
+            row.update(materialized_sha256='raw',transformed_feature_sha256='features')
+            protocol={'datasets':['fixture'],'seeds':[0],'conditions':['N','CS'],'repeats':3}
+            binding={'datasets':{'fixture':{'materialized_sha256':'raw','split_checks':[{'seed':0,'split_id':'split'}],
+                'candidate_checks':[{'seed':0,'transformed_feature_sha256':'features'}]}}}
+            path.write_text(json.dumps(row)+'\n',encoding='utf-8')
+            self.assertEqual(retained_records(path,guard.fsha(path),protocol,binding),[row])
+            with self.assertRaisesRegex(ValueError,'external binding'):
+                retained_records(path,'0'*64,protocol,binding)
+            path.write_text(json.dumps(row)+'\n'+json.dumps(row)+'\n',encoding='utf-8')
+            with self.assertRaisesRegex(ValueError,'unique declared prefix'):
+                retained_records(path,guard.fsha(path),protocol,binding)
+            row['cpm_gnb']=.9; path.write_text(json.dumps(row)+'\n',encoding='utf-8')
+            with self.assertRaisesRegex(ValueError,'differs from its repeats'):
+                retained_records(path,guard.fsha(path),protocol,binding)
+
+    def test_package_verification_polls_by_time_without_skipping_hashes(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root=Path(temp)
+            for name in (guard.READER,guard.VERIFIER,'data.txt'):
+                (root/name).write_text('fixture')
+            manifest=root/'PACKAGE_MANIFEST.json'
+            manifest.write_text(json.dumps({'files':{p.name:{'sha256':guard.fsha(p),'bytes':p.stat().st_size} for p in root.iterdir()}}))
+            calls=[]
+            with patch.object(guard.time,'monotonic',return_value=1):
+                guard.package_binding(root,guard.fsha(manifest),lambda:calls.append(1))
+            self.assertEqual(calls,[1])
+            (root/'data.txt').write_text('changed')
+            with self.assertRaisesRegex(ValueError,'file hash'):
+                guard.package_binding(root,guard.fsha(manifest),lambda:None)
 
 
 if __name__ == '__main__':

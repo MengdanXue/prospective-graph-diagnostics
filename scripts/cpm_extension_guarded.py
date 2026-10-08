@@ -51,6 +51,14 @@ def source_identity(root, expected=None):
 
 def package_binding(root, expected_manifest_sha256, poll=None):
     """Verify bytes before importing or launching any package-supplied code."""
+    raw_poll = poll
+    previous_poll = time.monotonic()
+    def timed_poll():
+        nonlocal previous_poll
+        if raw_poll is not None and time.monotonic() - previous_poll >= 0.25:
+            raw_poll()
+            previous_poll = time.monotonic()
+    poll = timed_poll if raw_poll is not None else None
     root = Path(root).resolve()
     manifest = root / "PACKAGE_MANIFEST.json"
     require(len(expected_manifest_sha256) == 64 and fsha(manifest, poll) == expected_manifest_sha256,
@@ -69,16 +77,21 @@ def package_binding(root, expected_manifest_sha256, poll=None):
             "unlisted executable Python member")
     require(not any(path.suffix.lower() in {".pyc", ".pyo", ".pyd", ".so"} for path in root.rglob("*")),
             "compiled Python import can bypass source bindings")
+    if raw_poll is not None:
+        raw_poll()
     return {"manifest_sha256": expected_manifest_sha256,
             "reader_sha256": files[READER]["sha256"], "verifier_sha256": files[VERIFIER]["sha256"],
             "package_files": len(files)}
 
 
-def reader_command(package_root, output, controller_root, data_root):
-    return [sys.executable, "-B", str(WORKER), "--package-root", str(Path(package_root).resolve()), "--output", str(Path(output).resolve()), "--controller-root", str(controller_root), "--data-root", str(data_root)]
+def reader_command(package_root, output, controller_root, data_root, resume_records=None, resume_sha=None):
+    command = [sys.executable, "-B", str(WORKER), "--package-root", str(Path(package_root).resolve()), "--output", str(Path(output).resolve()), "--controller-root", str(controller_root), "--data-root", str(data_root)]
+    if resume_records is not None:
+        command += ['--resume-records',str(resume_records),'--resume-records-sha256',resume_sha]
+    return command
 
 
-def make_controller(api, package_root, output, binding, controller_root, data_root):
+def make_controller(api, package_root, output, binding, controller_root, data_root, resume_records=None, resume_sha=None):
     """Only the fixed child changes; accounting, poll, power and stop stay inherited."""
     worker_sha = fsha(WORKER)
     class ReaderController(api.ExtensionExecutionController):
@@ -94,9 +107,10 @@ def make_controller(api, package_root, output, binding, controller_root, data_ro
             environment = os.environ.copy()
             environment.pop("PYTHONPATH", None)
             environment["PYTHONDONTWRITEBYTECODE"] = "1"
-            supervised = api.supervise_process(reader_command(package_root, output, controller_root, data_root),
+            require(resume_records is None or fsha(resume_records) == resume_sha, 'retained records changed')
+            supervised = api.supervise_process(reader_command(package_root, output, controller_root, data_root, resume_records, resume_sha),
                 cwd=package_root, environment=environment, log_path=workers / f"{attempt_id}.log",
-                worker_cap_seconds=min(float(cap_seconds), 2700), poll_seconds=0.25,
+                worker_cap_seconds=min(float(cap_seconds), 660 if resume_records is not None else 2700), poll_seconds=0.25,
                 on_poll=self._supervisor_poll)
             api._exclusive_json(workers / f"{attempt_id}.supervision.json", supervised)
             if supervised.get("stop_reasons"):
@@ -116,6 +130,8 @@ def parser():
                  "controller-ci-receipt", "wrapper-ci-receipt"):
         p.add_argument("--" + name, type=Path, required=True)
     p.add_argument("--package-manifest-sha256", required=True)
+    p.add_argument('--resume-records',type=Path)
+    p.add_argument('--resume-records-sha256')
     p.add_argument("--execute", action="store_true")
     return p
 
@@ -125,12 +141,16 @@ def main(argv=None):
     controller = args.controller_root.resolve()
     source_identity(controller, CONTROLLER_SHA)
     binding = package_binding(args.package_root, args.package_manifest_sha256)
+    require((args.resume_records is None) == (args.resume_records_sha256 is None),'resume path/hash must be paired')
+    if args.resume_records is not None:
+        require(fsha(args.resume_records) == args.resume_records_sha256,'retained records differ from external binding')
     require(not args.output_root.exists() and not args.ledger_root.exists(),
             "preserve previous output and ledger; choose fresh paths")
     require(not args.output_root.resolve().is_relative_to(args.package_root.resolve()),
             "outputs must remain outside the immutable reader package")
     plan = {"operation": OPERATION, "budget_group": "control", "controller_source": CONTROLLER_SHA,
-            **binding, "training_started": False, "probe_fitting": True, "protocol_sha256": fsha(ROOT / "configs/cpm_train_only_v1.json")}
+            **binding, "training_started": False, "probe_fitting": True, "protocol_sha256": fsha(ROOT / "configs/cpm_train_only_v1.json"),
+            'resumed_records_sha256':args.resume_records_sha256}
     if not args.execute:
         print(json.dumps({**plan, "status": "preparation_only", "launch_enabled": False}))
         return 0
@@ -155,12 +175,13 @@ def main(argv=None):
                 "results/diagnostic/posthoc_input_robustness_11_v1/preflight/data_binding.json"),
             "source_files": {"journal_wrapper": fsha(Path(__file__)), "audit_worker": fsha(WORKER), "protocol": fsha(ROOT / "configs/cpm_train_only_v1.json"), "probe": fsha(ROOT / "scripts/cpm_probe.py"),
                              "reader": binding["reader_sha256"], "verifier": binding["verifier_sha256"]},
-            "environment": {"python": sys.executable, "wrapper_commit": wrapper_sha, **binding}},
+            "environment": {"python": sys.executable, "wrapper_commit": wrapper_sha, **binding,
+                            'resumed_records_sha256':args.resume_records_sha256}},
             gate_receipt={"ci_receipt_file_sha256": fsha(args.controller_ci_receipt),
                           "review_record_sha256": fsha(args.handoff), "ci_receipt": ci,
                           "wrapper_ci_receipt_sha256": fsha(args.wrapper_ci_receipt)})
         output = args.output_root.resolve() / "cpm-extension.json"
-        cls = make_controller(api, args.package_root.resolve(), output, binding, controller, args.data_root.resolve())
+        cls = make_controller(api, args.package_root.resolve(), output, binding, controller, args.data_root.resolve(),args.resume_records,args.resume_records_sha256)
         runner = cls(writer=SimpleNamespace(root=args.output_root.resolve(), config=config, synthetic=False),
                      ledger=ledger, phase_id=OPERATION)
         attempt = api.attempt_prefix(ledger) + "_revision_audit"
