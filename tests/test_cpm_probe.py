@@ -11,6 +11,7 @@ import numpy as np
 from scipy.stats import ttest_ind
 from scripts.cpm_probe import aggregation_operator, directional_score, probe_training_rows, seed_for
 from scripts import cpm_extension_guarded as guard
+from scripts.cpm_extension_worker import bind_probe_record
 
 
 class CPMTests(unittest.TestCase):
@@ -68,6 +69,18 @@ class CPMTests(unittest.TestCase):
     def test_seed_binding(self):
         self.assertEqual(seed_for('a','b'),seed_for('a','b'))
         self.assertNotEqual(seed_for('a','b'),seed_for('a','c'))
+
+    def test_probe_to_record_preserves_outer_seed_end_to_end(self):
+        rng=np.random.default_rng(4)
+        x=rng.normal(size=(60,5)); labels=np.arange(60)%3
+        metric=probe_training_rows(x,x,labels,seed=seed_for('fixture','split'),repeats=3)
+        identity={'dataset':'fixture','seed':0,'split_id':'split','condition':'normalize_features'}
+        record=json.loads(json.dumps(bind_probe_record(identity,metric)))
+        self.assertEqual(record['seed'],0)
+        self.assertEqual(record['resampling_seed'],seed_for('fixture','split'))
+        self.assertEqual(record['split_id'],'split')
+        with self.assertRaisesRegex(ValueError,'collides'):
+            bind_probe_record(identity,{'seed':100})
 
     def test_guard_launch_is_fixed_and_default_is_read_only(self):
         cmd=guard.reader_command(Path('package'),Path('out'),Path('controller'),Path('data'))

@@ -93,5 +93,5 @@ def probe_training_rows(raw_train, aggregated_train, train_labels, *, seed, repe
         sizes.append([len(sample), len(fit), len(hold)])
     return {'cpm_gnb': directional_score(xs, gs), 'probe_gap': float(np.mean(np.asarray(gs) - xs)),
             'raw_accuracy': xs, 'graph_accuracy': gs, 'partition_sizes': sizes,
-            'partition_sha256': partitions.hexdigest(), 'seed': seed, 'outer_train_count': len(y),
+            'partition_sha256': partitions.hexdigest(), 'resampling_seed': seed, 'outer_train_count': len(y),
             'strict_graph_win_fraction': float(np.mean(np.asarray(gs) > xs))}

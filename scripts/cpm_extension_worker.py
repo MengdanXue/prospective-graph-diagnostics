@@ -24,6 +24,13 @@ def sha(path):
         return hashlib.file_digest(stream, 'sha256').hexdigest()
 
 
+def bind_probe_record(identity, metric):
+    """Prevent numerical outputs from overwriting dataset/split identities."""
+    if set(identity) & set(metric):
+        raise ValueError('probe output collides with outer record identity')
+    return {**identity, **metric}
+
+
 def evaluate(package, metrics, protocol):
     evidence = package / 'new-evidence'
     base = [json.loads(p.read_bytes()) for p in sorted((evidence / 'input-retraining/records').rglob('*.json'))]
@@ -110,8 +117,8 @@ def run(controller, data_root, package, output):
                     prepared = time.monotonic()
                     metric = probe_training_rows(transformed.numpy()[train], aggregated_train, train_labels,
                         seed=seed_for(dataset, split_id), repeats=protocol['repeats'], cap=protocol['nominal_sample_cap'])
-                    row = {'dataset': dataset, 'seed': seed, 'split_id': split_id, 'condition': condition,
-                        **metric, 'feature_metadata': meta, 'transformed_feature_sha256': transformed_sha,
+                    row = {**bind_probe_record({'dataset': dataset, 'seed': seed, 'split_id': split_id, 'condition': condition}, metric),
+                        'feature_metadata': meta, 'transformed_feature_sha256': transformed_sha,
                         'materialized_sha256': entry['materialized_sha256'],
                         'load_seconds_shared_across_dataset': load_seconds,
                         'feature_and_aggregation_seconds': prepared - cell_start,
