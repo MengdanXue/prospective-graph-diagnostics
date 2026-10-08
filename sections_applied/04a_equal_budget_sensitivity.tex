@@ -124,54 +124,9 @@ Six architectures & 7.46 & 2.41 & 0.26 \\
 \end{tabular}
 \end{table}
 
-Calibration lowers regret in all seven rows (Table~\ref{tab:calibrated_threshold}). Full-portfolio regret falls from 7.46 to 2.41 points, still above always-graph's 0.26. Ten folds choose constant graph ($t=-1$); the Roman-empire fold chooses $t=0.11$ and contributes approximately 89\% of the remaining regret. GCN and GAT retain lower descriptive regret than always-graph, and GPR-GNN gains a small advantage absent under the frozen cutoff. Threshold choice therefore changes the results. Designed after benchmark inspection, this control uses overlapping calibration folds and potentially related graph domains. It evaluates one threshold family, leaving published diagnostic methods and external validity unresolved. These descriptive comparisons remain outside the primary test family.
+Calibration lowers regret in all seven rows (Table~\ref{tab:calibrated_threshold}). Full-portfolio regret falls from 7.46 to 2.41 points, still above always-graph's 0.26. Ten folds choose constant graph ($t=-1$); the Roman-empire fold chooses $t=0.11$ and contributes approximately 89\% of the remaining regret. GCN and GAT retain lower descriptive regret than always-graph, and GPR-GNN gains a small advantage absent under the frozen cutoff. Threshold choice therefore changes the results. Designed after benchmark inspection, this control uses overlapping calibration folds and potentially related graph domains. It evaluates one threshold family, with the additional published-statistic and matched-calibration comparisons reported in Section~\ref{sec:matched_audit}. These descriptive comparisons remain outside the primary test family.
 
-\subsection{Feature Preprocessing Sensitivity}
-\label{sec:preprocessing_sensitivity}
-
-PyG 2.7.0 \texttt{NormalizeFeatures} subtracts the feature matrix's global minimum and divides each row by its sum clamped below at one. To examine this transformation on continuous features, we retrained all seven architectures for ten seeds on Roman-empire and Amazon-ratings using normalized and raw features. Graphs, splits, seeds, trial grids, checkpoint rules, and devices remain paired. This post-hoc experiment measures sensitivity on two selected datasets; the frozen 11-dataset benchmark remains separate.
-
-\begin{table}[t]
-\centering
-\caption{Post-hoc paired feature-preprocessing sensitivity on two heterophilous datasets (a separate run from the frozen benchmark and from Section~\ref{sec:input_robustness}). Values are mean test accuracy or full-set oracle regret in percentage points; graph targets are out of ten seeds. Each graph action still searches six architectures and 24 trials.}
-\label{tab:preprocessing_sensitivity}
-\small
-\setlength{\tabcolsep}{3.5pt}
-\begin{tabular}{@{}llrrrrr@{}}
-\toprule
-Dataset & Features & MLP & Graph & Graph--MLP & \shortstack{Combined\\regret} & \shortstack{Graph\\targets} \\
-\midrule
-Roman-empire & \shortstack{Normalize\\Features} & 16.71 & 42.16 & 25.45 & 25.45 & 10/10 \\
-Roman-empire & Raw & 66.19 & 80.96 & 14.77 & 14.77 & 10/10 \\
-Amazon-ratings & \shortstack{Normalize\\Features} & 36.76 & 53.06 & 16.30 & 16.30 & 10/10 \\
-Amazon-ratings & Raw & 41.35 & 53.17 & 11.82 & 11.82 & 10/10 \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-Raw features raise MLP accuracy by 49.48 points on Roman-empire and 4.59 on Amazon-ratings; selected graph accuracy changes by 38.81 and 0.11 points. Graph remains better in all 20 units under both conditions, giving always-graph and validation selection zero regret. Homophily still selects MLP because both datasets fall below $h_1=0.55$. Preprocessing materially changes the graph--MLP gaps on these two datasets. This two-dataset comparison does not show that normalization caused the full benchmark's negative result; Section~\ref{sec:input_robustness} tests one different, training-fitted alternative on all 11 datasets with separately trained records.
-
-Validation-only input-parameterization and training-repeatability audits appear in Appendix~\ref{app:training_diagnostics}. Centering and scalar scaling of normalized features recover MLP validation performance in the tested conditions, while repeated LINKX training with identical inputs can diverge substantially. The retrained normalized-feature condition differs from the original models: graph--MLP gaps are 25.45 versus 23.66 points for Roman-empire and 16.30 versus 16.45 for Amazon-ratings. Table~\ref{tab:preprocessing_sensitivity} therefore reports paired sensitivity outcomes, rather than an exact replay or repeatable graph effect size. These bounded audits do not establish preprocessing robustness of the complete 11-dataset benchmark; the 11-dataset retraining in Section~\ref{sec:input_robustness} shows that the direction of the full-portfolio comparison holds under one training-fitted alternative, not under preprocessing choices in general.
-
-\paragraph{Fallback within the paired preprocessing run.}
-Table~\ref{tab:preprocessing_fallback} evaluates both fallbacks on this experiment's per-seed records. All 20 normalized-feature units abstain; all 20 raw-feature units explicitly select MLP because validation accuracy exceeds 0.40. Graph fallback therefore changes only normalized-feature outcomes. The absolute 0.40 cutoff alone does not establish graph superiority. These alternative configurations remain separate from the original 11-dataset records and cannot be pooled into a corrected benchmark effect.
-
-\begin{table}[ht]
-\centering
-\caption{Post-hoc fallback sensitivity within the same paired preprocessing experiment on Roman-empire and Amazon-ratings (20 units per feature condition). Entries are mean full-set regret in percentage points. The graph action uses all six architectures.}
-\label{tab:preprocessing_fallback}
-\small
-\setlength{\tabcolsep}{3.5pt}
-\begin{tabular}{@{}lrrr@{}}
-\toprule
-Features & Combined, MLP fallback & Combined, graph fallback & Always-graph \\
-\midrule
-NormalizeFeatures & 20.876 & 0.000 & 0.000 \\
-Raw & 13.299 & 13.299 & 0.000 \\
-\bottomrule
-\end{tabular}
-\end{table}
-
+The earlier two-dataset preprocessing experiment and its fallback comparison are retained in Appendix~\ref{sec:preprocessing_sensitivity}. The following retraining extends the input check to all eleven datasets.
 
 \subsection{Eleven-Dataset Input-Parameterization Retraining}
 \label{sec:input_robustness}
@@ -218,10 +173,7 @@ The portfolio reversal is not invariant to the MLP budget. The GCN and GAT restr
 
 Expanding the MLP trial budget therefore materially changed the selected MLP configurations and several regret values, but it did not reverse the main comparison with always-graph in this extension and did not remove the architecture-level asymmetry of the two portfolios. It quantifies the sensitivity of the conclusions to a larger MLP trial search; it does not show that the graph and MLP actions received comparable search budgets.
 
-\paragraph{Published-statistic comparison.}
-Using the same selected-model records, we evaluate adjusted homophily and edge label informativeness with leave-one-dataset-out calibration (Appendix~\ref{app:mlp_budget}). With 24 MLP trials, adjusted homophily attains 0.34 points of full-portfolio regret under $N$ and 0.15 under CS, below always-graph's 0.44 and 0.53. Edge label informativeness gives 0.44 and 2.59. These descriptive results establish that the fixed-rule loss pattern does not extend uniformly to the additional statistics; their calibration and information boundary are specified in the appendix.
-
-The CS/24 adjusted-homophily advantage over always-graph is concentrated entirely in Cornell and Wisconsin; the other nine dataset means tie. Appendix~\ref{sec:calibration_readout} gives its eleven saved folds and the loss concentrations of LI and ordinary $h_1$.
+The adjusted-homophily and edge-label-informativeness policies, their matched calibration with ordinary homophily, and the joint fallback/exclusion analysis at both budgets are reported in Section~\ref{sec:matched_audit}.
 
 \paragraph{Input effect with the expanded search.}
 This contrast compares inputs at a fixed budget and is separate from the budget effect above. With 24 MLP trials, CS gives the higher mean MLP accuracy on 9 of 11 datasets and in 70 of 110 paired seeds (30 lower, 10 tied). The mean paired difference is 5.16 points but the median is 0.51. Roman-empire accounts for 70.7\% of the summed dataset differences; without it the mean is 1.66 points, and leaving out any single dataset keeps CS ahead on 8 or 9 of the remaining ten. The input effect is predominantly positive but strongly dataset-dependent.

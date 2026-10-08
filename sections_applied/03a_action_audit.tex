@@ -1,0 +1,28 @@
+\subsection{An Action-Level Audit of Diagnostic Utility}
+\label{sec:action_audit}
+
+To compare diagnostics, we first resolve abstentions into effective actions. Let $q_u\in\{\mathrm{G},\mathrm{M}\}$ be that action and let $\mathbb{E}_D$ average seeds within each dataset and then weight datasets equally. Write $g_u=a_u^{\mathrm{M}}-a_u^{\mathrm{G}}$ and $x_+=\max(x,0)$. The improvement over always-graph satisfies the accounting identity
+\begin{align}
+R_{\mathrm{G}}-R_q
+ &= \mathbb{E}_D[\mathbf{1}\{q_u=\mathrm{M}\}g_u] \\
+ &= \underbrace{\mathbb{E}_D[\mathbf{1}\{q_u=\mathrm{M}\}(g_u)_+]}_{B_q:\ \text{benefit}}
+ -\underbrace{\mathbb{E}_D[\mathbf{1}\{q_u=\mathrm{M}\}(-g_u)_+]}_{H_q:\ \text{harm}}.
+\label{eq:benefit_harm}
+\end{align}
+It follows directly by subtracting the two regrets in Eq.~\eqref{eq:oracle_regret}. Only units on which the policy chooses MLP contribute to the comparison. The identity separates correctly exploited opportunities from losses incurred by switching away from graph; it supplies an audit of recorded decisions, without a causal attribution to the statistic or architecture.
+
+The available improvement over always-graph is bounded by its own regret,
+\begin{equation}
+R_{\mathrm{G}}-R_q\leq R_{\mathrm{G}}=\mathbb{E}_D[(g_u)_+].
+\label{eq:headroom_bound}
+\end{equation}
+We report this headroom in absolute accuracy points. A small ceiling limits the possible absolute gain but does not establish that a diagnostic is uninformative. Dividing a gain by headroom can describe its relative size when the denominator is positive; it cannot increase the absolute benefit or establish statistical significance. The ceiling is conditional on the recorded candidate outcomes and changes when the portfolio or training changes.
+
+Two rules with identical effective actions have identical full-set regret even if their scores, confidence rankings, or abstention coverage differ. Combined supplies a concrete example: under MLP fallback, changing its MLP-validation cutoff changes the explicit-action/abstention labels without changing its effective homophily-threshold action. Conversely, changing fallback is consequential only on abstaining units. These observations motivate reporting scores, explicit actions, fallback-resolved actions, and outcome losses as separate parts of the decision record.
+
+\subsection{What Saved Outcomes Can Reconstruct}
+\label{sec:replay_scope}
+
+The retained records support counterfactual choices among already evaluated predictors. A portfolio restriction can reapply the fixed validation rule to retained architecture winners, and a new threshold or fallback can select between their saved outcomes. These operations preserve model training, candidate availability, and the recorded within-architecture selection. A change to preprocessing, training, hyperparameter generation, or any upstream selection that changes the available predictors requires new model records. In particular, the 24-trial MLP extension includes 20 additional trials per unit and a selected-checkpoint evaluation; it is not inferred from the original four-trial outcomes.
+
+Threshold calibration has a further information boundary. Selected-model test outcomes from the other ten datasets serve as meta-training targets; neither the held-out dataset's scores nor its outcomes may select the cutoff. Reusing these datasets across folds supports an internal cross-dataset evaluation. Reconstructing that evaluation exactly does not make it prospective or establish transfer to an independent graph collection. The later matched-calibration analysis fixes its reporting scope in code before execution and remains post-hoc relative to the inspected benchmark.

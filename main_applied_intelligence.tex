@@ -18,12 +18,11 @@
 \newtheorem{assumption}{Assumption}
 
 \begin{document}
-\title{Diagnostic Utility Depends on the Model Portfolio: A Frozen Graph-vs-MLP Decision Benchmark}
+\title{From Graph Diagnostics to Model Decisions: Portfolio, Fallback, and Calibration}
 \author*[1]{\fnm{Mengdan} \sur{Xue}}\email{17326961775@163.com}
 \affil*[1]{\orgdiv{Faculty of Computational Mathematics and Cybernetics}, \orgname{Lomonosov Moscow State University}, \orgaddress{\city{Moscow}, \country{Russia}}}
 
-\abstract{A graph diagnostic guides a model-selection decision whose value depends on the candidate models, their training, and abstention fallback. We evaluate nine fixed graph-versus-multilayer-perceptron (MLP) policies on 11 node-classification datasets and ten seeds. The pre-specified benchmark allocates 24 tuning trials across six graph architectures and four to MLP. The historical homophily/MLP-validation rule, Combined, with MLP fallback incurs 7.46 percentage points of oracle-portfolio regret, versus 0.26 for always choosing graph and 0.22 for validation selection. Four datasets contribute 95.1\% of Combined's loss, and abstaining units contribute 75.9\%; these shares describe the joint outcomes of routing and trained predictions. Post-hoc restrictions favor Combined in three of 63 graph portfolios, comprising a graph convolutional network, a graph attention network, and their pair. Jointly removing Cornell and Wisconsin eliminates those frozen-record advantages. A separate post-hoc retraining under two input parameterizations and an expanded 24-trial MLP search retains Combined's higher full-portfolio regret averaged over all 11 datasets with MLP fallback. With centered-scaled inputs and 24 MLP trials, Combined incurs 5.75 points, against 0.53 for always-graph; a leave-one-dataset-out calibrated adjusted-homophily rule incurs 0.15. Its gain is confined to Cornell and Wisconsin. The result separates fixed heuristics from calibrated diagnostics. Dataset-level primary tests establish no superiority after multiplicity correction. The offline decision audit quantifies losses, coverage, fallback, and improvement over reference policies. The findings locate diagnostic utility within the evaluated portfolios and training configurations, with retained records supporting reconstruction.}
-
+\abstract{Graph diagnostics guide choices among trained models, so their utility depends on the candidate portfolio, calibration, and abstention fallback. We audit nine fixed graph-versus-multilayer-perceptron (MLP) policies on 11 node-classification datasets and ten seeds, measuring full-policy regret against the better validation-selected candidate. The frozen benchmark gives six graph architectures 24 tuning trials in total and MLP four trials. The historical Combined rule with MLP fallback incurs 7.46 percentage points of regret, compared with 0.26 for always-graph; four datasets contribute 95.1\% of its loss. Restricting the graph portfolio reverses some descriptive comparisons, with favorable frozen-record averages depending on Cornell and Wisconsin. Separate post-hoc retraining evaluates two input parameterizations and a 24-trial MLP search. Combined retains higher full-portfolio regret under MLP fallback, but a joint fallback/exclusion audit identifies local exceptions. Matching leave-one-dataset-out threshold calibration across ordinary homophily, adjusted homophily, and edge label informativeness preserves adjusted homophily's lower descriptive regret in all four input/budget configurations. With centered-scaled inputs and 24 MLP trials, it incurs 0.145 points against always-graph's 0.528: switching decisions yield 0.491 points of benefit and 0.108 of harm, with net gains confined to Cornell and Wisconsin. Primary dataset-level tests establish no superiority after multiplicity correction. The resulting offline audit connects scores to effective actions, reference headroom, and dataset-level losses, while distinguishing saved-score reconstruction from new training and independent validation.}
 \keywords{Graph neural networks, Model selection, Graph diagnostics, Node classification, Benchmark evaluation, Decision regret}
 \maketitle
 \raggedbottom
@@ -33,7 +32,7 @@
 \input{sections_applied/03_decision_protocol}
 \input{sections_applied/04_prospective_results}
 \input{sections_applied/04a_equal_budget_sensitivity}
-\input{sections_applied/05_edge_intervention}
+\input{sections_applied/04b_matched_policy_audit}
 \input{sections_applied/07_discussion}
 \input{sections_applied/08_conclusion}
 
@@ -47,7 +46,7 @@ The author declares no competing interests.
 \subsection*{Author contributions}
 Mengdan Xue is the sole author and is responsible for the study design, interpretation of the results, and manuscript. AI assistance is described in Section~\ref{sec:research_tools}.
 \subsection*{Data and code availability}
-The accompanying archive, \path{applied-intelligence-journal-supplement-2026-10-04.zip}, contains the manuscript source, analysis code, configurations, and four evidence archives for the frozen benchmark and its earlier sensitivity analyses. Three retain their original bytes; the training-repeatability archive is a documented derivative with machine-local paths redacted. The \path{new-evidence/} directory adds all 1,540 input-retraining records and 220 MLP-budget-extension records, including trial histories, saved analyses, checkpoint hash indexes, and completion receipts. The matching executed code is in \path{extension-source/}. The README gives verification and offline reconstruction commands; \path{PACKAGE_MANIFEST.json}, \path{PUBLIC_DERIVATION.json}, and \path{VERSION.json} bind the delivered files, metadata-only transformations, and source revisions. The primary benchmark and each post-hoc record set remain separate. Exact numerical reconstruction is validated on Windows; cross-platform bitwise identity is not claimed. A documented provenance amendment retains the earlier appendix summary and binds its recomputed decision statistics to the included audit. Full model checkpoint tensors, execution ledgers, and Git history remain in author storage, so the supplement supports score reconstruction but not independent checkpoint replay. The original public datasets and loaders are identified in Appendix~\ref{app:reproducibility}.
+The accompanying \path{applied-intelligence-major-revision-supplement-2026-10-08.zip} contains the revised manuscript source and a hash-indexed analysis extension. Its \path{evidence-base.zip} preserves the earlier integrated supplement byte for byte: four historical evidence archives, all 1,540 input-retraining records and 220 MLP-budget-extension records, trial histories, saved analyses, checkpoint hash indexes, completion receipts, and matching executed code. The new \path{revision/} directory contains the matched-calibration and fallback/exclusion audit code, its retained output, and source/version bindings. The README specifies extraction, verification, and reconstruction commands; manifests bind both layers. The primary benchmark and each post-hoc record set retain separate identities. Exact numerical reconstruction of the base analysis is validated on Windows. A retained provenance amendment binds the earlier appendix summary to its recomputed decision statistics. Full checkpoint tensors, execution ledgers, and Git history remain in author storage; the supplement supports saved-score reconstruction. Public datasets and loaders are identified in Appendix~\ref{app:reproducibility}.
 \subsection*{Ethics approval and consent}
 This computational study uses existing public benchmark datasets and involves no recruitment of human participants or animal experiments. Consent for participation and publication is not applicable.
 
@@ -70,6 +69,10 @@ This computational study uses existing public benchmark datasets and involves no
 \input{sections_applied/13_input_mlp_budget_extension}
 \input{sections_applied/13a_retraining_sensitivity}
 \input{sections_applied/13b_calibration_readout}
+\FloatBarrier
+\input{sections_applied/14_preprocessing_detail}
+\FloatBarrier
+\input{sections_applied/05_edge_intervention}
 \FloatBarrier
 \end{appendices}
 \bibliography{references}

@@ -1,0 +1,47 @@
+\section{Paired Two-Dataset Preprocessing Details}
+\label{sec:preprocessing_sensitivity}
+
+PyG 2.7.0 \texttt{NormalizeFeatures} subtracts the feature matrix's global minimum and divides each row by its sum clamped below at one. To examine this transformation on continuous features, we retrained all seven architectures for ten seeds on Roman-empire and Amazon-ratings using normalized and raw features. Graphs, splits, seeds, trial grids, checkpoint rules, and devices remain paired. This post-hoc experiment measures sensitivity on two selected datasets; the frozen 11-dataset benchmark remains separate.
+
+\begin{table}[t]
+\centering
+\caption{Post-hoc paired feature-preprocessing sensitivity on two heterophilous datasets (a separate run from the frozen benchmark and from Section~\ref{sec:input_robustness}). Values are mean test accuracy or full-set oracle regret in percentage points; graph targets are out of ten seeds. Each graph action still searches six architectures and 24 trials.}
+\label{tab:preprocessing_sensitivity}
+\small
+\setlength{\tabcolsep}{3.5pt}
+\begin{tabular}{@{}llrrrrr@{}}
+\toprule
+Dataset & Features & MLP & Graph & Graph--MLP & \shortstack{Combined\\regret} & \shortstack{Graph\\targets} \\
+\midrule
+Roman-empire & \shortstack{Normalize\\Features} & 16.71 & 42.16 & 25.45 & 25.45 & 10/10 \\
+Roman-empire & Raw & 66.19 & 80.96 & 14.77 & 14.77 & 10/10 \\
+Amazon-ratings & \shortstack{Normalize\\Features} & 36.76 & 53.06 & 16.30 & 16.30 & 10/10 \\
+Amazon-ratings & Raw & 41.35 & 53.17 & 11.82 & 11.82 & 10/10 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Raw features raise MLP accuracy by 49.48 points on Roman-empire and 4.59 on Amazon-ratings; selected graph accuracy changes by 38.81 and 0.11 points. Graph remains better in all 20 units under both conditions, giving always-graph and validation selection zero regret. Homophily still selects MLP because both datasets fall below $h_1=0.55$. Preprocessing materially changes the graph--MLP gaps on these two datasets. This two-dataset comparison does not show that normalization caused the full benchmark's negative result; Section~\ref{sec:input_robustness} tests one different, training-fitted alternative on all 11 datasets with separately trained records.
+
+Validation-only input-parameterization and training-repeatability audits appear in Appendix~\ref{app:training_diagnostics}. Centering and scalar scaling of normalized features recover MLP validation performance in the tested conditions, while repeated LINKX training with identical inputs can diverge substantially. The retrained normalized-feature condition differs from the original models: graph--MLP gaps are 25.45 versus 23.66 points for Roman-empire and 16.30 versus 16.45 for Amazon-ratings. Table~\ref{tab:preprocessing_sensitivity} therefore reports paired sensitivity outcomes, rather than an exact replay or repeatable graph effect size. These bounded audits do not establish preprocessing robustness of the complete 11-dataset benchmark; the 11-dataset retraining in Section~\ref{sec:input_robustness} shows that the direction of the full-portfolio comparison holds under one training-fitted alternative, not under preprocessing choices in general.
+
+\paragraph{Fallback within the paired preprocessing run.}
+Table~\ref{tab:preprocessing_fallback} evaluates both fallbacks on this experiment's per-seed records. All 20 normalized-feature units abstain; all 20 raw-feature units explicitly select MLP because validation accuracy exceeds 0.40. Graph fallback therefore changes only normalized-feature outcomes. The absolute 0.40 cutoff alone does not establish graph superiority. These alternative configurations remain separate from the original 11-dataset records and cannot be pooled into a corrected benchmark effect.
+
+\begin{table}[ht]
+\centering
+\caption{Post-hoc fallback sensitivity within the same paired preprocessing experiment on Roman-empire and Amazon-ratings (20 units per feature condition). Entries are mean full-set regret in percentage points. The graph action uses all six architectures.}
+\label{tab:preprocessing_fallback}
+\small
+\setlength{\tabcolsep}{3.5pt}
+\begin{tabular}{@{}lrrr@{}}
+\toprule
+Features & Combined, MLP fallback & Combined, graph fallback & Always-graph \\
+\midrule
+NormalizeFeatures & 20.876 & 0.000 & 0.000 \\
+Raw & 13.299 & 13.299 & 0.000 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+
