@@ -1,0 +1,66 @@
+\section{Training-Label-Only Classifier Probe}
+\label{app:cpm}
+
+\subsection{Information Boundary and Implementation}
+
+We adapt the Gaussian Naive Bayes (GNB) version of the Classifier-based Performance Metric of \citet{luan2023whendo}. Metric definitions, sampling, and reporting scope were fixed before the extension began. Execution repairs preserved this scientific protocol; source revisions, interrupted attempts, and resumption bindings are retained. This remains a post-hoc extension of the existing benchmark. The metric API receives only the outer-training nodes' features, aggregated features, and labels. Full topology and node features are available under the existing transductive setting. Candidate validation and test outcomes are read only after all 220 metric records have been computed.
+
+For each dataset, seed, and input condition, let $X$ be the bound feature matrix and $P=D^{-1}(A+I)$ the row-normalized binary undirected adjacency with one self-loop per node. We compare GNB fitted on $X$ and $PX$ through 100 repeated inner splits of the outer-training labels. If more than 500 training nodes are available, each repeat samples up to $\operatorname{round}(500/C)$ nodes per observed class, exhausting smaller classes; rounding can slightly exceed the nominal cap. Otherwise it uses every outer-training node. For the inner fit, each class contributes up to $\operatorname{round}(0.6n_s/C)$ sampled nodes, with the remainder held out. This follows the author's equal-quota sampling structure; imbalanced classes can yield a fit fraction different from 60\%. Both probes use identical partitions, empirical class priors, and \texttt{GaussianNB} with \texttt{var\_smoothing}$=10^{-9}$. Fitting uses float64 values of the bound float32 features. An all-constant fit reduces to the empirical-prior prediction. Dataset/split-derived seeds fix the partitions across N and CS.
+
+Writing $x_r$ and $g_r$ for the two inner-holdout accuracies, we retain the author's implementation rule: let $p$ be the two-sided Welch statistic's tail probability and $w$ the fraction of repeats with $g_r>x_r$; define $s=p/2$ for $w\leq 1/2$ and $s=1-p/2$ otherwise. Equal constant accuracy sequences receive $s=1/2$; unequal constant sequences receive the corresponding directional endpoint. Because repeats reuse nodes and the direction uses win frequency, we treat $s$ as a descriptive score. We also retain the mean probe gap $\bar g-\bar x$.
+
+We evaluate three fixed policies: graph for $s\geq0.5$; graph for $s>0.95$, MLP for $s<0.05$, otherwise abstain with MLP fallback; and graph for a nonnegative mean probe gap. Each remaining fixed decision chooses MLP. Separately, both scores receive the same observed-midpoint/constant-action LODO calibration used in Section~\ref{sec:matched_audit}. The held-out dataset contributes neither scores nor outcomes to cutoff fitting. Other datasets' selected-model test outcomes remain explicit meta-training targets. All four portfolios, both inputs, and both MLP budgets are retained, with no new superiority test.
+
+The adapter differs from a reproduction of the authors' complete experiment: it restricts labels, uses our bound input maps and graph operator, changes the random-number generator, and declares degenerate-score handling. The pinned author CLI reloads raw adjacency and features in its CPM branch, so we specify the operator directly rather than infer it from preceding preprocessing code. Source revisions and these adaptations are retained with the results. This probe addresses one classifier and operator; it does not evaluate kernel CPM or Tri-Hom.
+
+\subsection{An Input-Invariance Check}
+
+For a row-stochastic $P$, a nonzero common scalar $a$, and a fixed feature shift $b$, the affine map $T(X)=a(X-\mathbf{1}b^\top)$ satisfies
+\begin{equation}
+P T(X)=a(PX-\mathbf{1}b^\top).
+\end{equation}
+In any fixed inner fit, each GNB class mean transforms to $a(\mu_c-b)$, each class variance to $a^2v_c$, and its global variance floor to $a^2\epsilon$. Class priors are unchanged. Every class log likelihood therefore acquires the same constant $-d\log|a|$, preserving predictions, the two accuracy sequences, their mean difference, and $s$ in exact arithmetic. Deterministic class ties and the constant-feature fallback preserve the same conclusion. This argument uses a common scale; arbitrary feature-wise scales need not preserve the global variance floor. It also depends on $P\mathbf{1}=\mathbf{1}$, which symmetric GCN normalization generally does not satisfy.
+
+N and CS have this affine relationship within each outer split. In exact arithmetic, this transformation is invertible and preserves the information in the features; it can nevertheless change finite-budget optimization of the trained candidates. A fixed policy using either probe score alone therefore cannot respond to downstream training effects of this transformation in exact arithmetic. Calibrated policies can still change because their other-dataset outcome targets change. The numerical comparison below checks the actual finite-precision maps against this standard Gaussian-likelihood invariance; it is not a claim that optimized GNNs or MLPs are invariant.
+
+The finite-precision check finds identical paired accuracy sequences on 41 of 110 dataset--seed pairs. Across all pairs, the maximum absolute score difference is $2.78\times10^{-4}$; the largest difference in the mean probe gap is 0.485 accuracy percentage points. Thus the actual arrays do not show exact numerical invariance. Nevertheless, all three fixed policies produce identical decisions across N and CS: graph on 60 units and MLP on 50, with full coverage for the two-cutoff policy. The repeated accuracies and pairwise differences are retained, so the stable decisions are not inferred from rounded aggregate scores.
+
+\subsection{All Declared Policy Comparisons}
+
+Table~\ref{tab:cpm_all} reports every input, MLP-budget, and portfolio configuration. The archive additionally retains the effective decisions, dataset-level benefit and harm, two-cutoff coverage, fitted thresholds, and all repeated probe accuracies. These are descriptive comparisons of the same saved model outcomes.
+
+\begin{table}[tbp]
+\centering
+\caption{CPM adapter regrets for all 16 configurations (percentage points). G: always-graph; V: the original validation selector with its 1-point margin; NT: fixed 0.5 score cutoff; TC: two-cutoff rule with MLP fallback; Gap0: nonnegative probe-gap rule; CPM-L and Gap-L: the two LODO-calibrated scores. Input/trials combines N or CS with the MLP trial budget. Each row has its own portfolio oracle.}
+\label{tab:cpm_all}
+\footnotesize
+\setlength{\tabcolsep}{2.5pt}
+\begin{tabular}{@{}llrrrrrrr@{}}
+\toprule
+Portfolio & Input/trials & G & V & NT & TC & Gap0 & CPM-L & Gap-L \\
+\midrule
+GAT & N/4 & 6.247 & 0.005 & 0.187 & 0.187 & 0.187 & 0.627 & 0.627 \\
+GAT & N/24 & 7.409 & 0.046 & 0.120 & 0.120 & 0.120 & 0.574 & 0.574 \\
+GAT & CS/4 & 9.005 & 0.130 & 0.123 & 0.123 & 0.123 & 0.123 & 0.123 \\
+GAT & CS/24 & 9.271 & 0.068 & 0.297 & 0.297 & 0.297 & 2.274 & 2.274 \\
+GCN & N/4 & 5.074 & 0.008 & 0.418 & 0.418 & 0.418 & 0.746 & 0.746 \\
+GCN & N/24 & 5.913 & 0.008 & 0.029 & 0.029 & 0.029 & 0.371 & 0.371 \\
+GCN & CS/4 & 7.244 & 0.094 & 0.040 & 0.040 & 0.040 & 0.313 & 0.040 \\
+GCN & CS/24 & 7.468 & 0.079 & 0.172 & 0.172 & 0.172 & 2.108 & 2.108 \\
+GCN+GAT & N/4 & 5.274 & 0.008 & 0.418 & 0.418 & 0.418 & 0.890 & 1.512 \\
+GCN+GAT & N/24 & 6.113 & 0.008 & 0.029 & 0.029 & 0.029 & 0.515 & 0.515 \\
+GCN+GAT & CS/4 & 7.791 & 0.094 & 0.040 & 0.040 & 0.040 & 0.267 & 0.040 \\
+GCN+GAT & CS/24 & 8.018 & 0.057 & 0.175 & 0.175 & 0.175 & 2.210 & 2.210 \\
+Full & N/4 & 0.404 & 0.320 & 3.097 & 3.097 & 3.097 & 2.842 & 2.773 \\
+Full & N/24 & 0.437 & 0.210 & 1.902 & 1.902 & 1.902 & 2.038 & 0.369 \\
+Full & CS/4 & 0.448 & 0.197 & 1.573 & 1.573 & 1.573 & 1.796 & 1.636 \\
+Full & CS/24 & 0.528 & 0.278 & 1.561 & 1.561 & 1.561 & 1.878 & 1.747 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The fixed 0.5 rule incurs 0.029--0.418 points of regret across the 12 restricted-portfolio configurations, versus 5.074--9.271 for the respective always-graph references. Both calibrated scores also improve on their restricted-portfolio references, but their losses vary substantially with the input and budget. For the full portfolio, CPM-L switches only Roman-empire to MLP; in CS/24 this contributes 1.351 points of harm to a reference regret of 0.528, giving 1.878 points. Gap-L's N/24 exception has 0.250 points of benefit and 0.182 of harm, all on Cornell. These values describe the retained configurations without a new superiority claim.
+
+\subsection{Execution and Retained Evidence}
+
+The extension contains 22,000 paired inner-holdout comparisons. Included cell timings sum to 2,825.032 seconds of wall time in the author's single-thread CPU execution. This sum covers the 220 retained cells; it excludes preparation, packaging, and excluded attempts, and is not an end-to-end cost comparison against neural training. An initial implementation repair separated the outer seed index from the probe's resampling seed; all 25 partial records from that attempt were excluded. A later worker wall cap retained 218 valid cells. Hash-bound resumption validated that prefix and computed the last two cells, with 215.437 seconds of worker wall time for the resumed pass. The records preserve both execution revisions and all interruption charges. No neural candidate was retrained or checkpoint reevaluated in this extension.

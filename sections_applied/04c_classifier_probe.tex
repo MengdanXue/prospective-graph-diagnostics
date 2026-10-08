@@ -1,0 +1,28 @@
+\section{A Feature-Based Probe and Its Decision Target}
+\label{sec:cpm_results}
+
+Does adding node features resolve the mismatch between a diagnostic and its model-selection target? We extend the audit with a training-label-only adaptation of the Gaussian Naive Bayes version of CPM~\citep{luan2023whendo}. It compares classification on raw and one-hop-aggregated features through 100 paired inner holdouts per dataset, seed, and input condition. The 220 metric records are computed before opening the saved candidate outcomes. We evaluate both fixed rules and the same LODO calibration used above; Appendix~\ref{app:cpm} specifies the operator, sampling, adaptations, and all 16 portfolio/input/budget configurations.
+
+The fixed 0.5 rule has lower descriptive regret than always-graph for GCN, GAT, and GCN+GAT under every input/budget configuration, but higher regret for the full portfolio (Table~\ref{tab:cpm_main}). For example, under CS/24 its regret is 0.172 points against 7.468 for always-GCN, whereas the full-portfolio comparison is 1.561 against 0.528. These comparisons have different portfolio oracles. In the full portfolio, the fixed rule captures all available benefit but introduces greater harm. Its decisions coincide with the zero-gap rule and the two-cutoff rule, which never abstains on these records.
+
+\begin{table}[tbp]
+\centering
+\caption{Full-portfolio regret for the training-label-only CPM-GNB adapter. Values are accuracy percentage points; lower is better. CPM-.5 uses the fixed 0.5 cutoff, CPM-L calibrates its descriptive score, and Gap-L calibrates the mean inner-probe accuracy difference. LODO uses the same midpoint/constant-action family as the three graph statistics.}
+\label{tab:cpm_main}
+\small
+\setlength{\tabcolsep}{5pt}
+\begin{tabular}{@{}lrrrr@{}}
+\toprule
+Input/trials & Always-graph & CPM-.5 & CPM-L & Gap-L \\
+\midrule
+N/4 & 0.404 & 3.097 & 2.842 & 2.773 \\
+N/24 & 0.437 & 1.902 & 2.038 & 0.369 \\
+CS/4 & 0.448 & 1.573 & 1.796 & 1.636 \\
+CS/24 & 0.528 & 1.561 & 1.878 & 1.747 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Calibration does not uniformly resolve the mismatch. CPM-L chooses MLP only on Roman-empire in all four full-portfolio configurations, producing harm without benefit. Gap-L improves over always-graph only under N/24, where its 0.068-point net gain comes entirely from Cornell. Thus the negative full-portfolio comparison coexists with favorable restricted-portfolio results and one calibrated-gap exception. The probe's one-hop classification target can be useful while remaining poorly aligned with selecting among a broader set of trained architectures.
+
+Input transformations expose another distinction. In exact arithmetic, GNB with the specified variance floor is invariant to a common nonzero rescaling and feature shift; a row-stochastic graph operator preserves that relation. N and CS have this form. On the actual float32 inputs, the largest CPM-score difference is $2.78\times10^{-4}$ and all fixed decisions remain unchanged, although the trained candidates' outcomes change. This check connects diagnostic insensitivity to the input map with the earlier baseline-training results. It does not establish invariance of the optimized neural models.
