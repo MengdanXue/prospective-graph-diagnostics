@@ -126,10 +126,24 @@ def run(controller, data_root, package, output):
     if len(records) != 220:
         raise ValueError('metric scope incomplete')
     metrics_seconds = time.monotonic() - started
+    paired = []
+    for dataset in protocol['datasets']:
+        for seed in protocol['seeds']:
+            a, b = [next(r for r in records if (r['dataset'], r['seed'], r['condition']) == (dataset, seed, c))
+                    for c in protocol['conditions']]
+            if a['partition_sha256'] != b['partition_sha256']:
+                raise ValueError('N/CS probe partitions differ')
+            paired.append({'dataset': dataset, 'seed': seed,
+                'identical_replicate_accuracies': a['raw_accuracy'] == b['raw_accuracy'] and a['graph_accuracy'] == b['graph_accuracy'],
+                'absolute_score_difference': abs(a['cpm_gnb'] - b['cpm_gnb']),
+                'absolute_gap_difference': abs(a['probe_gap'] - b['probe_gap'])})
     policies = evaluate(package, records, protocol)
     result = {'schema': 'cpm-extension/1', 'status': 'complete_posthoc', 'protocol': protocol,
         'protocol_sha256': sha(protocol_path), 'data_binding_sha256': sha(binding_path),
-        'metric_records': records, 'policies': policies, 'metrics_wall_seconds': metrics_seconds,
+        'metric_records': records, 'policies': policies, 'input_pair_audit': paired,
+        'identical_input_pair_count': sum(r['identical_replicate_accuracies'] for r in paired),
+        'max_input_score_difference': max(r['absolute_score_difference'] for r in paired),
+        'metrics_wall_seconds': metrics_seconds,
         'worker_wall_seconds': time.monotonic() - started,
         'versions': {'numpy': np.__version__, 'scipy': scipy.__version__, 'sklearn': sklearn.__version__, 'torch': torch.__version__},
         'neural_training_started': False, 'probe_fits': 44000,
