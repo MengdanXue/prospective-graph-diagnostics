@@ -4,6 +4,8 @@ import re
 import unittest
 from pathlib import Path
 
+from scripts.audit_route_a_claims import resolve_active_sources
+
 
 ROOT = Path(__file__).resolve().parents[1]
 ALLOWED_RESULTS = {
@@ -110,10 +112,13 @@ class PublicRepositoryTests(unittest.TestCase):
         self.assertEqual(missing, [])
 
     def test_bibliography_contains_only_cited_entries(self):
-        manuscript_paths = [
-            ROOT / "main_neurocomputing.tex",
-            *sorted((ROOT / "sections").glob("*.tex")),
-        ]
+        # The shared bibliography serves all retained manuscript versions.
+        # Follow active inputs so an unused draft cannot hide an orphan entry.
+        manuscript_paths = {
+            path
+            for main in ("main_neurocomputing.tex", "main_tmlr.tex", "main_applied_intelligence.tex")
+            for path in resolve_active_sources(ROOT, ROOT / main)
+        }
         manuscript = "\n".join(
             path.read_text(encoding="utf-8") for path in manuscript_paths
         )
