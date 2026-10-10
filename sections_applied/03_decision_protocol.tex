@@ -1,11 +1,11 @@
-\section{Decision-Evaluation Protocol}
+\section{Decision-evaluation protocol}
 \label{sec:protocol}
 
-\subsection{Graph-vs-MLP Decision}
+\subsection{Graph-versus-MLP decision}
 
 The unit of evaluation is a dataset--seed pair $u$. Within each unit, validation performance selects one feature-only MLP and one graph model from GCN, GAT, GraphSAGE, H2GCN, LINKX, and GPR-GNN. Every architecture receives the same four-trial tuning budget, and exact validation ties are broken by model identifier. Let $a_u^{\mathrm{M}}$ and $a_u^{\mathrm{G}}$ denote the held-out test accuracies of the selected MLP and graph model. The evaluator reads each selected test result once; no diagnostic can affect training or hyperparameter selection. The resulting actions are portfolios: graph is the validation-selected member of six architectures, whereas MLP is the validation-selected configuration of one architecture.
 
-We ask whether the graph portfolio provides a practically material gain rather than whether it wins by an arbitrarily small amount. With the frozen margin $\delta=0.01$, the target action is
+We use a frozen practical margin $\delta=0.01$ to define the target action:
 \begin{equation}
 y_u =
 \begin{cases}
@@ -14,37 +14,19 @@ y_u =
 \end{cases}
 \label{eq:decision_target}
 \end{equation}
-The same tie policy applies to every evaluated rule. This formulation makes the decision asymmetric by design: a graph model must exceed the MLP by more than one percentage point to justify the graph action.
+Every rule uses this asymmetric target: graph must exceed MLP by more than one percentage point, and ties favor MLP.
 
-\subsection{Per-Architecture Training and Selection}
+\subsection{Per-architecture training and selection}
 
-Table~\ref{tab:frozen_training} records the frozen per-architecture training grid. The implementation uses PyTorch~\citep{paszke2019pytorch}, and each trial minimizes cross-entropy with Adam. Early stopping retains the checkpoint with the highest validation accuracy, then the lowest validation loss and earliest epoch; training stops after 100 stale epochs or 500 epochs in total. The four trial configurations are selected independently within every architecture, and the chosen checkpoint then receives one held-out test evaluation. Consequently, the graph portfolio searches 24 trial configurations (six architectures times four), whereas the MLP portfolio searches four trial configurations. This specifies an asymmetric portfolio comparison with equal per-architecture grids and a single selected test evaluation per architecture.
+Table~\ref{tab:frozen_training} records the training grid. Each PyTorch trial~\citep{paszke2019pytorch} minimizes cross-entropy with Adam and retains the checkpoint with highest validation accuracy, then lowest validation loss and earliest epoch. Training stops after 100 stale epochs or 500 epochs in total. The grid crosses learning rates $\{0.01,0.005\}$ and dropout rates $\{0.5,0.7\}$, with width 64 and weight decay $5\times10^{-4}$. Each architecture independently selects one of its four trials and evaluates the chosen checkpoint once on the held-out test set. The six-architecture graph portfolio therefore searches 24 trial configurations, compared with four for MLP.
 
-\begin{table}[t]
-\centering
-\caption{Frozen Per-Architecture Training Configuration}
-\label{tab:frozen_training}
-\small
-\begin{tabular}{@{}lp{0.64\linewidth}@{}}
-\toprule
-Component & Frozen setting \\
-\midrule
-Representation width & 64 hidden channels for every architecture. \\
-Optimization & Adam, cross-entropy loss, weight decay $5\times 10^{-4}$. \\
-Training horizon & At most 500 epochs; patience 100 under the validation checkpoint rule. \\
-Four-trial grid & Learning rate in $\{0.01,0.005\}$ crossed with dropout in $\{0.5,0.7\}$. \\
-Portfolio search & Graph: six architectures and 24 trials in total; feature-only: one MLP architecture and four trials in total. \\
-Model-specific constants & GAT: 4 heads; H2GCN: 2 propagation layers with strict two-hop edges; LINKX: 2 outer, 1 edge, and 2 node layers; GPR-GNN: 10 propagation steps, $\alpha=0.1$, PPR initialization. \\
-Selection and test & Validation accuracy descending, validation loss ascending, trial identifier ascending; one held-out test evaluation. \\
-\bottomrule
-\end{tabular}
-\end{table}
+
 
 The split targets 60/20/20 for train/validation/test and is regenerated deterministically for seeds 0--9. Each class must contain at least three nodes, with at least one assigned to each of the training, validation, and test sets. Integer per-class floors make the realized proportions approximate, especially for small WebKB graphs; the actual counts are reported in the reproducibility summary. Every unit stores the source commit, canonical configuration digest, processed-data checksums, split identifier, four trial records, selected checkpoint, and environment provenance. The v1 and v2 JSON specifications differ only in the pre-outcome eligibility amendment described in Section~\ref{sec:prospective}; the later Squirrel amendment changes only the execution timeout.
 
 The frozen protocol in this section governs the original benchmark. Subsequent portfolio analyses are post-hoc, and the additional preprocessing and training diagnostics use separately recorded configurations and information boundaries. Their status and scope are identified where they are reported.
 
-\subsection{Decision-Time Information and Policies}
+\subsection{Decision-time information and policies}
 
 Full node features and graph structure are available because they are model inputs. Label-dependent statistics use the subgraph induced by training nodes. Edge homophily $h_1$ is the label-agreement fraction on its edges. For the two-hop statistic $h_2$, a center with training-subgraph degree $d_T$ is sampled with probability proportional to $d_T(d_T-1)$, then two distinct neighbors are sampled uniformly without replacement. All three nodes therefore belong to the training set. The estimate is the mean endpoint-label agreement over 50,000 sampled ordered length-two paths, using the split seed plus 200,000 as the NumPy generator seed. Paths may repeat across draws, and adjacent endpoints are included when they form a length-two path; this is a path-weighted statistic, not strict distance-two homophily. If no eligible edge or path exists, the corresponding statistic is missing. Test labels, test accuracy, and statistics computed from test labels are forbidden diagnostic inputs; the evaluator rejects records that violate this boundary.
 
@@ -52,51 +34,28 @@ This is an offline audit of predictive decision utility: all candidate models ar
 
 Table~\ref{tab:diagnostic_policies} lists the nine policies. The Combined rule has an exploratory origin: its exact $0.55/0.40$ thresholds were fixed in the specification and scorer on 8 August 2026, after inspection of legacy aggregates and before generation of the primary records. The final 110 units were not used to adjust them. Appendix~\ref{app:execution_details} retains the threshold provenance; the scope is a pre-specified primary analysis rather than whole-project preregistration. The policy chooses graph when training-only edge homophily is at least $0.55$; below that threshold, it chooses MLP when MLP validation accuracy is at least $0.40$ and otherwise abstains. Missing inputs also cause abstention. For full-set evaluation, every abstention uses the same predeclared MLP fallback, while coverage remains separately visible.
 
-With the complete inputs observed here, the full-set Combined policy therefore simplifies exactly to graph if $h_1\geq0.55$ and MLP otherwise. The $0.40$ MLP-validation cutoff distinguishes explicit MLP decisions from abstentions and affects coverage and the confidence curve, but not full-set accuracy or regret under MLP fallback. The name Combined refers to the historical pre-fallback rule, not an additional predictor in its deployed full-set action.
+All inputs are complete in these records, so Combined's full-set action simplifies to graph if $h_1\geq0.55$ and MLP otherwise. The $0.40$ MLP-validation cutoff changes explicit-action labels, abstention coverage, and the confidence curve. Under MLP fallback, it leaves full-set accuracy and regret unchanged. We retain the name Combined for the historical rule before fallback.
 
-For the descriptive regret--coverage curves, the frozen scorer maps a margin $v$ and scale $s$ to $c(v;s)=\min\{1,|v|/s\}$. Here, $a_{\mathrm{val}}^{\mathrm{G}}$ and $a_{\mathrm{val}}^{\mathrm{M}}$ are the validation accuracies of the selected graph and MLP portfolios. Validation selection uses $v=a_{\mathrm{val}}^{\mathrm{G}}-a_{\mathrm{val}}^{\mathrm{M}}-\delta$ and $s=0.25$. On the Combined graph branch, $v=h_1-0.55$ and $s=0.45$; on its MLP branch, $v=\max\{0.55-h_1,a_{\mathrm{val}}^{\mathrm{M}}-0.40\}$ and $s=0.60$. Abstentions receive no confidence score and are excluded from the descriptive curve. These scores determine only the curve ordering; they do not alter actions or the primary full-set inference.
+The exact nine-policy definitions and curve-ordering rules are retained in Appendix~\ref{app:frozen_policy_details}.
 
-\begin{table}[t]
-\centering
-\caption{Frozen Graph-vs-MLP Decision Policies. Stages indicate when the listed inputs are available for the pre-fallback rule, including abstention and coverage. A trained predictor still requires within-family fitting and selection.}
-\label{tab:diagnostic_policies}
-\small
-\setlength{\tabcolsep}{3pt}
-\begin{tabular}{@{}>{\raggedright\arraybackslash}p{0.20\linewidth}>{\raggedright\arraybackslash}p{0.46\linewidth}>{\raggedright\arraybackslash}p{0.27\linewidth}@{}}
-\toprule
-Policy & Decision rule & Information / stage \\
-\midrule
-Always-MLP & Select MLP for every unit. & Fixed family / before fitting. \\
-Always-graph & Select the validation-chosen graph model for every unit. & Fixed family / before fitting. \\
-Random 50/50 & Use the analytic expectation of equally likely graph and MLP actions. & Random family / before fitting. \\
-Homophily-only & Select graph when training-only edge homophily is at least $0.50$. & Training-label $h_1$ / before fitting. \\
-Degree-only & Select graph when mean degree is at least $10$. & Graph degree / before fitting. \\
-Homophily+\allowbreak degree & Select graph when $\tfrac12(2h_1-1)$\newline $+\tfrac12\tanh\!\left(\ln\!\frac{\max(d,10^{-12})}{10}\right)\geq0$, where $d$ is mean degree; otherwise select MLP. & Training-label $h_1$ and degree / before fitting. \\
-Two-hop-only & Select graph when training-only $h_2-h_1>0.05$. & Training-label $h_1,h_2$ / before fitting. \\
-Combined & Apply the historical homophily/MLP-validation rule described in the text; otherwise abstain. & $h_1$ and MLP validation / after MLP tuning. \\
-Validation selection & Select graph when its validation advantage exceeds $\delta$. & Both families' validation results / after both are tuned. \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\subsection{Outcomes and Inference}
+\subsection{Outcomes and inference}
 
 Selection accuracy measures agreement with Eq.~\eqref{eq:decision_target} after the common fallback, and coverage is the fraction of non-abstaining decisions. Because an incorrect action can have negligible or substantial cost, the primary loss is oracle-portfolio regret,
 \begin{equation}
 r_u(\widehat{y})=\max\{a_u^{\mathrm{G}},a_u^{\mathrm{M}}\}-a_u^{\widehat{y}},
 \label{eq:oracle_regret}
 \end{equation}
-where $a_u^{\widehat{y}}$ is the test accuracy of the chosen portfolio after fallback. Selection accuracy and regret intentionally measure different objectives. Selection accuracy evaluates consistency with the one-point practical-margin action in Eq.~\eqref{eq:decision_target}, whereas regret measures raw predictive-accuracy opportunity loss relative to the better selected portfolio. Consequently, choosing MLP for a sub-margin graph gain is target-consistent but incurs a small positive raw-accuracy regret. We report mean full-set regret for all units and covered-set regret for non-abstaining units. The descriptive regret--coverage curves order eligible decisions by each policy's frozen confidence score and plot covered-set raw-accuracy regret; they do not redefine the frozen target or primary full-set analysis.
+where $a_u^{\widehat{y}}$ is the test accuracy of the chosen portfolio after fallback. Selection accuracy uses the one-point practical-margin target in Eq.~\eqref{eq:decision_target}; regret measures raw accuracy lost relative to the better selected portfolio. Choosing MLP for a sub-margin graph gain therefore agrees with the target but incurs a small positive regret. We report mean full-set regret for all units and covered-set regret for non-abstaining units. Descriptive regret--coverage curves rank eligible decisions by each policy's frozen confidence score and plot covered-set raw-accuracy regret. They leave the frozen target and primary full-set analysis unchanged.
 
-Seeds remain paired within a dataset. We first average regret over seeds for each dataset, then use the dataset means for percentile-bootstrap intervals and two-sided sign-flip tests. The sign-flip reference distribution is exact under joint invariance of dataset-level differences to the enumerated sign changes; independent differences symmetric about zero are a sufficient condition. A zero mean alone is insufficient, and pairing does not establish this invariance. Holm correction controls the family-wise error rate across the eight predeclared comparisons with the combined policy when the constituent p-values are valid. These convenience-selected datasets need not be independent or representative draws from a population of graphs; bootstrap intervals and sign-flip p-values have a conditional, assumption-dependent interpretation rather than automatic population-wide validity. Non-significance is not interpreted as equivalence.
+Seeds remain paired within each dataset. We average regret over seeds, then use dataset means for percentile-bootstrap intervals and two-sided sign-flip tests. The sign-flip reference distribution is exact when dataset-level differences are jointly invariant to the enumerated sign changes. Independent differences symmetric about zero suffice; a zero mean or pairing alone does not. Holm correction controls family-wise error across the eight predeclared comparisons with Combined when the constituent p-values are valid. The convenience-selected datasets may be dependent and unrepresentative, so both intervals and tests have a conditional, assumption-dependent interpretation. Non-significance does not establish equivalence.
 
-The frozen paper-level decision rule permits an incremental-value claim only if Combined reduces full-set regret relative to simple baselines without relying on lower coverage, and the uncertainty interval excludes zero in the favorable direction for the predeclared comparison. The comparison family contains the other eight policies in Table~\ref{tab:diagnostic_policies}, each versus Combined, with unadjusted 95\% dataset-level percentile-bootstrap intervals. The specification neither singles out always-graph nor resolves whether its criterion must hold for all baselines; always-graph is the focal comparator in this report, not a uniquely predeclared comparator. With the reported baseline-minus-Combined difference, the favorable direction is positive. Full-set scoring applies the declared fallback to every abstention, so omitting uncovered units cannot satisfy this requirement. The uncertainty intervals and Holm-adjusted tests are reported separately; a significance result alone does not replace the regret and coverage conditions.
+The frozen paper-level rule permits an incremental-value claim only if Combined reduces full-set regret relative to simple baselines without relying on lower coverage. It also requires the uncertainty interval to exclude zero in the favorable direction for the predeclared comparison. Each of the other eight policies in Table~\ref{tab:diagnostic_policies} is compared with Combined using an unadjusted 95\% dataset-level percentile-bootstrap interval. The specification does not single out always-graph or resolve whether its criterion must hold for all baselines. We use always-graph as the focal comparator in this report. Positive baseline-minus-Combined differences favor Combined. Full-set scoring includes every abstention through the declared fallback; uncovered units cannot be omitted to meet the criterion. We report uncertainty intervals and Holm-adjusted tests separately, since significance alone does not satisfy the regret and coverage requirements.
 
 The prospective specification, immutable per-unit schema, analysis code, bootstrap seed, permutation seed, and paper-level decision rule were fixed before assembling or evaluating the new comparative outcomes. Section~\ref{sec:prospective} reports two outcome-independent protocol amendments and keeps the earlier feasibility artifacts outside the final analysis.
 
 \input{sections_applied/03a_action_audit}
 
-\subsection{Research Tools}
+\subsection{Research tools}
 \label{sec:research_tools}
 
-Two generative AI coding assistants were used under the author's direction. OpenAI Codex (repository sessions recorded at least from 7 September to 8 October 2026) assisted with code and test development, experiment orchestration, result checks, analysis, and manuscript editing for the frozen benchmark, its earlier sensitivity analyses, and the 11-dataset input-parameterization retraining. Anthropic Claude Code (recorded sessions from 24 September to 4 October 2026) assisted with implementation review, orchestration of the expanded multilayer-perceptron search, audit scripting, integration of the audited extension evidence, and manuscript revision. All experimental decisions, including protocol amendments and the review of one environmental execution failure, were made by the author. Formal runs followed frozen configurations and validation-selection rules, and every reported number was computed by the experimental and analysis programs and retained in the research artifacts. The author reviewed all AI-assisted code, analyses and text; the AI systems are not authors, and responsibility for the study and its interpretation rests with the author.
+Two generative AI coding assistants were used under the author's direction. OpenAI Codex sessions are recorded at least from 7 September to 9 October 2026. Assistance covered code and test development, experiment orchestration, result checks, analysis, and manuscript editing. This work included the frozen benchmark, sensitivity analyses, input-parameterization retraining, classifier-probe extension, and independent reader implementation. Anthropic Claude Code sessions are recorded from 24 September to 4 October 2026. Assistance covered implementation review, expanded MLP-search orchestration, audit scripting, integration of the audited extension evidence, and manuscript revision. The author set the research objective and authorized the computations; retained protocols and amendments identify the executed settings. Formal runs followed frozen configurations and validation-selection rules. Experimental and analysis programs computed every reported number, with outputs retained in the research artifacts. The author is responsible for verifying the AI-assisted code, analyses, and text before submission and for the study's interpretation. The AI systems are not authors.

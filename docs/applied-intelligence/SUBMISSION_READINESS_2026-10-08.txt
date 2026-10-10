@@ -1,0 +1,40 @@
+Applied Intelligence 最新修订交付与投稿准备记录（2026-10-08）
+
+状态：本轮作者侧大修完成，打包、解压重建和 PDF 检查通过；尚未投稿。
+最新目录：output/submission-final-2026-10-08/
+旧的 output/submission-candidate-2026-10-08/ 与两个评审前版本继续保存，仅作历史记录。
+
+当前交付
+1. manuscript.pdf：完整稿 66 页，主文至第 16 页；附录和参考文献完整保留。
+2. manuscript-source.zip：7 个平铺文件，主 tex、bib、class、bst 和 Fig1/Fig2/Fig3；已编译并核对打包字节。
+3. ESM_1.zip：577,952,543 字节，包含全部 reader 代码/记录、新增来源分组与影响分析、分区支持以及原样保留的历史证据。
+4. cover-letter.pdf / cover-letter.txt：已同步新结论的一页投稿信。
+5. submission-fields.txt / submission-metadata.json：186 词摘要、6 个关键词及既有作者信息。
+6. REVISION_RESPONSE_ZH.txt：对最新独立模拟评审 3 Major + 5 Minor 的逐项处理。
+7. SCIENTIFIC_REVISION_QA.json / SUBMISSION_PREFLIGHT.json：301 项测试、完整解压核验、表格重建及 PDF 核查凭据。
+
+格式终检：摘要 GCN/GAT 改为模型全称；只有第 1 页发生像素变化，其余 65 页、图、参考文献和补充包完全一致。
+
+主要修订
+— Roman-empire 的损失集中性及全体单数据集影响检查已进入摘要和主文。
+— 来源整组留出没有支持原 LODO 增益的跨来源转移，正负结果完整保留。
+— 全部 220 条 CPM 分区得到核验，公开 WebKB 重建另行确认两个缺失类别的实际限制。
+— 主文重构为较短的实证论证链，历史敏感性移到附录，保留所有证据。
+— 八项主检验、图 2 解释、Bayes-error 指向和图 3 端点均已修订。
+
+验证范围
+补充包解压后，1,803 个清单文件全部核验；从包内代码重建了 112 个原 CPM 政策单元和 16 个 always-MLP 单元。
+完整重建 528 个原 LODO 折、192 个影响情景（768 项政策）、288 个来源组折。
+除耗时外，新分析的全部字段与保留结果一致（绝对容差 1e-12）；四个 CSV 及五个 LaTeX 表格都与稿件使用版本一致。
+本轮新增分析不训练神经模型或分类器。Cora 的 400 次 GNB 拟合属于前一修订的公开数据复现，凭据保留。
+
+投稿前剩余事项
+作者审阅这一具体版本，并确认署名、单位、通讯方式、原创性/独家投稿状态和 AI 使用披露符合事实。
+此前作者已确认 Neurocomputing 重叠投稿关闭；本轮未重复改变这一事实声明。ORCID 没有提供，未杜撰。
+尚未登录、上传或最终提交。期刊录用仍取决于编辑和真实审稿，模拟评审修订完成不等于期刊认可。
+实际投稿系统若限制补充包大小，需要按系统明确限额处理；目前没有核实到该平台的文件上限，不预先宣称上传受阻。
+
+已核对的官方入口
+作者指南：https://link.springer.com/journal/10489/submission-guidelines
+范围：https://link.springer.com/journal/10489/aims-and-scope
+投稿系统：https://www.editorialmanager.com/apin/default.aspx

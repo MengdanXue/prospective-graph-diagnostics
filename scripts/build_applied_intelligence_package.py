@@ -36,7 +36,7 @@ def build(root: Path, output: Path) -> None:
         )
 
     text = expand(root / "main_applied_intelligence.tex")
-    assets: dict[str, str] = {}
+    assets: dict[Path, str] = {}
 
     def figure(match: re.Match) -> str:
         source = (root / match[2]).resolve()
@@ -45,12 +45,11 @@ def build(root: Path, output: Path) -> None:
             candidates = [source.with_suffix(ext) for ext in (".pdf", ".png", ".jpg")]
             source = next((p for p in candidates if p.is_file()), source)
         digest = sha(source)
-        if source.name in assets and assets[source.name] != digest:
-            raise ValueError(f"Figure basename collision: {source.name}")
-        assets[source.name] = digest
-        shutil.copy2(source, output / source.name)
+        if source not in assets:
+            assets[source] = f"Fig{len(assets) + 1}{source.suffix}"
+            shutil.copy2(source, output / assets[source])
         source_hashes[source.relative_to(root).as_posix()] = digest
-        return match[1] + "{" + source.name + "}"
+        return match[1] + "{" + assets[source] + "}"
 
     text = re.sub(r"(\\includegraphics(?:\[[^]]*\])?)\{([^}]+)\}", figure, text)
     text = re.sub(r"\\graphicspath\{(?:\{[^}]*\})+\}\s*", "", text)

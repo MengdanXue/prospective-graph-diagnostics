@@ -1,11 +1,11 @@
-\section{Candidate Composition and Training Sensitivity}
+\section{Historical Portfolio, Input, and Budget Sensitivities}
 \label{sec:equal_budget}
 
 \subsection{Design and Scope}
 
 The graph action searches six architectures with 24 trials; MLP receives four. This post-hoc reanalysis restricts the graph action to one architecture, matching four trials per action. Training time, FLOPs, preprocessing cost, and parameter count remain unequal. Because the restriction changes architecture availability and search breadth together, it measures portfolio sensitivity without isolating a causal compute-budget effect.
 
-The portfolio and threshold analyses reuse recorded models. Portfolio restrictions leave diagnostic inputs and actions unchanged while recomputing graph selection, the margin-defined target, regret, and validation selection under the frozen rules. Enlarging a candidate set guarantees nondecreasing maximum validation accuracy, but the selected test result can worsen: H2GCN alone has lower always-graph regret than the unrestricted portfolio. Sections~\ref{sec:preprocessing_sensitivity}--\ref{sec:mlp_budget} separately report retraining for preprocessing sensitivity and the expanded multilayer-perceptron search; Tables~\ref{tab:equal_budget}--\ref{tab:calibrated_threshold} refer only to the frozen benchmark records.
+The portfolio and threshold analyses reuse recorded models. Portfolio restrictions leave diagnostic inputs and actions unchanged while recomputing graph selection, the margin-defined target, regret, and validation selection under the frozen rules. Enlarging a candidate set guarantees nondecreasing maximum validation accuracy, but the selected test result can worsen: H2GCN alone has lower always-graph regret than the unrestricted portfolio. Appendix~\ref{sec:preprocessing_sensitivity} and Section~\ref{sec:mlp_budget} separately report retraining for preprocessing sensitivity and the expanded multilayer-perceptron search; Tables~\ref{tab:equal_budget}--\ref{tab:calibrated_threshold} refer only to the frozen benchmark records.
 
 Before computing restrictions, reconstruction verifies record checksums, configuration, provenance, trial selection, unique record scope, and splits for every architecture. The unrestricted reconstruction recovers 89 graph targets and regrets of 0.26, 7.46, and 0.22 points for always-graph, Combined, and validation selection, respectively.
 
@@ -171,7 +171,7 @@ The expanded search changed the selected MLP in 145 of the 220 units (72 of 110 
 
 The portfolio reversal is not invariant to the MLP budget. The GCN and GAT restrictions favor Combined under both inputs and both budgets, and with CS the favorable subsets remain GCN, GAT, and their pair. With $N$ and 24 MLP trials, GPR-GNN alone also favors Combined (1.36 versus 1.81 points), including after excluding Cornell and Wisconsin. On Amazon-ratings with $N$, every seed's selected test accuracy equals the majority-class proportion of its test split at both budgets; on Roman-empire with $N$, mean MLP accuracy rises from 16.71\% to 25.91\%, still far below 66.06\% with CS. Appendix~\ref{app:mlp_budget} reports these cases and the complete tables.
 
-Expanding the MLP trial budget therefore materially changed the selected MLP configurations and several regret values, but it did not reverse the main comparison with always-graph in this extension and did not remove the architecture-level asymmetry of the two portfolios. It quantifies the sensitivity of the conclusions to a larger MLP trial search; it does not show that the graph and MLP actions received comparable search budgets.
+The larger search changes selected MLP configurations and several regret values while preserving the main comparison with always-graph. Equal trial counts leave the six-architecture graph portfolio and single-architecture MLP with different search spaces.
 
 The adjusted-homophily and edge-label-informativeness policies, their matched calibration with ordinary homophily, and the joint fallback/exclusion analysis at both budgets are reported in Section~\ref{sec:matched_audit}.
 

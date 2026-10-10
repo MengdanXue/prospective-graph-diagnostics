@@ -1,0 +1,11 @@
+Applied Intelligence 当前语言修订版（2026-10-09）
+
+最新目录：output/humanized-revision-2026-10-09/
+主文至第 15 页，完整 PDF 65 页。
+Humanizer 3.1.0 已应用，科学内容保护检查和 PDF 排版检查通过。
+完整改动：REVISION_NOTES_ZH.txt；逐项检查：PROSE_QA.json / LAYOUT_QA.json。
+补充材料及科学重建验证沿用 2026-10-08 版，ESM_1.zip 原样保留。
+
+当前稿件 SHA256：3fa721af91330452872bb1d6f9e3da332249fca1765f1493265b76cc8f6c3c3a
+用户最新指示要求语言修改，没有被解释为投稿批准。尚未投稿。
+旧版目录和旧准备记录均保留为历史。

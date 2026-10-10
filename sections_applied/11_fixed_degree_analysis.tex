@@ -6,7 +6,7 @@
 \section{Scoped Mechanistic Context: Aggregation Discriminability}
 \label{sec:snr}
 
-The original benchmark records show limited utility for the evaluated fixed threshold policies in the full portfolio; they do not identify which interactions those summaries omit. As limited mechanistic context, we isolate how a linear aggregation operator changes class-conditional first and second moments in a binary fixed-degree surrogate. The calculation is exact for the stated conditional-neighbor model, but it is not an information-theoretic error bound, a model-selection rule, or a guarantee for a trained GNN.
+We derive the effect of linear aggregation on class-conditional first and second moments in a binary fixed-degree surrogate. The exact calculation describes how feature strength, edge correlation, and degree jointly determine moment-based discriminability. It provides mechanistic context for the empirical audit under the stated conditional-neighbor model.
 
 \begin{table}[t]
 \centering
@@ -53,7 +53,7 @@ where $\Delta_Z = \mathbb{E}[Z|Y=+1] - \mathbb{E}[Z|Y=-1]$. This quantity uses o
 
 \subsection{Exact Fixed-Degree Calculation}
 
-We first analyze a deliberately restricted model without replacing a random degree by its expectation. Conditional on a center label $Y_v=y$, let $Y_1,\ldots,Y_d$ be independent neighbor labels satisfying $\mathbb{P}(Y_i=y\mid Y_v=y)=(1+\rho)/2$. Let $X_i=Y_i\mu+\varepsilon_i$, where the $\varepsilon_i\sim\mathcal{N}(0,\Sigma)$ are independent of all labels, and define $A_v=d^{-1}\sum_{i=1}^d X_i$.
+Conditional on a center label $Y_v=y$, let $Y_1,\ldots,Y_d$ be independent neighbor labels satisfying $\mathbb{P}(Y_i=y\mid Y_v=y)=(1+\rho)/2$. Let $X_i=Y_i\mu+\varepsilon_i$, where the $\varepsilon_i\sim\mathcal{N}(0,\Sigma)$ are independent of all labels, and define $A_v=d^{-1}\sum_{i=1}^d X_i$.
 
 \begin{proposition}[Exact Fixed-Degree Discriminability]
 \label{prop:fixed_degree}
@@ -69,7 +69,7 @@ For $s=\mu^\top\Sigma^{-1}\mu>0$, the conditional moments and discriminability r
 \end{proposition}
 
 \begin{proof}
-We derive this result in three steps.
+
 
 Since $\mathbb{E}[Y_i\mid Y_v=y]=\rho y$ and
 $\operatorname{Var}(Y_i\mid Y_v=y)=1-\rho^2$, independence gives the first two identities. Moreover, $\Delta_X=2\mu$, $\mathcal{D}(X)=4s$, and $\Delta_A=2\rho\mu$. Applying the Sherman--Morrison identity,
@@ -82,7 +82,7 @@ Substitution yields the stated ratio.
 
 \subsection{Center-Feature and Neighbor Mixing}
 
-Neighbor-only averaging does not represent a self-looped GCN layer. To isolate the effect of retaining the center feature, consider the analyzable linear surrogate
+To examine retention of the center feature, we use the linear surrogate
 \begin{equation}
     Z_{\alpha,v}=\alpha X_v+(1-\alpha)A_v,
     \qquad \alpha\in[0,1].
@@ -154,7 +154,7 @@ $(20,1)$ & 0.309 & (0.35, 0.65) \\
 \end{tabular}
 \end{table}
 
-\textbf{Interpretation} (Table~\ref{tab:threshold}): The first row is the limit as $s\to0^+$ because the ratio itself is undefined when both class representations have zero discriminability. Stronger self-feature separation increases the label-mixture penalty and widens the region in which neighbor-only aggregation loses discriminability. This is a property of the stated moment criterion, not a universal guarantee for a trained GNN.
+In Table~\ref{tab:threshold}, the first row is the limit as $s\to0^+$; the ratio is undefined when both class representations have zero discriminability. Stronger self-feature separation increases the label-mixture penalty and widens the region where neighbor-only aggregation loses moment-based discriminability.
 
 \subsection{Approximation Regime}
 
@@ -168,27 +168,27 @@ $(\rho^2d-\kappa)/(\rho^2d)=\eta/(1+\eta)$, while the approximation overstates t
 
 \subsection{Direct Moment Validation}
 
-We test the implemented formulas on a frozen grid rather than infer validity from downstream GNN accuracy. The grid contains 400 configurations over degree, edge-label correlation, feature strength, and center-feature weight, with five fixed seeds and 5,000 samples per class. All 2,000 configuration--seed records complete successfully and retain the empirical moments, exact prediction, environment, and source commit. Across the 1,920 records with a nonzero exact ratio, the median absolute relative error between the empirical estimate and $\kappa_\alpha$ is 0.94\% (descriptive 95\% percentile-bootstrap interval 0.86--1.05\%). In the neighbor-only slice, the median absolute error of the simplified $\rho^2d$ approximation is 0.293 (0.242--0.365), and its overstatement increases with feature strength.
+We test the implemented formulas on a frozen simulation grid. The grid uses dimension four, identity covariance, $d\in\{2,5,10,20\}$, $\rho\in\{-0.8,-0.4,0,0.4,0.8\}$, $s\in\{0.1,0.5,1,4\}$, and $\alpha\in\{0,0.25,0.5,0.75,1\}$. It contains 400 configurations, five seeds (202608080--202608084), and 5,000 samples per class. Percentile-bootstrap intervals use 5,000 resamples of configuration--seed records (base seed 20260808); per-strength intervals increment that seed in ascending strength order. These intervals describe the fixed grid, not real-graph generalization. All 2,000 configuration--seed records completed successfully, retaining empirical moments, exact predictions, environment, and source commit. Across 1,920 records with a nonzero exact ratio, the median absolute relative error between the empirical estimate and $\kappa_\alpha$ is 0.94\%. Its descriptive 95\% percentile-bootstrap interval is 0.86--1.05\%. In the neighbor-only slice, the simplified $\rho^2d$ approximation has median absolute error 0.293 (0.242--0.365); its overstatement increases with feature strength.
 
 \begin{figure}[t]
 \centering
 \includegraphics[width=\linewidth]{results/discriminability/route_a_grid_v1/summary/validation_figure}
-\caption{Frozen moment validation. Left: empirical and exact $\kappa_\alpha$. Right: signed error of the neighbor-only $\rho^2d$ approximation, with descriptive bootstrap intervals of the median.}
+\caption{Frozen moment validation. Left: empirical and exact $\kappa_\alpha$. Right: signed error of the neighbor-only $\rho^2d$ approximation. Grey points are individual configuration--seed records (100 at each feature strength, with overlapping values), not configuration means. Blue markers and bars show the median and its descriptive 95\% percentile-bootstrap interval, resampling those records within each strength.}
 \label{fig:direct_discriminability_validation}
 \end{figure}
 
-This experiment validates the implemented first- and second-moment calculation within the prescribed surrogate grid. It does not validate a Bayes-error formula, a trained-GNN performance law, or a graph-vs-MLP selector.
+The simulation checks the implemented first- and second-moment formulas across the prescribed grid.
 
-\subsection{Broadcasting Context, Not a GNN Threshold}
+\subsection{Relation to tree broadcasting}
 
-The product ``branching factor $\times$ squared label correlation'' also appears in classical tree broadcasting and reconstruction. For a regular tree with forward branching factor $b$, the Kesten--Stigum quantity is $b\rho^2$~\citep{kesten1966additional,mossel2015reconstruction}. Here $b=q-1$ for a $q$-regular undirected tree, whereas a Poisson Galton--Watson limit with mean offspring $k$ uses $b=k$. This resemblance supplies historical context for the weak-feature limit of our one-hop ratio; it is not a new threshold result. In particular, $d$ in Proposition~\ref{prop:fixed_degree} is a fixed one-hop neighbor count and must not be interchanged with either forward degree without an explicit coupling. Ordinary finite-depth GNNs also reuse neighborhoods and may include self-loops, normalization, nonlinearities, attention, and learned transformations. We therefore derive no Kesten--Stigum condition for GNN depth or architecture. Recent finite-depth CSBM analysis likewise finds Gaussian-mixture embeddings and depth behavior more complex than a single-Gaussian account~\citep{pmlr-v269-dalle25a}.
+The product ``branching factor $\times$ squared label correlation'' also appears in classical tree broadcasting and reconstruction. For a regular tree with forward branching factor $b$, the Kesten--Stigum quantity is $b\rho^2$~\citep{kesten1966additional,mossel2015reconstruction}. Here $b=q-1$ for a $q$-regular undirected tree, whereas a Poisson Galton--Watson limit with mean offspring $k$ uses $b=k$. The weak-feature limit of our one-hop ratio has this established form. In particular, $d$ in Proposition~\ref{prop:fixed_degree} is a fixed one-hop neighbor count and must not be interchanged with either forward degree without an explicit coupling. Ordinary finite-depth GNNs also reuse neighborhoods and may include self-loops, normalization, nonlinearities, attention, and learned transformations. We therefore derive no Kesten--Stigum condition for GNN depth or architecture. Recent finite-depth CSBM analysis likewise finds Gaussian-mixture embeddings and depth behavior more complex than a single-Gaussian account~\citep{pmlr-v269-dalle25a}.
 
-\subsection{Extensions Not Claimed Here}
+\subsection{Multiclass and multilayer models}
 
-A multi-class graph is described by a class-transition matrix rather than one scalar edge correlation. Collapsing that matrix to homophily can hide which class pairs are mixed and how their feature means are arranged. We therefore do not present a scalar multi-class threshold. Likewise, a practical GCN introduces variable degree, self-loop normalization, learned transformations, nonlinearities, and neighborhood reuse across layers. Proposition~\ref{prop:self_neighbor_mixing} isolates a prescribed self-feature weight but does not remove these remaining differences.
+A multiclass extension requires a class-transition matrix and the arrangement of class feature means. Scalar homophily can conceal both the mixed class pairs and their feature geometry. Extending the calculation to a practical GCN would also require variable degree, self-loop normalization, learned transformations, nonlinearities, and neighborhood reuse across layers. Proposition~\ref{prop:self_neighbor_mixing} addresses the prescribed self-feature weight within the linear surrogate.
 
 \subsection{Scope and Random-Degree Extension}
 
-The class-conditional distribution of $A_v$ is generally a Gaussian mixture because the neighbor labels are random. Therefore the Gaussian Bayes-error formula stated for $X_v$ must not be applied to $A_v$ solely from its first two moments. Proposition~\ref{prop:fixed_degree} concerns Mahalanobis discriminability only.
+The class-conditional distribution of $A_v$ is generally a Gaussian mixture because the neighbor labels are random. Therefore the Gaussian Bayes-error formula for a single Gaussian class-conditional model must not be applied to $A_v$ solely from its first two moments. Proposition~\ref{prop:fixed_degree} concerns Mahalanobis discriminability only.
 
-For sparse CSBM, the degree is random. Conditional on $D_v=m>0$, Proposition~\ref{prop:fixed_degree} applies with $d=m$. An unconditional calculation must specify the treatment of isolated nodes and average over the degree-conditioned mixture; replacing $D_v$ by its mean is not exact. We leave that random-degree extension separate rather than attach unsupported finite-$n$ error rates to the fixed-degree result.
+For sparse CSBM, degree is random. Conditional on $D_v=m>0$, Proposition~\ref{prop:fixed_degree} applies with $d=m$. An unconditional calculation would need to specify the treatment of isolated nodes and average over the degree-conditioned mixture. Replacing $D_v$ by its mean is not exact; the fixed-degree result supplies no finite-$n$ error rates for that extension.

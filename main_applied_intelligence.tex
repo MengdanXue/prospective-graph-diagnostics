@@ -22,7 +22,7 @@
 \author*[1]{\fnm{Mengdan} \sur{Xue}}\email{17326961775@163.com}
 \affil*[1]{\orgdiv{Faculty of Computational Mathematics and Cybernetics}, \orgname{Lomonosov Moscow State University}, \orgaddress{\city{Moscow}, \country{Russia}}}
 
-\abstract{Graph diagnostics guide model choices, so their utility depends on the candidate portfolio, calibration, and abstention fallback. We audit nine fixed graph-versus-multilayer-perceptron (MLP) policies on 11 node-classification datasets and ten seeds, measuring regret against the better validation-selected candidate. The frozen benchmark gives six graph architectures 24 tuning trials in total and MLP four trials. The historical Combined rule with MLP fallback incurs 7.46 percentage points of regret, compared with 0.26 for always-graph; four datasets contribute 95.1\% of its loss. Restricting the graph portfolio reverses some descriptive comparisons. Separate post-hoc retraining evaluates two input parameterizations and a 24-trial MLP search. Matched leave-one-dataset-out calibration preserves adjusted homophily's lower descriptive full-portfolio regret in all four input/budget configurations, with its centered-scaled, 24-trial advantage confined to Cornell and Wisconsin. A further 220-cell extension evaluates a training-label-only Gaussian Naive Bayes adaptation of the Classifier-based Performance Metric. Its fixed rule improves over always-graph for restricted GCN/GAT portfolios but incurs higher regret for the full portfolio in every configuration. The probe's affine invariance explains why input changes can leave its decisions unchanged while altering finite-budget neural training. Primary dataset-level tests establish no superiority after multiplicity correction. The resulting offline audit connects diagnostic scores to effective actions, reference headroom, and dataset-level benefit and harm, distinguishing saved-score reconstruction from new training and independent validation.}
+\abstract{A graph diagnostic's value for model selection depends on the candidate models and calibration tasks. We audit graph-versus-multilayer-perceptron (MLP) policies on 11 node-classification datasets and ten seeds, measuring test accuracy lost relative to the better validation-selected candidate. A frozen homophily rule with MLP fallback incurs 7.46 percentage points of regret, compared with 0.26 for always-graph. Primary dataset-level tests establish no superiority after multiplicity correction. Post-hoc analyses vary inputs, MLP search budgets, portfolios, and calibration access. A training-label-only Gaussian Naive Bayes adaptation of the Classifier-based Performance Metric improves over both constant choices in all 12 restricted configurations using graph convolutional and graph attention models. It loses to always-graph in the four six-architecture configurations, where Roman-empire contributes 78.7--86.5\% of its regret. Omitting that dataset reverses three comparisons. Adjusted homophily achieves lower full-portfolio regret under leave-one-dataset-out calibration, but source-group holdout removes or reverses those gains. Jointly withholding Cornell and Wisconsin gives constant-graph decisions on both in every full-portfolio configuration. Probe scores also saturate, and some classes are absent from inner holdouts. Dataset-level accounting locates these conditional gains and losses, and executable reconstruction supports their verification. Diagnostic evaluation therefore needs explicit candidate portfolios and calibration-source boundaries.}
 \keywords{Graph neural networks, Model selection, Graph diagnostics, Node classification, Benchmark evaluation, Decision regret}
 \maketitle
 \raggedbottom
@@ -31,15 +31,15 @@
 \input{sections_applied/02_related_work}
 \input{sections_applied/03_decision_protocol}
 \input{sections_applied/04_prospective_results}
-\input{sections_applied/04a_equal_budget_sensitivity}
-\input{sections_applied/04b_matched_policy_audit}
+\input{sections_applied/04a_extension_design}
 \input{sections_applied/04c_classifier_probe}
+\input{sections_applied/04b_matched_policy_audit}
 \input{sections_applied/07_discussion}
 \input{sections_applied/08_conclusion}
 
 \FloatBarrier
 \backmatter
-\section*{Declarations}
+\section*{Statements and Declarations}
 \subsection*{Funding}
 The author received no funding for this research.
 \subsection*{Competing interests}
@@ -47,13 +47,16 @@ The author declares no competing interests.
 \subsection*{Author contributions}
 Mengdan Xue is the sole author and is responsible for the study design, interpretation of the results, and manuscript. AI assistance is described in Section~\ref{sec:research_tools}.
 \subsection*{Data and code availability}
-The accompanying \path{applied-intelligence-cpm-supplement-2026-10-08.zip} contains the current editable manuscript, the classifier-probe implementation and protocol, all 220 CPM metric records with their repeated inner-split accuracies, and complete fixed and calibrated policy outputs. Manifests bind source revisions, input hashes, completion evidence, and the numerical tables. Its \path{previous-revision.zip} preserves the preceding major-revision supplement byte for byte, including the matched-calibration and fallback/exclusion audit and its embedded integrated evidence archive. That archive retains all 1,540 input-retraining records and 220 MLP-extension records, historical evidence archives, trial histories, saved analyses, and checkpoint hash indexes. The README identifies the current manuscript and explains the nested evidence, verification, and reconstruction routes. Primary, retraining, and diagnostic-extension records retain separate identities; the invalid 25-record CPM attempt is excluded, while a validated 218-record prefix was retained on resumption. Exact reconstruction of the earlier saved-score analysis was validated on Windows. Full checkpoint tensors, bound raw arrays, execution ledgers, and Git history remain in author storage. Public datasets and loaders are identified in Appendix~\ref{app:reproducibility}.
+Online Resource~1 (\path{ESM_1.zip}) contains a flat \path{reader/} tree with public-data bindings, executable reconstruction and training commands, the 220 CPM metric records, and all 1,540 input-retraining and 220 MLP-extension records. Its reconstruction output verifies the original 112 CPM policy cells and adds 16 always-MLP reference cells. A public-input Cora, seed~0 demonstration reproduces both probe conditions and their policy scores (Appendix~\ref{sec:reader_reproduction}). Verification receipts accompany the reader. The source-group and all-omission analyses include their fixed scope, all candidate cutoff losses, full results, and executable reconstruction. Partition-support records verify all 220 CPM partitions and the public-input WebKB audit. The unchanged preceding supplement is retained under \path{provenance/}, preserving the primary benchmark, matched-calibration and fallback audits, trial histories, checkpoint indexes, and execution amendments. Source and file manifests identify each version. Full historical checkpoints and author execution ledgers remain in author storage; the reader downloads public raw data and regenerates the bound arrays without them. Public sources and loaders are listed in Appendix~\ref{app:reproducibility} and the reader binding.
+\subsection*{Supplementary information}
+Online Resource~1: Executable reader code, public-data bindings, retained research records, and verification receipts for policy reconstruction and public-input probe reproduction (ZIP archive).
 \subsection*{Ethics approval and consent}
 This computational study uses existing public benchmark datasets and involves no recruitment of human participants or animal experiments. Consent for participation and publication is not applicable.
 
 \begin{appendices}
 % The class resets counters; appendix destinations must differ from main-text ones.
 \renewcommand{\theHtable}{appendix.\thetable}
+\renewcommand{\thefigure}{\arabic{figure}}
 \renewcommand{\theHfigure}{appendix.\thefigure}
 \renewcommand{\theHequation}{appendix.\theequation}
 \input{sections_applied/09_reproducibility_appendix}
@@ -72,6 +75,14 @@ This computational study uses existing public benchmark datasets and involves no
 \input{sections_applied/13b_calibration_readout}
 \FloatBarrier
 \input{sections_applied/13c_cpm_probe}
+\FloatBarrier
+\input{sections_applied/15_source_sensitivity}
+\FloatBarrier
+\input{sections_applied/14a_frozen_policy_details}
+\FloatBarrier
+\input{sections_applied/14b_historical_portfolio}
+\FloatBarrier
+\input{sections_applied/14c_matched_detail}
 \FloatBarrier
 \input{sections_applied/14_preprocessing_detail}
 \FloatBarrier

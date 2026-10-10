@@ -109,7 +109,7 @@ def render(input_path: Path, output_path: Path, *, force: bool) -> None:
     input_path = input_path.resolve(strict=True)
     output_path = output_path.resolve()
     png_path = output_path.with_suffix(".png")
-    for path in (output_path, png_path):
+    for path in (output_path, png_path, output_path.with_suffix('.svg')):
         if path.exists() and not force:
             raise FileExistsError(f"refusing to overwrite {path}; pass --force")
 
@@ -123,13 +123,15 @@ def render(input_path: Path, output_path: Path, *, force: bool) -> None:
     output_path.parent.mkdir(parents=True, exist_ok=True)
     mpl.rcParams.update(
         {
-            "font.family": "DejaVu Sans",
+            "font.family": "sans-serif",
+            "font.sans-serif": ["Arial", "Helvetica", "DejaVu Sans"],
             "font.size": 8.0,
             "axes.labelsize": 8.5,
             "legend.fontsize": 7.5,
             "xtick.labelsize": 7.5,
             "ytick.labelsize": 7.5,
             "pdf.fonttype": 42,
+            "svg.fonttype": "none",
             "ps.fonttype": 42,
             "savefig.facecolor": "white",
         }
@@ -179,8 +181,8 @@ def render(input_path: Path, output_path: Path, *, force: bool) -> None:
     )
 
     ax.set(
-        xlim=(0.0, 100.0),
-        ylim=(0.0, 12.0),
+        xlim=(0.0, 104.0),
+        ylim=(-0.3, 12.0),
         xlabel="Coverage after confidence ordering (%)",
         ylabel="Covered-set mean raw-accuracy regret (pp)",
     )
@@ -189,6 +191,18 @@ def render(input_path: Path, output_path: Path, *, force: bool) -> None:
     ax.grid(axis="y", color="#D9D9D9", linewidth=0.6)
     ax.spines[["top", "right"]].set_visible(False)
     ax.legend(loc="upper left", frameon=False, ncol=2, handlelength=2.8)
+    # Identify the close full-coverage endpoints without changing their data.
+    for method, position in [("always_graph", (75.0, 1.65)),
+                             ("validation_selection", (53.0, 0.85))]:
+        coverage, regret = _validated_curve(payload, method)
+        label = "Graph" if method == "always_graph" else "Validation"
+        ax.annotate(
+            f"{label}: {regret[-1]:.2f} pp",
+            xy=(coverage[-1], regret[-1]), xytext=position,
+            color=POLICIES[method]["color"], fontsize=7.5,
+            arrowprops={"arrowstyle": "-", "color": POLICIES[method]["color"],
+                        "linewidth": 0.65},
+        )
 
     fixed_time = datetime(2026, 8, 20, tzinfo=UTC)
     pdf_tmp = output_path.with_suffix(".pdf.tmp")
@@ -206,6 +220,7 @@ def render(input_path: Path, output_path: Path, *, force: bool) -> None:
             },
         )
         fig.savefig(png_tmp, format="png", dpi=600, metadata={"Software": "Matplotlib"})
+        fig.savefig(output_path.with_suffix('.svg'), format='svg')
         os.replace(pdf_tmp, output_path)
         os.replace(png_tmp, png_path)
     finally:

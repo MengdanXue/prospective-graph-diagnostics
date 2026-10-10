@@ -1,0 +1,111 @@
+Independent reader: public inputs, CPM, saved-policy reconstruction and training
+
+Run commands from the extracted reader directory. This directory contains code,
+compact public-input bindings, the original 220 CPM records, and all 1,540 base
+and 220 extended candidate records in a flat evidence tree. No nested historical
+archive needs to be extracted. No author controller, ledger, Git history or CI
+receipt is required. Historical execution remains in the preceding supplement.
+
+Environment
+Use Python 3.12 or 3.13 and a separate virtual environment. The recorded CPM
+libraries were NumPy 2.3.5, SciPy 1.16.1, scikit-learn 1.7.1 and PyTorch 2.9.1
+with CUDA 12.8; all CPM operations themselves run on CPU with one thread.
+Install the CPU PyTorch build, then the other direct dependencies:
+
+python -m pip install torch==2.9.1 --index-url https://download.pytorch.org/whl/cpu
+python -m pip install -r requirements-reader.txt
+
+Use a platform-appropriate PyTorch 2.9.1 CUDA build for optional GPU training.
+The output records retain the versions actually used. A library change may alter
+floating-point results; it must not silently relax a published tensor binding.
+
+1. Reconstruct all saved policies (no training or raw downloads)
+
+python scripts/reader_reproduce.py score --evidence-root evidence --output run/scores.json
+
+This selects candidates again from the 1,760 candidate records, reconstructs the
+original 112 fixed/calibrated CPM policy cells, and compares every retained field
+within absolute tolerance 1e-12. It also reports 16 always-MLP reference cells and
+per-dataset CPM score ranges, endpoint counts and numbers of distinct scores.
+LODO thresholds are recomputed only from the declared other-dataset outcomes.
+
+2. Reproduce the preselected Cora, seed 0 CPM example from public raw files
+
+python scripts/reader_reproduce.py acquire --dataset Cora --seed 0 --data-root run/data --output run/acquisition.json
+python scripts/reader_reproduce.py probe --dataset Cora --seed 0 --data-root run/data --evidence-root evidence --output run/probe.json
+
+Start with an empty run/data directory for the independent acquisition check.
+Acquisition downloads only the published upstream raw files, verifies their byte
+counts and SHA256, and invokes the original PyG loader settings. Dataset source
+licenses continue to apply. The tensor hash includes dtype, shape and C-order
+bytes, so cross-version PyG pickle serialization is not the acceptance criterion.
+Raw features, labels, canonical edges, all three regenerated seed-0 partitions,
+the split identifier, and both N/CS transformed feature arrays must match their
+published bindings before fitting. The probe receives outer-training labels only.
+Both input conditions use 100 paired inner holdouts (400 GNB fits total).
+Only after computing them does the command open retained candidate outcomes.
+It verifies the two accuracy sequences, partitions, scores and means against the
+retained metric fields at absolute tolerance 1e-12, then records the fixed-policy
+score in every matching portfolio/budget cell. Failure is reported, not replaced
+by an old output. Other published datasets and seeds can be specified explicitly.
+Large graphs require more RAM and time; their successful replay is not implied
+by the Cora example.
+
+3. Optional new neural training from the same public inputs
+
+python scripts/reader_reproduce.py train --dataset Cora --seed 0 --condition normalize_features --model GCN --trials 4 --data-root run/data --output run/gcn.json
+python scripts/reader_reproduce.py train --dataset Cora --seed 0 --condition normalize_centered_scaled --model MLP --trials 24 --data-root run/data --output run/mlp24.json
+
+The first command runs the published four-trial grid; the second runs all 24 MLP
+candidates afresh, including the four originally inherited candidates. It does
+not claim access to or reuse of author checkpoints. Hidden width, early stopping,
+learning rates, dropout and weight decay come from the delivered configurations.
+Validation alone selects the trial; the selected model has one test evaluation.
+All new checkpoints and trial histories are retained beside the new record.
+The seven published architectures are supported at four trials; 24 is MLP-only.
+Use --device cuda for GPU training. Default CPU execution uses one thread.
+Numerical training equality is not an acceptance promise: the original LINKX
+audit found substantial same-condition variability. Keep new outcomes separate
+from the published benchmark; report their distributions when studying training
+repeatability. The reconstruction check does not certify all neural retraining.
+
+4. Reconstruct the review-motivated influence and source-group analysis
+
+python scripts/reviewer_source_sensitivity.py --evidence-root evidence --published-metrics evidence/review-sensitivity/published-metrics.json --matched-reference evidence/review-sensitivity/matched-reference.json --protocol configs/reviewer_influence_source_groups_v1.json --scope-receipt evidence/review-sensitivity/SCOPE_BEFORE_EXECUTION.json --output run/source-groups.json
+
+This standard-library analysis performs no model fitting. It verifies the input
+scope hashes, reselects candidates from all 1,760 records, and reconstructs all
+528 original matched LODO folds before computing 192 influence scenarios (768
+fixed-policy evaluations) and 288 source-group folds. The retained results keep
+every training input, candidate cutoff/loss, selected cutoff and held-out action.
+The grouping was fixed before these computations, after the earlier concentration
+findings were known; it is a review-motivated post-hoc sensitivity, not study
+preregistration. Overall averages weight datasets equally, not source groups.
+
+5. Reproduce the WebKB class-support audit without fitting a classifier
+
+python scripts/cpm_partition_support.py --public-data-root run/support-data --download --datasets Cornell Wisconsin --binding configs/reader_data_bindings_v1.json --cpm evidence/cpm-extension.json --output run/webkb-support.json
+
+The command downloads checksum-bound public raw files, regenerates all ten
+training splits, replays the saved random partitions and verifies sizes/hashes
+against both conditions. It counts every class in every sample, fit and holdout.
+Remove --datasets Cornell Wisconsin to audit all eleven public datasets. The
+retained full audit verifies 220 condition records using bound arrays; the
+completed independent public-input audit covers the 40 WebKB condition records.
+Neither command fits a GNB or neural model. Each WebKB inner holdout excludes
+two classes under the unchanged equal-quota rule; the resulting probe accuracy
+must be interpreted for its realized holdout class distribution.
+
+6. Export the complete sensitivity CSVs and manuscript tables
+
+python scripts/export_reviewer_sensitivity.py --analysis run/source-groups.json --support evidence/review-sensitivity/partition-support.json --primary evidence/review-sensitivity/primary-audit.json --output run/tables
+
+The primary eight-comparison effects, intervals and p values are read from the
+frozen audit. Only the nonzero-dataset counts are reconstructed; no new inference
+is fitted. All omission policies, 48 group-calibration summaries, 288 fold
+summaries, and 176 CPM dataset accounting rows are exported without selection.
+
+All output files are exclusive. Choose a new output path for a new attempt.
+A changed public raw file or tensor binding stops the process. MANIFEST.json
+contains SHA256 and size for each delivered reader file; source revisions and
+the upstream binding/transform digests are in configs/reader_data_bindings_v1.json.

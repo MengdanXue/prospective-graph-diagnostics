@@ -16,7 +16,7 @@ The exact Combined thresholds were not inherited verbatim from an earlier commit
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=0.82\linewidth]{results/diagnostic/route_a_prospective_v2/analysis/prospective_regret_coverage.pdf}
+\includegraphics[width=0.82\linewidth]{figures/prospective_regret_coverage_revised.pdf}
 \caption{Descriptive regret--coverage display from the frozen confidence scores. For Combined and validation selection, coverage increases in a ranking by decreasing confidence, breaking ties by dataset name and then seed. Intermediate points within tied scores cannot be realized by a confidence threshold alone. Always-graph and always-MLP have constant confidence and therefore appear only as full-set endpoints. The ordinate is covered-set mean raw-accuracy regret, not selection error under the one-point target margin. The Combined curve ends at 68.2\% because 35 units abstain and fallback decisions are not added to this display. The pre-specified primary analysis remains full-set regret with dataset-level inference.}
 \label{fig:regret_coverage}
 \end{figure}

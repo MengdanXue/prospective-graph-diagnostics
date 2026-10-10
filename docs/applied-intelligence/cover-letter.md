@@ -1,14 +1,16 @@
 Dear Editors of Applied Intelligence,
 
-Please consider “Diagnostic Utility Depends on the Model Portfolio: A Frozen Graph-vs-MLP Decision Benchmark” as an original research article.
+Please consider "From Graph Diagnostics to Model Decisions: Portfolio, Fallback, and Calibration" as an original research article.
 
-The manuscript studies a practical model-selection question: when does a graph diagnostic help choose between trained graph and feature-only models? We evaluate diagnostic actions through prediction regret and abstention coverage, making the candidate portfolio, validation selection, fallback, and tuning allocation explicit.
+We study when a graph diagnostic improves the choice between trained graph models and a multilayer perceptron (MLP). The audit covers 11 node-classification datasets and ten seeds, including validation-based candidate selection and the fallback after a diagnostic abstains.
 
-The evidence consists of a pre-specified 11-dataset benchmark and separately identified post-hoc sensitivity analyses. Its central finding is that the measured comparison changes with the models selected by the graph action: an unchanged rule has lower mean regret than always-graph with GCN or GAT alone, but higher regret with the full six-architecture portfolio. The analysis also quantifies the contribution of fallback and the influence of dataset composition. A post-hoc retraining of all 11 datasets under two input parameterizations, with the multilayer-perceptron search expanded from four to 24 trials, changes the feature-only baseline and several regret values but does not reverse the main full-portfolio comparison; it aligns trial counts, while the graph action still chooses among six architectures. Retained records and reconstruction tools accompany the evaluation.
+A Gaussian Naive Bayes adaptation of the published Classifier-based Performance Metric has lower regret than both constant choices in all 12 restricted graph-convolutional/graph-attention configurations. It loses to always-graph in the four full-portfolio configurations. Roman-empire accounts for 78.7 to 86.5% of that loss; omitting it reverses three comparisons. Adjusted homophily's gains under leave-one-dataset-out calibration disappear or reverse under source-group holdout. Jointly withholding Cornell and Wisconsin gives constant-graph decisions on both in every full-portfolio configuration.
 
-The extension also evaluates two published graph statistics through held-out-dataset calibration. Adjusted homophily attains lower descriptive regret than always-graph, separating the weaknesses of the fixed heuristics from the value of diagnostics more broadly. This empirical contribution is relevant to the journal's interests in neural learning and decision support: it provides an explicit procedure for assessing the cost of model-selection decisions. The manuscript reports the tested settings in which a diagnostic helps, the settings in which it loses accuracy, and the influence of the trained baselines.
+The paper addresses model-selection decisions in graph learning: it identifies when the candidate portfolio or related calibration datasets change a diagnostic's value. The manuscript separates the frozen benchmark from post-hoc analyses and reports all eight primary comparisons. Appendices retain the historical sensitivity grids. Accompanying materials provide executable policy and source-group reconstruction, public-data bindings, a completed Cora probe reproduction, and verified class-support counts for every probe partition.
 
-The manuscript was previously submitted to TMLR and rejected without external review. It has not been published there. The present version has been rewritten for Applied Intelligence. Mengdan Xue is the sole author; the study received no funding and the author declares no competing interests.
+A previous version was submitted to TMLR and rejected without external review. The overlapping Neurocomputing submission is closed, and the work is not under consideration elsewhere. The manuscript has been substantially revised for Applied Intelligence. Mengdan Xue is the sole author; the study received no funding and the author declares no competing interests. AI assistance is disclosed in the Methods section.
+
+Thank you for your consideration.
 
 Sincerely,
 
@@ -22,4 +24,4 @@ Lomonosov Moscow State University, Moscow, Russia
 
 ---
 
-Local preparation note — not part of the letter: this draft has not been sent (updated 2026-10-04 with the post-hoc 11-dataset and expanded-MLP evidence; the author confirmed on 2026-10-04 that the overlapping Neurocomputing submission is closed and that Applied Intelligence has not been submitted). Before submission, check the then-current status of concurrent submissions and incorporate only completed, validated supplementary experiments. The current rewrite uses the frozen benchmark and already reported bounded sensitivity results.
+Local preparation note, not part of the letter: this historical draft predates the Applied Intelligence submission and is retained for provenance. The overlapping Neurocomputing submission was closed before submission; the final package was subsequently filed through Editorial Manager. Remove this note from any uploaded letter.

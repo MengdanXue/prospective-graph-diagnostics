@@ -1,20 +1,30 @@
 \section{Introduction}
 
-A graph diagnostic is useful for model selection when its recommendations improve the predictions ultimately used. This requires more than a correlation with model performance: the diagnostic must distinguish cases where changing the model is beneficial, avoid costly switches, and specify what happens when it abstains. Its value also depends on the candidates available. A graph model that performs poorly under one architecture or input parameterization may be replaced by a stronger candidate in a broader search~\citep{kipf2017gcn,velivckovic2018gat,hamilton2017graphsage}.
+A graph diagnostic is useful for model selection if following its recommendation improves prediction. Its value depends on the candidate models, the score-to-action rule, and the fallback after abstention. A statistic that favors a graph convolutional network over an MLP may lead to different losses when the graph action selects among six trained architectures~\citep{kipf2017gcn,velivckovic2018gat,zhu2020beyond,lim2021linkx}.
 
-Research on homophily and heterophily has developed class-conditional, feature, structural, and neighborhood-distribution statistics~\citep{luan2023whendo,platonov2023characterizing,zheng2024trihom,pmlr-v235-wang24u}. Learned selectors combine graph characteristics with historical model performance~\citep{park2023metagl,park2023glemos}. These advances make the complete decision setting central to evaluation: which model outcomes does a statistic select, how much improvement is available over a simple reference, and does that comparison survive a change in candidates, training, or fallback?
+Homophily research has developed class-conditional, feature, structural, and neighborhood-distribution statistics~\citep{luan2023whendo,platonov2023characterizing,zheng2024trihom,pmlr-v235-wang24u}. Learned selectors use graph characteristics and historical performance to choose models on new tasks~\citep{park2023metagl,park2023glemos}. We examine whether a diagnostic's advantage survives a change in candidate portfolio and which datasets determine the aggregate result. We then test whether calibration gains survive holding out related datasets together.
 
-We study these questions through an offline graph-versus-multilayer-perceptron (MLP) decision audit. Within each dataset--seed pair, validation selects a graph model and an MLP; the diagnostic then chooses between their recorded outcomes. Oracle-portfolio regret measures lost test accuracy, and coverage records abstention before an explicit fallback. An action-level decomposition separates the benefit and harm of switching away from always-graph. It also states the reconstruction boundary: saved outcomes can evaluate alternative choices among the same predictors, whereas changes to predictor training require new records.
+We audit graph-versus-multilayer-perceptron (MLP) decisions on 11 node-classification datasets and ten seeds. Validation selects candidates; oracle-portfolio regret measures the test accuracy lost by the final decision. Benefit and harm relative to always-graph identify useful and costly switches. A frozen nine-policy benchmark establishes the original case: a historical homophily rule with MLP fallback incurs 7.46 percentage points of regret against 0.26 for always-graph. Primary dataset-level tests establish no superiority after multiplicity correction. Separate post-hoc retraining and diagnostic analyses test the boundaries of that result.
 
-The primary benchmark evaluates nine fixed policies on 11 datasets and ten seeds. Its protocol was fixed before generating the benchmark records, following exploratory inspection of legacy aggregates. The historical Combined rule uses homophily and MLP validation accuracy, with MLP fallback. Each architecture receives four tuning trials: the six-architecture graph action therefore searches 24 trials, versus four for MLP. The primary result is a substantial loss for Combined: 7.46 percentage points of regret, compared with 0.26 for always-graph. Four datasets contribute 95.1\% of this loss. Portfolio restrictions reverse some descriptive comparisons, but the favorable frozen-record averages depend on Cornell and Wisconsin.
+A training-label-only Gaussian Naive Bayes adaptation of the Classifier-based Performance Metric (CPM) improves on both constant choices in all 12 restricted GCN/GAT configurations. It loses to always-graph in the four full-portfolio configurations. Roman-empire contributes 78.7--86.5\% of that loss; omitting it reverses three comparisons. Adjusted homophily has lower full-portfolio regret under leave-one-dataset-out (LODO) calibration, but its gains vanish or reverse under source-group holdout. Jointly withholding Cornell and Wisconsin produces an always-graph rule for both datasets in every full-portfolio configuration. Table~\ref{tab:contribution_map} gives the comparisons for one input/budget setting; subsequent sections report all configurations.
 
-We then test the interpretation through explicitly post-hoc analyses. Separate retraining covers two input parameterizations and expands the MLP search to 24 trials. The full-portfolio ordering of Combined and always-graph persists under the declared MLP fallback. Calibrated adjusted homophily, however, provides a positive counterexample to a general failure claim: it has lower descriptive regret than always-graph in all four input/budget configurations. We examine that result alongside ordinary homophily and edge label informativeness under the same calibration algorithm, trace its gains to individual datasets, and cross fallback changes with dataset exclusions at both MLP budgets. A further training-label-only CPM-GNB extension brings node features into the comparison: it improves over always-graph for restricted portfolios, while its fixed rule incurs greater full-portfolio loss under all four configurations.
+\begin{table}[tbp]
+\centering
+\caption{Connected decision comparisons under CS inputs and 24 MLP trials. Regrets are descriptive percentage points. The graph reference and oracle are recomputed for each portfolio and dataset set. The full 11-dataset set remains primary.}
+\label{tab:contribution_map}
+\small
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{@{}llrr@{}}
+\toprule
+Decision setting & Selector & Regret & Always-graph \\
+\midrule
+GCN, all datasets & CPM-.5 & 0.172 & 7.468 \\
+Full portfolio, all datasets & CPM-.5 & 1.561 & 0.528 \\
+Full, omit Roman-empire & CPM-.5 & 0.232 & 0.580 \\
+Full, all datasets & Adjusted homophily, LODO & 0.145 & 0.528 \\
+Full, all datasets & Adjusted, source-group holdout & 2.538 & 0.528 \\
+\bottomrule
+\end{tabular}
+\end{table}
 
-The contributions are:
-\begin{enumerate}
-\item \textbf{A paired empirical audit of diagnostic decisions.} The frozen benchmark locates the loss of transparent graph-versus-MLP policies and shows how their comparison with reference policies changes across candidate portfolios.
-\item \textbf{A connected analysis of training, fallback, and calibration.} Separate retraining, expanded MLP search, matched calibration, and a feature-based classifier probe expose how diagnostic utility changes with trained outcomes and candidate portfolios. An affine-invariance check separates the probe\textquotesingle s response to input transformations from their effect on neural training.
-\item \textbf{A reconstructable account of policy utility.} Retained records connect diagnostic inputs to effective actions, benefits, harms, and reference headroom, with explicit boundaries between saved-score reconstruction, new training, and independent validation.
-\end{enumerate}
-
-The audit combines established evaluation principles with empirical evidence for assessing whether a diagnostic improves a concrete model-selection workflow. A degree-preserving graph intervention provides auxiliary evidence about structural signal in Appendix~\ref{sec:edge_intervention}.
+The audit extends CPM's paired-classifier evaluation to portfolio decisions and tests adjusted homophily and label informativeness as selection inputs. It complements GLEMOS's learned selection setting by tracing individual switches and their dependence on calibration sources. Released code reconstructs policies from retained candidate records and regenerates bound inputs from public data. The appendices provide mechanistic context through an auxiliary Gaussian calculation and graph intervention.

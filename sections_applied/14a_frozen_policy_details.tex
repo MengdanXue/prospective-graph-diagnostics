@@ -1,0 +1,45 @@
+\section{Frozen Training, Policies, and Curve Definitions}
+\label{app:frozen_policy_details}
+\begin{table}[htbp]
+\centering
+\caption{Frozen Per-Architecture Training Configuration}
+\label{tab:frozen_training}
+\small
+\begin{tabular}{@{}lp{0.64\linewidth}@{}}
+\toprule
+Component & Frozen setting \\
+\midrule
+Representation width & 64 hidden channels for every architecture. \\
+Optimization & Adam, cross-entropy loss, weight decay $5\times 10^{-4}$. \\
+Training horizon & At most 500 epochs; patience 100 under the validation checkpoint rule. \\
+Four-trial grid & Learning rate in $\{0.01,0.005\}$ crossed with dropout in $\{0.5,0.7\}$. \\
+Portfolio search & Graph: six architectures and 24 trials in total; feature-only: one MLP architecture and four trials in total. \\
+Model-specific constants & GAT: 4 heads; H2GCN: 2 propagation layers with strict two-hop edges; LINKX: 2 outer, 1 edge, and 2 node layers; GPR-GNN: 10 propagation steps, $\alpha=0.1$, PPR initialization. \\
+Selection and test & Validation accuracy descending, validation loss ascending, trial identifier ascending; one held-out test evaluation. \\
+\bottomrule
+\end{tabular}
+\end{table}
+For the descriptive regret--coverage curves, the frozen scorer maps a margin $v$ and scale $s$ to $c(v;s)=\min\{1,|v|/s\}$. Here, $a_{\mathrm{val}}^{\mathrm{G}}$ and $a_{\mathrm{val}}^{\mathrm{M}}$ are the validation accuracies of the selected graph and MLP portfolios. Validation selection uses $v=a_{\mathrm{val}}^{\mathrm{G}}-a_{\mathrm{val}}^{\mathrm{M}}-\delta$ and $s=0.25$. On the Combined graph branch, $v=h_1-0.55$ and $s=0.45$; on its MLP branch, $v=\max\{0.55-h_1,a_{\mathrm{val}}^{\mathrm{M}}-0.40\}$ and $s=0.60$. Abstentions receive no confidence score and are excluded from the descriptive curve. These scores determine only the curve ordering; they do not alter actions or the primary full-set inference.
+
+\begin{table}[htbp]
+\centering
+\caption{Frozen Graph-vs-MLP Decision Policies. Stages indicate when the listed inputs are available for the pre-fallback rule, including abstention and coverage. A trained predictor still requires within-family fitting and selection.}
+\label{tab:diagnostic_policies}
+\small
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{@{}>{\raggedright\arraybackslash}p{0.20\linewidth}>{\raggedright\arraybackslash}p{0.46\linewidth}>{\raggedright\arraybackslash}p{0.27\linewidth}@{}}
+\toprule
+Policy & Decision rule & Information / stage \\
+\midrule
+Always-MLP & Select MLP for every unit. & Fixed family / before fitting. \\
+Always-graph & Select the validation-chosen graph model for every unit. & Fixed family / before fitting. \\
+Random 50/50 & Use the analytic expectation of equally likely graph and MLP actions. & Random family / before fitting. \\
+Homophily-only & Select graph when training-only edge homophily is at least $0.50$. & Training-label $h_1$ / before fitting. \\
+Degree-only & Select graph when mean degree is at least $10$. & Graph degree / before fitting. \\
+Homophily+\allowbreak degree & Select graph when $\tfrac12(2h_1-1)$\newline $+\tfrac12\tanh\!\left(\ln\!\frac{\max(d,10^{-12})}{10}\right)\geq0$, where $d$ is mean degree; otherwise select MLP. & Training-label $h_1$ and degree / before fitting. \\
+Two-hop-only & Select graph when training-only $h_2-h_1>0.05$. & Training-label $h_1,h_2$ / before fitting. \\
+Combined & Apply the historical homophily/MLP-validation rule described in the text; otherwise abstain. & $h_1$ and MLP validation / after MLP tuning. \\
+Validation selection & Select graph when its validation advantage exceeds $\delta$. & Both families' validation results / after both are tuned. \\
+\bottomrule
+\end{tabular}
+\end{table}

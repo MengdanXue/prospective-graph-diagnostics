@@ -1,7 +1,7 @@
 \section{Dataset-Level Results and Record Reconstruction Details}
 \label{app:reproducibility}
 
-This appendix reports descriptive heterogeneity and implementation details for reconstructing the reported decision scores. The original policy actions and primary dataset-level inference in Section~\ref{sec:prospective} remain unchanged. The added threshold analysis evaluates alternative decisions using the same retained model outcomes; no model was retrained. Reconstruction of these scores is distinct from repeatability of the model training that produced their inputs.
+This appendix reports dataset-level variation and details needed to reconstruct decision scores. Alternative thresholds use the retained model outcomes without retraining; original actions and primary inference remain as reported in Section~\ref{sec:prospective}. Score reconstruction does not test the repeatability of the training that produced those outcomes.
 
 \subsection{Dataset Properties and Decision Heterogeneity}
 
@@ -123,3 +123,22 @@ GPR-GNN & Author implementation with input dropout, linear--ReLU--dropout--linea
 \end{table}
 
 The implementation uses full-batch training for every architecture. Cross-entropy is computed only on training indices; validation accuracy and loss select the stored checkpoint and trial as described in Section~\ref{sec:protocol}. There is no batch normalization outside LINKX, no feature augmentation beyond the frozen \texttt{NormalizeFeatures} choice, and no dataset-specific hyperparameter or preprocessing exception in the final v2 run. The paired preprocessing sensitivity, the 11-dataset input-parameterization retraining, and the expanded MLP search are separate post-hoc runs and are not folded into the frozen audit.
+
+\begin{table}[t]
+\centering
+\caption{Descriptive decomposition of Combined with the frozen MLP fallback. Regret entries are percentage points. Each full-set contribution is the sum of regrets in that group divided by all 110 units.}
+\label{tab:fallback_decomposition}
+\small
+\setlength{\tabcolsep}{3.5pt}
+\begin{tabular}{@{}lrrr@{}}
+\toprule
+Decision group & Units & Within-group mean regret & Full-set contribution \\
+\midrule
+Covered decisions & 75 & 2.638 & 1.799 \\
+Abstentions with MLP fallback & 35 & 17.783 & 5.658 \\
+\midrule
+Total & 110 & 7.457 & 7.457 \\
+\bottomrule
+\end{tabular}
+\end{table}
+The covered and fallback contributions divide each group\textquotesingle s summed regret by all 110 units. Every threshold strictly between the adjacent observed homophily values near 0.3848 and 0.7125 gives the same 110 effective actions; the records do not identify a cutoff within this interval.
