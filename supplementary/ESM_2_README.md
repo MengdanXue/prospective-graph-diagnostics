@@ -10,4 +10,4 @@ This directory provides **Online Resource 2 (ESM_2.zip)** for the manuscript rev
 
 Archive SHA-256: `05254238b785b2abcdddcc7af8b35b88dccbf2f0a7191073e4534b795af93489`
 
-The manuscript cites this archive as Online Resource 2.
+The manuscript cites this archive as Online Resource 2. The unchanged **Online Resource 1 (ESM_1.zip)** is archived in the [v0.1.0 GitHub release](https://github.com/MengdanXue/prospective-graph-diagnostics/releases/tag/v0.1.0) as [ESM_1.zip](https://github.com/MengdanXue/prospective-graph-diagnostics/releases/download/v0.1.0/ESM_1.zip).
