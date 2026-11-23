@@ -1,0 +1,26 @@
+\section{Extension design and evidence stages}
+\label{sec:extension_design}
+
+The following analyses test how the recorded decision changes with the candidate set and calibration task. They are post-hoc extensions of the frozen benchmark. Two separately retrained input conditions use row-normalized features ($N$) and their training-fitted, centered, common-scale version (CS). Each has 11 datasets, ten seeds, and the same seven architectures. Extending each MLP search from four to 24 trials adds 20 configurations while retaining the original four; graph records remain fixed. Validation selects the candidates in each budget. The 24-trial match equalizes trial counts; architecture diversity, time, and FLOPs remain unequal.
+
+We evaluate four graph portfolios (GCN, GAT, GCN+GAT, and all six architectures), two inputs, and two MLP budgets, giving 16 overlapping configurations. These share datasets and candidate records and are not independent replications. Their 1,540 base and 220 extended candidate records supply every subsequent comparison. Each portfolio has its own oracle, so cross-portfolio absolute regret is distinct from improvement over a constant policy within that portfolio. A graph-if-score-exceeds-cutoff rule either uses a declared fixed cutoff or fits a cutoff on other datasets; test outcomes of those other datasets are explicit meta-training targets.
+
+Table~\ref{tab:evidence_stages} locates each analysis. Historical grids are in the appendices and Online Resource~1; the following sections examine the classifier-probe reversal and transfer of calibration gains.
+
+\begin{table}[tbp]
+\centering
+\caption{Evidence stages and locations. Only the frozen nine-policy benchmark belongs to the primary eight-comparison inference family. Later analyses are descriptive.}
+\label{tab:evidence_stages}
+\small
+\begin{tabular}{@{}p{0.28\linewidth}p{0.39\linewidth}p{0.25\linewidth}@{}}
+\toprule
+Stage & Purpose & Detail \\
+\midrule
+Frozen benchmark & Nine complete policies on 110 paired units & Section~\ref{sec:prospective} \\
+Historical sensitivities & Portfolio restrictions, fallback, input retraining and MLP search & Appendices~\ref{sec:equal_budget}, \ref{app:matched_detail} \\
+Classifier probe & Fixed and calibrated feature-based decisions in all 16 configurations & Section~\ref{sec:cpm_results}; Appendix~\ref{app:cpm} \\
+Matched calibration & Three statistics with one fitting procedure & Section~\ref{sec:matched_audit} \\
+Review-motivated checks & All dataset omissions and source-group holdout & Appendix~\ref{app:source_sensitivity} \\
+\bottomrule
+\end{tabular}
+\end{table}

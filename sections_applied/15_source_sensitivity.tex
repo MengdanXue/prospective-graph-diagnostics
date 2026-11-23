@@ -1,0 +1,10 @@
+\section{Dataset Influence and Source-Group Sensitivity}
+\label{app:source_sensitivity}
+
+The review-motivated scope was saved before calculation in \path{reviewer_influence_source_groups_v1.json}; the original concentration findings were already known. The scope receipt binds the input hashes. No new neural model or classifier was fitted. The analysis reconstructs candidate selection from all 1,760 records and verifies the original 528 matched LODO folds before evaluating the new group folds.
+
+The influence scope contains all 16 portfolio/input/budget configurations, the complete set and all eleven single-dataset omissions, and CPM-.5, always-graph, always-MLP, and validation selection: 192 scenarios and 768 fixed-policy evaluations. Fixed decisions are retained under omission. The tables below report every full-portfolio omission and dataset-level CPM accounting. Machine-readable CSVs retain all portfolios and policies.
+
+The source groups and fitting procedure are defined in Section~\ref{sec:matched_audit}. All 48 statistic/configuration results and 288 group folds are retained, including every training score, candidate cutoff and loss, selected threshold, and held-out action. Counts of distinct action vectors document overlap across the four input/budget settings. Equal weighting is over datasets within each calibration loss and final aggregate, not over source groups. None of these cases is a new inferential test.
+
+\input{sections_applied/15d_sensitivity_appendix_tables}

@@ -1,10 +1,35 @@
 # Prospective Graph Diagnostics
 
-This repository accompanies **Diagnostic Utility Depends on the Model Portfolio: A Frozen Graph-vs-MLP Decision Benchmark**. The current manuscript is prepared in the anonymous TMLR format in [`main_tmlr.tex`](main_tmlr.tex); it has not been submitted to TMLR. The original Neurocomputing manuscript is preserved in [`main_neurocomputing.tex`](main_neurocomputing.tex).
+This repository accompanies **From Graph Diagnostics to Model Decisions: Portfolio, Fallback, and Calibration**. The current manuscript is the version prepared for and submitted to Applied Intelligence in [`main_applied_intelligence.tex`](main_applied_intelligence.tex). The earlier TMLR submission, which received a desk rejection, remains in [`main_tmlr.tex`](main_tmlr.tex); the original Neurocomputing version remains in [`main_neurocomputing.tex`](main_neurocomputing.tex). Editorial status is maintained in Editorial Manager and is not implied by this repository.
 
-The study asks whether inexpensive diagnostics whose label-dependent graph statistics use training labels only can decide between a tuned graph-model portfolio and a tuned feature-only MLP. Under the frozen prospective protocol, the evaluated diagnostics do not reliably characterize when graph structure is useful. The TMLR revision examines how this result depends on the model portfolio, using explicitly post-hoc analyses of the retained records and bounded training diagnostics.
+The 9 October 2026 revision using the separate Humanizer and Anti-Defensive Writing skills is documented in the [current preparation record](docs/applied-intelligence/TWO_SKILL_REVISION_2026-10-09.txt). The local PDF, editable source, and cover letter are in `output/two-skill-revision-2026-10-09/`; experimental tables, equations, figures, citations, and the preceding scientific supplement are preserved.
 
-The scope is the [September 9 manuscript freeze](docs/submission_freeze_2026-09-09.md). Later eleven-dataset input-robustness preparation is separate work and supplies no results to this manuscript.
+The study evaluates graph-versus-MLP policies whose label-dependent graph statistics use training labels only. Under the frozen protocol, the combined rule and its declared fallback incur higher regret than always choosing the full graph portfolio. The manuscript examines the dependence of this comparison on the evaluated portfolios, fallback, and training choices through post-hoc analyses of retained records and bounded training diagnostics. It supports offline policy evaluation, with information requirements made explicit for each decision stage.
+
+The journal-facing supplement and every table's reconstruction inputs are documented in the [journal reconstruction index](docs/applied-intelligence/journal-reconstruction-index.md). It excludes internal submission preparations and uses a documented path-redacted copy of the bounded repeatability archive. The earlier full author companion remains preserved, with its [original reconstruction index](docs/applied-intelligence/reconstruction-index.md). The [provenance amendment](docs/applied-intelligence/provenance-amendment-2026-09-28.md) preserves the earlier appendix summary and explains the corrected audit-byte binding; all scientific fields remain unchanged.
+
+The current revision includes the separate input-parameterization, expanded-MLP,
+matched-calibration and classifier-probe analyses completed by 8 October 2026.
+Their records remain distinct from the primary benchmark.
+
+The latest review-motivated analysis adds every single-dataset omission and
+source-group calibration with its scope fixed before calculation. Roman-empire
+accounts for 78.7–86.5% of full-portfolio CPM loss; its omission reverses three
+of four comparisons. Adjusted homophily's LODO gains vanish or reverse when
+related source datasets are held out together. These descriptive results and
+all favorable restricted-portfolio cases are retained in the revised paper.
+
+The [independent reader guide](docs/applied-intelligence/READER_REPRODUCTION.txt)
+provides public-data acquisition, CPM reproduction, saved-policy reconstruction,
+and new training commands. The journal reader package includes its required
+candidate records in a flat evidence tree. It verifies 112 original CPM policy
+cells and adds 16 always-MLP references; a preselected Cora seed-0 reproduction
+checks raw inputs, tensor/split bindings and both probe conditions. Full neural
+training repeatability remains a separate question.
+The reader also reconstructs 528 original matched LODO folds, 768 influence
+policy evaluations, and 288 source-group folds. The complete partition audit
+verifies all 220 CPM condition records; a separate public-input WebKB check
+reproduces its per-class supports without classifier fitting.
 
 ## Main results
 
@@ -22,7 +47,8 @@ A separate degree-preserving intervention changes GCN accuracy by -45.5, -29.9, 
 
 ## Repository map
 
-- `main_tmlr.tex`, `sections_tmlr/`: current TMLR manuscript; shared sections remain in `sections/`.
+- `main_applied_intelligence.tex`, `sections_applied/`: current Applied Intelligence manuscript.
+- `main_tmlr.tex`, `sections_tmlr/`: preserved TMLR manuscript; shared historical sections remain in `sections/`.
 - `main_neurocomputing.tex`, `sections/`: preserved historical Neurocomputing manuscript.
 - `configs/`: frozen machine-readable benchmark specifications.
 - `experiments/`: prospective runner, models, diagnostics, evaluator, and degree-preserving intervention.

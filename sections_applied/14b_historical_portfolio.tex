@@ -1,0 +1,179 @@
+\section{Historical Portfolio, Input, and Budget Sensitivities}
+\label{sec:equal_budget}
+
+\subsection{Design and Scope}
+
+The graph action searches six architectures with 24 trials; MLP receives four. This post-hoc reanalysis restricts the graph action to one architecture, matching four trials per action. Training time, FLOPs, preprocessing cost, and parameter count remain unequal. Because the restriction changes architecture availability and search breadth together, it measures portfolio sensitivity without isolating a causal compute-budget effect.
+
+The portfolio and threshold analyses reuse recorded models. Portfolio restrictions leave diagnostic inputs and actions unchanged while recomputing graph selection, the margin-defined target, regret, and validation selection under the frozen rules. Enlarging a candidate set guarantees nondecreasing maximum validation accuracy, but the selected test result can worsen: H2GCN alone has lower always-graph regret than the unrestricted portfolio. Appendix~\ref{sec:preprocessing_sensitivity} and Section~\ref{sec:mlp_budget} separately report retraining for preprocessing sensitivity and the expanded multilayer-perceptron search; Tables~\ref{tab:equal_budget}--\ref{tab:calibrated_threshold} refer only to the frozen benchmark records.
+
+Before computing restrictions, reconstruction verifies record checksums, configuration, provenance, trial selection, unique record scope, and splits for every architecture. The unrestricted reconstruction recovers 89 graph targets and regrets of 0.26, 7.46, and 0.22 points for always-graph, Combined, and validation selection, respectively.
+
+\subsection{Results}
+
+
+\begin{table}[t]
+\centering
+\caption{Post-hoc single-architecture sensitivity at matched trial count, frozen benchmark records. Each single-architecture graph action receives four trials against the MLP's four. Regret is mean full-set oracle-portfolio regret in percentage points. W/L/T counts datasets on which the combined rule attains lower, higher, or equal mean regret than always-graph.}
+\label{tab:equal_budget}
+\small
+\setlength{\tabcolsep}{3.5pt}
+\begin{tabular}{@{}lrrrrrc@{}}
+\toprule
+Graph action & Trials & \shortstack{Graph\\targets} & Always-graph & Combined & Validation & W/L/T \\
+\midrule
+Six architectures & 24 & 89/110 & 0.26 & 7.46 & 0.22 & 0/7/4 \\
+\midrule
+GAT & 4 & 41/110 & 6.35 & 2.08 & 0.01 & 4/2/5 \\
+GCN & 4 & 46/110 & 5.29 & 1.74 & 0.01 & 3/3/5 \\
+LINKX & 4 & 56/110 & 2.13 & 7.99 & 0.32 & 3/4/4 \\
+GPR-GNN & 4 & 60/110 & 0.89 & 1.50 & 0.31 & 3/2/6 \\
+GraphSAGE & 4 & 72/110 & 0.38 & 2.85 & 0.12 & 3/4/4 \\
+H2GCN & 4 & 78/110 & 0.13 & 2.36 & 0.23 & 1/6/4 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+Combined has lower descriptive mean regret than always-graph with GCN (1.74 versus 5.29 points) or GAT (2.08 versus 6.35), reversing the full-portfolio ordering (Table~\ref{tab:equal_budget}). LINKX favors always-graph at 7.99 versus 2.13 points, as do GPR-GNN, GraphSAGE, and H2GCN. Changing the graph action therefore changes the measured value of the same diagnostic against the same reference policy.
+
+Absolute regret and improvement over always-graph describe different outcomes. GPR-GNN yields the lowest absolute Combined regret (1.50 points), below GCN (1.74) and GAT (2.08), while favoring always-graph. Each row uses its own graph/MLP oracle, so these losses do not share a common reference. The results identify portfolio-specific differences rather than an ordering of broad architecture categories.
+
+The averages conceal dataset-level variation: Combined wins, loses, and ties on three, three, and five datasets for GCN, and four, two, and five for GAT. These post-hoc restrictions were formulated after the records became available and fall outside the original eight-comparison test family. Their descriptive advantages require evaluation on independent datasets.
+
+\subsection{Interpretation}
+
+The restrictions demonstrate that a diagnostic's measured performance against one graph action need not transfer to another. Evaluation should therefore specify candidate models and resource budgets. The threshold control below examines how the chosen cutoff contributes to this variation.
+
+\subsection{All Candidate Subsets and Dataset Sensitivity}
+\label{sec:subset_robustness}
+
+We enumerate all $2^6-1=63$ nonempty graph-architecture subsets with unchanged validation selection and diagnostic actions. Define $\Delta$ as Combined minus always-graph mean regret in percentage points. In these frozen records, only GAT, GCN, and their pair have negative $\Delta$, favoring Combined (Table~\ref{tab:subset_sensitivity}); Section~\ref{sec:mlp_budget} reports one additional favorable subset in a later retraining. The overlapping models and datasets make these counts descriptive, rather than independent replications or generalization probabilities.
+
+\begin{table}[t]
+\centering
+\caption{Post-hoc enumeration of all available graph portfolios, frozen benchmark records. Each architecture contributes four trials. The range is over candidate subsets, not a confidence interval.}
+\label{tab:subset_sensitivity}
+\small
+\setlength{\tabcolsep}{3.5pt}
+\begin{tabular}{@{}rrrrr@{}}
+\toprule
+Architectures & Subsets & $\Delta<0$ & Min $\Delta$ & Max $\Delta$ \\
+\midrule
+1 & 6 & 2 & -4.26 & 5.86 \\
+2 & 15 & 1 & -3.23 & 7.32 \\
+3 & 20 & 0 & 1.68 & 7.38 \\
+4 & 15 & 0 & 2.48 & 7.38 \\
+5 & 6 & 0 & 3.09 & 7.31 \\
+6 & 1 & 0 & 7.20 & 7.20 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+At the same eight-trial graph budget, GAT+GCN yields Combined/always-graph regrets of 2.27/5.50 points, versus 7.59/0.27 for H2GCN+LINKX. Architecture composition matters even at equal trial count. The favorable GAT and GCN averages survive any single-dataset omission, but excluding both Cornell and Wisconsin reverses them: $\Delta$ becomes $+1.11$ and $+0.92$, respectively, and none of the 63 subsets favors Combined. This influence check retains both datasets in the primary analysis.
+
+Excluding Chameleon and Squirrel, whose original versions have known duplicate-node concerns, leaves full-portfolio regrets of 4.90/0.31 points ($\Delta=+4.59$); seven subsets favor Combined. Exclusion measures dataset sensitivity, not performance on cleaned graphs. Every single-dataset omission preserves the full-portfolio ordering, with excess regret from 5.556 to 7.922 points. Released records include all subset and dataset values; the full-set result remains primary.
+
+\paragraph{Fallback and dataset-exclusion sensitivity.}
+Table~\ref{tab:fallback_sensitivity} crosses fallback choice with Chameleon/Squirrel inclusion while holding the portfolio and model outcomes fixed. Combined's excess regret ranges from 0.141 to 7.201 points across these four configurations; the separate Cornell/Wisconsin exclusion gives an 8.683-point excess under MLP fallback. These overlapping groupings describe sensitivity, without identifying independent causal contributions or attributing losses to duplicate nodes. Applying validation selection only to abstentions yields 1.806 points on all datasets and 0.442 after Chameleon/Squirrel exclusion, close to graph fallback. Explicit graph and MLP actions remain unchanged.
+
+\begin{table}[ht]
+\centering
+\caption{Post-hoc fallback and dataset-exclusion sensitivity of the frozen six-architecture portfolio. Regrets and Combined-minus-always-graph differences are percentage points. All entries reuse recorded outcomes; no model is retrained.}
+\label{tab:fallback_sensitivity}
+\small
+\setlength{\tabcolsep}{3.5pt}
+\begin{tabular}{@{}llrrr@{}}
+\toprule
+Datasets & Fallback & Combined & Always-graph & Difference \\
+\midrule
+All 11 & MLP & 7.457 & 0.256 & 7.201 \\
+All 11 & Graph & 1.815 & 0.256 & 1.559 \\
+Exclude Chameleon/Squirrel & MLP & 4.898 & 0.313 & 4.586 \\
+Exclude Chameleon/Squirrel & Graph & 0.454 & 0.313 & 0.141 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Headroom and an optimistic threshold bound.}
+With recorded outcomes and oracle fixed, always-graph's regret is the maximum possible improvement over that reference: 0.256 points for the full portfolio, 5.292 for GCN, and 6.346 for GAT. Enumerating every distinct graph-if-$h_1\geq t$ decision for $t\in[0,1]$ gives test-outcome-selected minima of 0.256, 0.812, and 0.678 points. Thus this one-sided threshold family cannot improve on always-graph in the full-portfolio records. For GCN and GAT, the frozen rule closes 67.04\% and 67.17\% of headroom; the optimistic cutoff bound closes 84.67\% and 89.32\%, and validation selection about 99.9\%. Appendix~\ref{app:threshold_headroom} gives all architectures and exact curves. Because test outcomes select these cutoffs, the bounds characterize recorded headroom, not deployable performance. The following held-out analysis retains its original grid and results.
+
+\subsection{A Post-Hoc Calibrated Threshold Control}
+\label{sec:calibrated_threshold}
+
+We separate threshold choice from the homophily statistic by fitting graph-if-$h_1\geq t$ on ten datasets and evaluating on the held-out dataset. The grid $\{-1,0,0.01,\ldots,1,2\}$ includes constant graph and MLP policies. Each fold minimizes equal-weight mean dataset regret; ties within $10^{-12}$ choose the smallest threshold. Selected-model test outcomes from the ten calibration datasets are meta-training targets; the held-out dataset's outcomes and model records are excluded from threshold selection. Evaluation averages its ten seeds, then the eleven held-out dataset means.
+
+\begin{table}[t]
+\centering
+\caption{Post-hoc held-out threshold control, frozen benchmark records. Regrets are percentage points, using each row's own graph/MLP oracle. Calibration is performed separately for each portfolio; it is not an independent prospective experiment.}
+\label{tab:calibrated_threshold}
+\small
+\setlength{\tabcolsep}{3.5pt}
+\begin{tabular}{@{}lrrr@{}}
+\toprule
+Graph action & Frozen Combined & Calibrated & Always-graph \\
+\midrule
+GAT & 2.08 & 1.53 & 6.35 \\
+GCN & 1.74 & 1.58 & 5.29 \\
+GPR-GNN & 1.50 & 0.81 & 0.89 \\
+GraphSAGE & 2.85 & 0.82 & 0.38 \\
+H2GCN & 2.36 & 1.05 & 0.13 \\
+LINKX & 7.99 & 4.15 & 2.13 \\
+Six architectures & 7.46 & 2.41 & 0.26 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Calibration lowers regret in all seven rows (Table~\ref{tab:calibrated_threshold}). Full-portfolio regret falls from 7.46 to 2.41 points, still above always-graph's 0.26. Ten folds choose constant graph ($t=-1$); the Roman-empire fold chooses $t=0.11$ and contributes approximately 89\% of the remaining regret. GCN and GAT retain lower descriptive regret than always-graph, and GPR-GNN gains a small advantage absent under the frozen cutoff. Threshold choice therefore changes the results. Designed after benchmark inspection, this control uses overlapping calibration folds and potentially related graph domains. It evaluates one threshold family, with the additional published-statistic and matched-calibration comparisons reported in Section~\ref{sec:matched_audit}. These descriptive comparisons remain outside the primary test family.
+
+The earlier two-dataset preprocessing experiment and its fallback comparison are retained in Appendix~\ref{sec:preprocessing_sensitivity}. The following retraining extends the input check to all eleven datasets.
+
+\subsection{Eleven-Dataset Input-Parameterization Retraining}
+\label{sec:input_robustness}
+
+A later post-hoc run retrained all seven architectures on all 11 datasets and the same 110 splits under two inputs: the frozen \texttt{NormalizeFeatures} transform $N$ and its training-fitted centered-scaled reparameterization $a(N-\mu_T(N))$ from Appendix~\ref{app:training_diagnostics}, abbreviated CS. Training grids, the checkpoint rule, validation selection, the practical margin, and the MLP fallback follow Section~\ref{sec:protocol}; each selected model received one test evaluation. These 1,540 records come from a different execution environment and are not a replay of the frozen benchmark, whose results above are unchanged. Their frozen analysis configuration specifies unadjusted dataset-bootstrap intervals (10,000 resamples of the 11 equal-weight dataset means, 95\% percentile), which we report as descriptive post-hoc uncertainty rather than as tests.
+
+With $N$, Combined incurs 7.60 points of full-set regret, against 0.40 for always-graph and 0.32 for validation selection; with CS the values are 6.22, 0.45, and 0.20. Always-graph minus Combined regret is $-$7.20 points [$-$13.67, $-$1.39] with $N$ and $-$5.78 [$-$11.23, $-$0.90] with CS, so the direction of the full-portfolio comparison is the same under both inputs. Changing the input from $N$ to CS raises the equal-weight mean selected-MLP accuracy by 5.94 points [0.70, 15.01], but Roman-empire accounts for 75.6\% of the summed dataset differences, and the mean without it is 1.60 points. The CS-minus-$N$ change in Combined-minus-always-graph regret is $-$1.43 points [$-$3.92, 0.43]. The effect of the input on the feature-only baseline is therefore predominantly positive but strongly dataset-dependent, and these records test one alternative parameterization, not preprocessing in general.
+
+The paired input comparison uses the declared MLP fallback. Appendix~\ref{app:mlp_budget}, Section~\ref{sec:retraining_fallback}, separately crosses fallback and dataset exclusion. Under $N$, graph fallback together with Chameleon/Squirrel exclusion yields a local descriptive reversal (Combined 0.308 versus always-graph 0.494 points); CS does not reverse in that configuration. Thus the default-fallback ordering should not be extended to every alternative evaluation configuration.
+
+\subsection{Sensitivity to an Expanded MLP Search Budget}
+\label{sec:mlp_budget}
+
+A second post-hoc extension, designed after inspecting partial results of the run above, expands only the MLP search within those records. For each of the 220 MLP units (11 datasets, two inputs, ten seeds), the four original trials and their checkpoints are inherited unchanged and 20 new trials complete a grid of learning rates $\{0.001,0.005,0.01\}$, dropouts $\{0,0.3,0.5,0.7\}$, and weight decays $\{0,5\times10^{-4}\}$, for 24 trials. The frozen validation rule selects among all of them, and the selected checkpoint receives exactly one new post-selection test evaluation, also when an inherited trial remains selected. Graph models are not retrained; their records and the decision rules are those of Section~\ref{sec:input_robustness}. The extension matches the graph portfolio's 24 trials only in count: it searches the hyperparameters of one MLP architecture, whereas the graph action still chooses among six architectures. It does not equalize architecture diversity, time, or FLOPs, and no interval was specified for it, so its results are descriptive.
+
+\begin{table}[t]
+\centering
+\caption{Post-hoc MLP-budget sensitivity of the six-architecture portfolio in the 11-dataset retraining (Section~\ref{sec:input_robustness}); these records are separate from Table~\ref{tab:equal_budget}. Within each input, the 4- and 24-trial columns share units, splits, graph records, and decision rules and differ only in the MLP candidates. Entries are mean full-set oracle-portfolio regret in percentage points; $\Delta$ is 24 minus 4 trials. Descriptive values.}
+\label{tab:mlp_budget}
+\small
+\setlength{\tabcolsep}{3.5pt}
+\begin{tabular}{@{}llrrr@{}}
+\toprule
+Input & Policy & 4 trials & 24 trials & $\Delta$ \\
+\midrule
+$N$ & Combined & 7.60 & 6.72 & $-$0.88 \\
+ & Always-graph & 0.40 & 0.44 & +0.03 \\
+ & Validation selection & 0.32 & 0.21 & $-$0.11 \\
+ & Always-MLP & 9.81 & 8.47 & $-$1.34 \\
+ & Graph targets (of 110) & 86 & 78 & -- \\
+\midrule
+CS & Combined & 6.22 & 5.75 & $-$0.47 \\
+ & Always-graph & 0.45 & 0.53 & +0.08 \\
+ & Validation selection & 0.20 & 0.28 & +0.08 \\
+ & Always-MLP & 7.99 & 7.48 & $-$0.51 \\
+ & Graph targets (of 110) & 82 & 77 & -- \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The expanded search changed the selected MLP in 145 of the 220 units (72 of 110 with $N$ and 73 with CS); 75 units kept an inherited trial. Per-unit MLP test accuracy rose, fell, or was unchanged in 91, 34, and 95 units, respectively. A stronger MLP removes some graph targets and lowers the regret of every fixed heuristic that can choose MLP, while always-graph regret rises slightly (Table~\ref{tab:mlp_budget}); validation selection improves with $N$ but not with CS. Across the 12 policies evaluated on the full portfolio, including the calibrated and published-statistic rules in Appendix~\ref{app:mlp_budget}, regret changes by $-$1.92 to +0.08 points. Combined remains well above always-graph. Its actions are identical in all 220 units under both budgets (0 changed), so the decisions are unchanged and the change in regret magnitude comes from changed MLP test accuracies and the resulting oracle values; target changes affect selection accuracy.
+
+The portfolio reversal is not invariant to the MLP budget. The GCN and GAT restrictions favor Combined under both inputs and both budgets, and with CS the favorable subsets remain GCN, GAT, and their pair. With $N$ and 24 MLP trials, GPR-GNN alone also favors Combined (1.36 versus 1.81 points), including after excluding Cornell and Wisconsin. On Amazon-ratings with $N$, every seed's selected test accuracy equals the majority-class proportion of its test split at both budgets; on Roman-empire with $N$, mean MLP accuracy rises from 16.71\% to 25.91\%, still far below 66.06\% with CS. Appendix~\ref{app:mlp_budget} reports these cases and the complete tables.
+
+The larger search changes selected MLP configurations and several regret values while preserving the main comparison with always-graph. Equal trial counts leave the six-architecture graph portfolio and single-architecture MLP with different search spaces.
+
+The adjusted-homophily and edge-label-informativeness policies, their matched calibration with ordinary homophily, and the joint fallback/exclusion analysis at both budgets are reported in Section~\ref{sec:matched_audit}.
+
+\paragraph{Input effect with the expanded search.}
+This contrast compares inputs at a fixed budget and is separate from the budget effect above. With 24 MLP trials, CS gives the higher mean MLP accuracy on 9 of 11 datasets and in 70 of 110 paired seeds (30 lower, 10 tied). The mean paired difference is 5.16 points but the median is 0.51. Roman-empire accounts for 70.7\% of the summed dataset differences; without it the mean is 1.66 points, and leaving out any single dataset keeps CS ahead on 8 or 9 of the remaining ten. The input effect is predominantly positive but strongly dataset-dependent.

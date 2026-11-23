@@ -1,0 +1,62 @@
+\section{Matched-Calibration and Fallback Detail}
+\label{app:matched_detail}
+
+This post-hoc audit addresses two comparison gaps: the earlier ordinary-homophily control used a different cutoff grid from the published statistics, and the joint fallback/exclusion analysis covered only four MLP trials. We use the verified retraining and MLP-extension records without training or evaluating another predictor. The reporting scope comprises both inputs, both MLP budgets, and four graph portfolios: all six architectures, GCN, GAT, and GCN+GAT. Source-level tests check held-out information exclusion, equal dataset weighting, and fallback resolution; the executed code and retained outputs bind the analysis.
+
+\subsection{Three Statistics under One Calibration Procedure}
+
+For ordinary homophily $h_1$, adjusted homophily, and edge label informativeness (LI), each held-out fold now uses the same candidate-generation algorithm: midpoints between successive distinct scores on the other ten datasets, plus constant graph and MLP rules. We minimize equal-weight dataset regret using their selected-model outcomes. Ties within $10^{-12}$ choose the smallest cutoff, and an unavailable score abstains with MLP fallback. Neither held-out scores nor outcomes enter candidate generation or fitting. This yields 528 folds across the three statistics, four portfolios, two inputs, and two budgets. Their numeric cutoffs and candidate counts naturally differ with the score values.
+
+The algorithm matches the existing adjusted-homophily and LI calibration, whose saved thresholds and actions are reconstructed exactly. For ordinary $h_1$, it replaces the earlier $0.01$ grid for this additional analysis; the historical grid results remain in their original tables. Graph-statistic construction is unchanged: adjusted homophily and LI use the training-induced, undirected, deduplicated graph without self-loops, while $h_1$ retains its original edge convention. Thus the comparison controls threshold fitting, while evaluating each statistic with its stated graph construction.
+
+\begin{table}[tbp]
+\centering
+\caption{Matched-calibration full-portfolio regrets in percentage points. Each statistic uses the same LODO candidate-generation, loss, weighting, missing-value, and tie rules. All values are descriptive and use the separately retrained records.}
+\label{tab:matched_calibration}
+\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}lrrrrr@{}}
+\toprule
+Input & MLP trials & Always-graph & $h_1$ & Adjusted & LI \\
+\midrule
+$N$ & 4 & 0.404 & 2.842 & 0.274 & 2.359 \\
+$N$ & 24 & 0.437 & 2.038 & 0.341 & 0.437 \\
+CS & 4 & 0.448 & 1.796 & 0.100 & 2.535 \\
+CS & 24 & 0.528 & 1.878 & 0.145 & 2.587 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Adjusted homophily retains lower mean regret than always-graph in all four full-portfolio configurations (Table~\ref{tab:matched_calibration}). Matching calibration therefore does not remove its descriptive advantage. Ordinary $h_1$ retains the same reported full-portfolio regrets as its earlier grid control, despite different finite cutoffs. Under CS/24, ten folds select constant graph; the Roman-empire fold selects a cutoff of approximately 0.210 and routes its ten units to MLP. LI incurs its additional loss on Squirrel. These outcomes locate the cost of the resulting actions rather than infer utility from score correlation.
+
+The benefit/harm decomposition further distinguishes the policies. In CS/24, adjusted homophily obtains 0.491 points of benefit and 0.108 of harm relative to always-graph, for a net gain of 0.383 points against 0.528 points of available headroom. Its net dataset gains remain confined to Cornell and Wisconsin; the other nine tie exactly. Ordinary $h_1$ obtains no benefit and 1.351 points of harm, and LI obtains no benefit and 2.060 points of harm. The positive adjusted-homophily result is therefore compatible with both decision errors within its MLP choices and concentrated aggregate gains.
+
+\subsection{Fallback and Dataset Composition at Both Search Budgets}
+
+We cross MLP, graph, and validation-selection fallback with the full dataset set, joint Chameleon/Squirrel exclusion, joint Cornell/Wisconsin exclusion, and each of eleven single-dataset omissions. Across the four portfolios, two inputs, and two budgets, this gives 672 descriptive cases. Only Combined's abstentions change with fallback; its explicit actions stay fixed. The four-trial results reproduce the earlier descriptive values, while the additional 336 cases cover the 24-trial extension. The earlier four-trial uncertainty analysis remains separate.
+
+\begin{table}[tbp]
+\centering
+\caption{Combined regret under alternative fallbacks with 24 MLP trials, full graph portfolio. Ch./Sq. denotes joint exclusion of Chameleon and Squirrel. Values are percentage points. The always-graph reference is independent of fallback. The archive retains all 672 cases, including the other portfolios and exclusions.}
+\label{tab:mlp24_fallback}
+\small
+\setlength{\tabcolsep}{3.5pt}
+\begin{tabular}{@{}llrrrr@{}}
+\toprule
+ & & \multicolumn{2}{c}{All 11 datasets} & \multicolumn{2}{c}{Exclude Ch./Sq.} \\
+\cmidrule(lr){3-4}\cmidrule(l){5-6}
+Input & Fallback & Combined & Graph & Combined & Graph \\
+\midrule
+$N$ & MLP & 6.722 & 0.437 & 4.140 & 0.535 \\
+$N$ & Graph & 1.669 & 0.437 & 0.369 & 0.535 \\
+$N$ & Validation & 1.670 & 0.437 & 0.370 & 0.535 \\
+CS & MLP & 5.754 & 0.528 & 2.629 & 0.645 \\
+CS & Graph & 3.686 & 0.528 & 2.619 & 0.645 \\
+CS & Validation & 3.694 & 0.528 & 2.629 & 0.645 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+With normalized inputs, the local reversal after Chameleon/Squirrel exclusion and graph or validation fallback also appears at 24 MLP trials: Combined incurs 0.369 or 0.370 points, compared with always-graph's 0.535 (Table~\ref{tab:mlp24_fallback}). CS retains higher Combined regret in the same configurations. On all eleven datasets, both inputs favor always-graph under all three fallbacks. The evidence therefore supports a default-setting comparison with explicit local exceptions, rather than invariance across every policy configuration. Excluding datasets tests sample composition; it does not evaluate cleaned versions of those graphs.
+
+These results remain descriptive and post-hoc. Matching calibration removes one procedural difference, and the full factorial analysis covers the previously unreported cases; neither supplies independent datasets.

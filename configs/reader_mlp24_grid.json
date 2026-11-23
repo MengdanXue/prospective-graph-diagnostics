@@ -1,0 +1,157 @@
+{
+  "hidden_channels": 64,
+  "max_epochs": 500,
+  "patience": 100,
+  "trials": [
+    {
+      "trial_id": "trial_000",
+      "learning_rate": 0.01,
+      "dropout": 0.5,
+      "weight_decay": 0.0005
+    },
+    {
+      "trial_id": "trial_001",
+      "learning_rate": 0.01,
+      "dropout": 0.7,
+      "weight_decay": 0.0005
+    },
+    {
+      "trial_id": "trial_002",
+      "learning_rate": 0.005,
+      "dropout": 0.5,
+      "weight_decay": 0.0005
+    },
+    {
+      "trial_id": "trial_003",
+      "learning_rate": 0.005,
+      "dropout": 0.7,
+      "weight_decay": 0.0005
+    },
+    {
+      "trial_id": "trial_004",
+      "learning_rate": 0.001,
+      "dropout": 0,
+      "weight_decay": 0
+    },
+    {
+      "trial_id": "trial_005",
+      "learning_rate": 0.001,
+      "dropout": 0,
+      "weight_decay": 0.0005
+    },
+    {
+      "trial_id": "trial_006",
+      "learning_rate": 0.001,
+      "dropout": 0.3,
+      "weight_decay": 0
+    },
+    {
+      "trial_id": "trial_007",
+      "learning_rate": 0.001,
+      "dropout": 0.3,
+      "weight_decay": 0.0005
+    },
+    {
+      "trial_id": "trial_008",
+      "learning_rate": 0.001,
+      "dropout": 0.5,
+      "weight_decay": 0
+    },
+    {
+      "trial_id": "trial_009",
+      "learning_rate": 0.001,
+      "dropout": 0.5,
+      "weight_decay": 0.0005
+    },
+    {
+      "trial_id": "trial_010",
+      "learning_rate": 0.001,
+      "dropout": 0.7,
+      "weight_decay": 0
+    },
+    {
+      "trial_id": "trial_011",
+      "learning_rate": 0.001,
+      "dropout": 0.7,
+      "weight_decay": 0.0005
+    },
+    {
+      "trial_id": "trial_012",
+      "learning_rate": 0.005,
+      "dropout": 0,
+      "weight_decay": 0
+    },
+    {
+      "trial_id": "trial_013",
+      "learning_rate": 0.005,
+      "dropout": 0,
+      "weight_decay": 0.0005
+    },
+    {
+      "trial_id": "trial_014",
+      "learning_rate": 0.005,
+      "dropout": 0.3,
+      "weight_decay": 0
+    },
+    {
+      "trial_id": "trial_015",
+      "learning_rate": 0.005,
+      "dropout": 0.3,
+      "weight_decay": 0.0005
+    },
+    {
+      "trial_id": "trial_016",
+      "learning_rate": 0.005,
+      "dropout": 0.5,
+      "weight_decay": 0
+    },
+    {
+      "trial_id": "trial_017",
+      "learning_rate": 0.005,
+      "dropout": 0.7,
+      "weight_decay": 0
+    },
+    {
+      "trial_id": "trial_018",
+      "learning_rate": 0.01,
+      "dropout": 0,
+      "weight_decay": 0
+    },
+    {
+      "trial_id": "trial_019",
+      "learning_rate": 0.01,
+      "dropout": 0,
+      "weight_decay": 0.0005
+    },
+    {
+      "trial_id": "trial_020",
+      "learning_rate": 0.01,
+      "dropout": 0.3,
+      "weight_decay": 0
+    },
+    {
+      "trial_id": "trial_021",
+      "learning_rate": 0.01,
+      "dropout": 0.3,
+      "weight_decay": 0.0005
+    },
+    {
+      "trial_id": "trial_022",
+      "learning_rate": 0.01,
+      "dropout": 0.5,
+      "weight_decay": 0
+    },
+    {
+      "trial_id": "trial_023",
+      "learning_rate": 0.01,
+      "dropout": 0.7,
+      "weight_decay": 0
+    }
+  ],
+  "selection_order": [
+    "validation_accuracy_desc",
+    "validation_loss_asc",
+    "trial_id_asc"
+  ],
+  "test_evaluations_after_selection": 1
+}

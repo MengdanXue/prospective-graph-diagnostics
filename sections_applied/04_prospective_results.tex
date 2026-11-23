@@ -1,0 +1,38 @@
+\section{Frozen benchmark: complete-policy loss}
+\label{sec:prospective}
+
+The frozen benchmark contains eleven datasets, ten seeds, 770 selected-model records, and 110 diagnostic records. Each unit contains an MLP and six graph architectures, with four tuning trials per architecture. The target split proportions are 60/20/20; integer class counts produce small deviations (Appendix~\ref{app:reproducibility}). No final-run unit fails. Outcome-independent eligibility and execution amendments are documented in Appendix~\ref{app:execution_details}.
+
+Graph is the margin-defined target in 89 of 110 units. Combined reaches 55.5\% selection accuracy at 68.2\% coverage. Its covered-set regret is 2.64 percentage points; MLP fallback raises full-set regret to 7.46, against 0.26 for always-graph and 0.22 for validation selection (Table~\ref{tab:prospective_policy_results}). None of the frozen low-dimensional rules improves on always-graph.
+\begin{table}[t]
+\centering
+\caption{Prospective Graph-vs-MLP Policy Results on 110 Dataset--Seed Units. Regret is reported in percentage points; selection accuracy uses the common MLP fallback.}
+\label{tab:prospective_policy_results}
+\small
+\setlength{\tabcolsep}{3.5pt}
+\begin{tabular}{@{}lccc@{}}
+\toprule
+Policy & Selection accuracy (\%) & Coverage (\%) & Regret (pp) \\
+\midrule
+Combined & 55.5 & 68.2 & 7.46 \\
+Always-graph & 80.9 & 100.0 & 0.26 \\
+Always-MLP & 19.1 & 100.0 & 9.69 \\
+Random 50/50 & 50.0 & 100.0 & 4.97 \\
+Homophily-only & 55.5 & 100.0 & 7.46 \\
+Degree-only & 37.3 & 100.0 & 6.24 \\
+Homophily+degree & 46.4 & 100.0 & 5.80 \\
+Two-hop-only & 28.2 & 100.0 & 8.27 \\
+Validation selection & 91.8 & 100.0 & 0.22 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Combined makes 40 graph, 35 MLP, and 35 abstain decisions. With MLP fallback its effective actions equal the homophily-only rule. Of its 35 abstentions, 30 have the graph target and 32 have higher raw graph accuracy; the difference reflects the one-point target margin. Fallback units contribute 5.658 points, or 75.876\% of total regret. Roman-empire, Amazon-ratings, Squirrel, and Chameleon contribute 95.15\% of the loss. Appendix~\ref{app:reproducibility} retains the action table and dataset decomposition; the historical portfolio and fallback sensitivities are in Appendix~\ref{sec:equal_budget}.
+
+\subsection{Primary inference}
+
+\input{sections_applied/15c_primary_inference_table}
+
+Table~\ref{tab:primary_inference} retains all eight predeclared comparisons, including the exact homophily-only identity with zero interval and $p=1$. No comparison establishes superiority after Holm correction. The always-graph effect is $-7.20$ percentage points relative to Combined, with unadjusted 95\% interval $[-13.17,-1.70]$ and adjusted $p=0.125$. The validation-selection effect is $-7.24$, with adjusted $p=0.21875$.
+
+Combined and always-graph agree structurally on four datasets, leaving at most seven nonzero dataset differences. The eight-comparison family imposes a minimum adjusted $p$ value of at least $0.09375$ for this comparison (Appendix~\ref{app:holm_resolution}). Non-rejection therefore cannot establish equivalence. Combined's observed loss also fails the frozen regret-reduction condition. The later analyses vary candidates, fallback, and calibration to determine when the comparison changes.

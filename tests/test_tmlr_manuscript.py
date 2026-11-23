@@ -25,7 +25,6 @@ from experiments.evaluate_diagnostics import (
     sign_flip_p,
 )
 from scripts.audit_route_a_claims import audit
-from scripts.summarize_fallback_sensitivity import same_decisions
 from scripts.summarize_winning_architectures import summarize
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -125,7 +124,7 @@ class RepositionedManuscriptTests(unittest.TestCase):
 
         units = AUDIT["units"]
         for unit in units:
-            same_decisions(fixed_decisions(unit), unit["decisions"], unit["dataset"])
+            self.assertEqual(fixed_decisions(unit), unit["decisions"])
         datasets = {unit["dataset"] for unit in units}
         self.assertEqual(len(units), 110)
         self.assertEqual(len(datasets), 11)
@@ -266,7 +265,7 @@ class RepositionedManuscriptTests(unittest.TestCase):
             unit["selected_mlp_test"] = .75 if combined == "graph" else .25
             unit["test_gap"] = unit["selected_graph_test"] - unit["selected_mlp_test"]
             unit["target_action"] = "graph" if unit["test_gap"] > .01 else "mlp"
-            same_decisions(fixed_decisions(unit), unit["decisions"], unit["dataset"])
+            self.assertEqual(fixed_decisions(unit), unit["decisions"])
         reference = dataset_mean_regret(units, "historical_combined")
         family = []
         for comparison in AUDIT["paired_comparisons"]:

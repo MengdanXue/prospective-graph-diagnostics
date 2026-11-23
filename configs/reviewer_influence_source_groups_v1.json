@@ -1,0 +1,35 @@
+{
+  "schema": "reviewer-saved-record-analysis/1",
+  "status": "scope-fixed-before-new-computation",
+  "motivation": "Post-hoc response to the independent review frozen on 2026-10-08; prior dataset concentration was known. This is not preregistration of the study.",
+  "conditions": ["normalize_features", "normalize_centered_scaled"],
+  "mlp_budgets": [4, 24],
+  "portfolios": [["GCN"], ["GAT"], ["GCN", "GAT"], ["GCN", "GAT", "GraphSAGE", "H2GCN", "LINKX", "GPR-GNN"]],
+  "source_groups": {
+    "academic_citation": ["Cora", "CiteSeer", "PubMed"],
+    "webkb": ["Cornell", "Wisconsin"],
+    "wikipedia": ["Chameleon", "Squirrel", "Roman-empire"],
+    "coauthorship": ["Coauthor-CS"],
+    "actor_cooccurrence": ["Actor"],
+    "amazon_products": ["Amazon-ratings"]
+  },
+  "grouping_rule": "Group by underlying collection/source domain before fitting the additional controls. Citation networks and coauthorship remain separate; all three Wikipedia-derived tasks are grouped conservatively despite their different graph construction. The WebKB pair is held out jointly. A shared PyG loader for Amazon-ratings and Roman-empire does not imply a shared data source.",
+  "grouping_sources": ["configs/reader_data_bindings_v1.json", "https://github.com/yandex-research/heterophilous-graphs", "https://pytorch-geometric.readthedocs.io/en/2.7.0/generated/torch_geometric.datasets.WikipediaNetwork.html", "https://pytorch-geometric.readthedocs.io/en/2.7.0/generated/torch_geometric.datasets.WebKB.html"],
+  "influence": {
+    "policies": ["cpm_nt05", "always_graph", "always_mlp", "validation_selection"],
+    "scenarios": "All 11 datasets and every single-dataset omission, for every declared input/budget/portfolio. No refitting or changed actions in this influence calculation.",
+    "report": "Per-dataset regret, benefit, harm and contribution to the full mean; both constant references; all omission results. Full sample remains primary."
+  },
+  "calibration": {
+    "metrics": ["homophily", "adjusted_homophily", "edge_label_informativeness"],
+    "candidates": "All training-score midpoints between successive distinct values, all-graph and all-MLP, in the existing order.",
+    "loss": "Dataset-equal mean raw-accuracy regret across all seeds of the training datasets; each portfolio retains its own selected graph-versus-MLP oracle.",
+    "tie_tolerance_accuracy_units": 1e-12,
+    "tie_rule": "First candidate within tolerance of the minimum, matching the existing smallest-cutoff convention.",
+    "heldout_exclusion": "Every held-out group member's scores and outcomes are excluded from candidate generation and fitting.",
+    "missing_score": "Abstain with MLP fallback.",
+    "retain": "Complete group definition, training rows, all candidates and losses, selected threshold, held-out rows/actions and per-dataset benefit/harm. Report each predeclared cell regardless of direction."
+  },
+  "inference": "Descriptive source-group and influence sensitivity only. No p-values or confidence intervals are added. Dataset groups are a declared robustness partition, not proof of independence or a population sample.",
+  "prohibited": ["new neural training", "new classifier fitting", "changing the fixed CPM score or decisions", "selecting groups or reporting cells after seeing new results", "overwriting original records"]
+}

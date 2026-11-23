@@ -1,0 +1,33 @@
+{
+  "source_base_commit": "ef48699cdfdce8137b3fc560ff838977751e6e52",
+  "source_identity": "base commit plus per-file delivery manifest; no new commit claimed",
+  "previous_pdf_sha256": "a12277e8038293b74ba11495971ccc4e2f1fe1e34395fb3ca86bebd1bd00991e",
+  "previous_pdf_pages": 40,
+  "new_pdf_sha256": "60c5e2246058a027de4f0d96a409a0b69249d5d63cd82cd9784dae09a63ea39c",
+  "new_pdf_pages": 41,
+  "flat_pdf_sha256": "96dbf821ae292f2a6846c6bec29d790f600e30b04b7d8ccfbea73e5a647b77ea",
+  "modular_and_flat_pdf_text_identical": true,
+  "unchanged_table_numeric_content": 20,
+  "method_tables_with_documentation_changes": [
+    "tab:architecture_details",
+    "tab:diagnostic_policies"
+  ],
+  "display_equations_identical": 14,
+  "citation_keys_identical": 43,
+  "bibliography_sha256": "af5e98fec2b065bd96d8bc9665f1afd4ddc4ced07fd99e67235d391ce29b7102",
+  "title_and_abstract_unchanged": true,
+  "all_empirical_results_unchanged": true,
+  "summary_changed_only_in_provenance": true,
+  "historical_manuscripts_and_training_code_unchanged": true,
+  "local_targeted_tests": {
+    "passed": 89,
+    "log": "tests-project-environment.log",
+    "initial_attempt": "2 module imports failed in bundled runtime: scipy absent; rerun using existing project environment"
+  },
+  "claim_audit": "passed",
+  "latex_logs": "no undefined references, duplicate labels, or overfull boxes",
+  "remote_ci": "not run for this uncommitted revision",
+  "new_training": false,
+  "new_test_evaluation": false,
+  "submitted": false
+}

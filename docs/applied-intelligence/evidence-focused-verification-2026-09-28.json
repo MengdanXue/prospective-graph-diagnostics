@@ -1,0 +1,60 @@
+{
+  "baseline": "retained 41-page working-tree revision; source snapshot in previous companion",
+  "baseline_source_archive_sha256": "1c7573f3285536e7e5738b2a5ca19cd32bc2c8f4067e12f52f4b9a28beb62f39",
+  "current_pdf_sha256": "1007165e817ac64b8cc8e6e3f76d28351fcacf201895b6be429d0db311ac52b3",
+  "pdf_pages": 41,
+  "flat_pdf_sha256": "d4ca91e16c282dd8f6599918dd5eb8970a8a204c8043e5efaf5446858f383747",
+  "modular_flat_pdf_text_identical": true,
+  "abstract_words_before": 220,
+  "abstract_words_after": 213,
+  "tables_numeric_content_identical": 22,
+  "display_equations_identical": 14,
+  "citation_keys_identical": 43,
+  "protected_files_identical": 60,
+  "title_unchanged": true,
+  "primary_inference_proof_preserved_with_location_pointer_update": true,
+  "reaggregation": {
+    "input_units": 110,
+    "combined_regret_pp": 7.457189234820279,
+    "four_dataset_loss_share_pct": 95.14995288324694,
+    "abstention_loss_share_pct": 75.87620353792079
+  },
+  "word_count_changes": [
+    {
+      "file": "main_applied_intelligence.tex",
+      "before_lexical_words": 631,
+      "after_lexical_words": 644
+    },
+    {
+      "file": "sections_applied/01_introduction.tex",
+      "before_lexical_words": 481,
+      "after_lexical_words": 513
+    },
+    {
+      "file": "sections_applied/04_prospective_results.tex",
+      "before_lexical_words": 1029,
+      "after_lexical_words": 888
+    },
+    {
+      "file": "sections_applied/07_discussion.tex",
+      "before_lexical_words": 803,
+      "after_lexical_words": 848
+    },
+    {
+      "file": "sections_applied/08_conclusion.tex",
+      "before_lexical_words": 153,
+      "after_lexical_words": 167
+    },
+    {
+      "file": "sections_applied/12_execution_details.tex",
+      "before_lexical_words": 442,
+      "after_lexical_words": 708
+    }
+  ],
+  "local_existing_tests": 89,
+  "new_training": false,
+  "new_model_or_test_evaluation": false,
+  "new_results_incorporated": false,
+  "remote_ci": "not run for this working-tree revision",
+  "submitted": false
+}

@@ -1,0 +1,24 @@
+\begin{table}[tbp]
+\centering
+\caption{Realized inner-probe partitions. Counts and support ranges cover all ten seeds and 100 repeats, shared by N and CS. The last column counts classes absent from each holdout; this count is constant across repeats and seeds. Full per-class supports and matching partition hashes are retained. No classifier was refitted for this audit.}
+\label{tab:cpm_support}
+\small
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{@{}lrrrrrrr@{}}
+\toprule
+Dataset & Sample & Fit & Hold & Fit (\%) & Fit/class & Hold/class & Absent \\
+\midrule
+Actor & 500 & 300 & 200 & 60.0 & 60--60 & 40--40 & 0 \\
+Amazon-ratings & 500 & 300 & 200 & 60.0 & 60--60 & 40--40 & 0 \\
+Chameleon & 500 & 300 & 200 & 60.0 & 60--60 & 40--40 & 0 \\
+CiteSeer & 498 & 300 & 198 & 60.2 & 50--50 & 33--33 & 0 \\
+Coauthor-CS & 495 & 300 & 195 & 60.6 & 20--20 & 13--13 & 0 \\
+Cora & 497 & 301 & 196 & 60.6 & 43--43 & 28--28 & 0 \\
+Cornell & 108 & 58 & 50 & 53.7 & 9--13 & 0--36 & 2 \\
+PubMed & 501 & 300 & 201 & 59.9 & 100--100 & 67--67 & 0 \\
+Roman-empire & 504 & 306 & 198 & 60.7 & 17--17 & 11--11 & 0 \\
+Squirrel & 500 & 300 & 200 & 60.0 & 60--60 & 40--40 & 0 \\
+Wisconsin & 149 & 72 & 77 & 48.3 & 6--18 & 0--52 & 2 \\
+\bottomrule
+\end{tabular}
+\end{table}

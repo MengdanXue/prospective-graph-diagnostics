@@ -1,0 +1,52 @@
+2026-10-09：两套独立 GitHub skill 的论文修订记录
+
+当前论文：From Graph Diagnostics to Model Decisions: Portfolio, Fallback, and Calibration
+目标期刊：Applied Intelligence
+
+分别使用的 skill
+1. Humanizer 3.1.0
+   https://github.com/blader/humanizer
+   固定提交：225a6f39ac85f76ee48dbad772ea4abe4ed6c9d8
+   处理模板化收束、机械句式、空泛评价和不必要的对比结构。
+2. Anti-Defensive Writing
+   https://github.com/Kiterlin/anti-defensive-writing
+   固定提交：c7edf8fc91ae9c4f7e58345bd12934bb4cf41c46
+   检查限定语是否必要，删减重复自我辩解，并将范围改为直接陈述。
+
+本轮完成 40 处措辞或结构修改，通读时另精修 2 处表达。两套 skill
+分别使用，固定版本全文和许可证保存在 skills/。修改前快照、逐处分类
+和完整差异分别见 source-before/、EDIT_RECORD.json、prose.diff。
+
+代表性修改
+“Extensions Not Claimed Here”改为“Multiclass and multilayer models”，
+直接说明扩展所需的条件。
+“Broadcasting Context, Not a GNN Threshold”改为“Relation to tree broadcasting”，
+正文保留树广播结论与当前图模型之间的适用边界。
+将关于其余五个种子的指令式否定改为“预测并非常量”的事实陈述，
+并回查原始逐种子记录，见 SEMANTIC_CHECK.json。
+共享数据集和配置不独立的解释集中到方法中；删去讨论中的重复警告。
+
+必要的科学限制继续保留：事后分析属性、多重比较后的推断边界、
+未证明等价、因果解释范围、探针饱和与缺失类别、跨来源校准失效、
+不利结果、训练复现问题及 AI 辅助使用说明。
+未将语言风格判断解释为来源判断，也没有生成 AI 检测分数。
+
+验证
+修改文件中的叙述文字按记录口径净减少 336 词；此数不是全文词数。
+18 个 equation/align 环境、1 个括号公式环境、全部行内数学、
+46 个表格及标题、3 幅图及标题、数字、引用与交叉引用均通过比对。
+参考文献及图件原文件保持一致，补充材料与上一版本逐字节一致。
+涉及五个非常量预测器的表述已用现有记录核实；本轮没有训练新模型。
+
+论文 65 页，主文结论位于第 15 页；投稿信 1 页。
+摘要为 192 词，投稿字段将数值区间展开后为 194 词。
+编译检查无未定义引用、溢出警告、缺字或错误，自动检查无页外文字。
+33 个发生像素变化的页面均已检查；其余 32 页与已检查的前版相同。
+源文件 ZIP 的 7 个平铺文件与实际编译输入一致，CRC 检查通过。
+
+状态
+本目录是当前编辑完成稿，替代 humanized-revision-2026-10-09 作为最新候选。
+前版保留。本次完成本地修订和交付，尚未投稿。
+
+交付目录：output/two-skill-revision-2026-10-09/
+论文 SHA256：51b7b43f5c2300006a5e8912c9ce5804b4a41686eac19865cd558fc63810e945

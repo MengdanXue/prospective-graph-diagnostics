@@ -1,0 +1,20 @@
+\section{Calibration gains and transfer across data sources}
+\label{sec:matched_audit}
+
+\subsection{One fitting procedure for three statistics}
+
+Ordinary homophily $h_1$, adjusted homophily, and edge label informativeness (LI) use the same calibration algorithm. In each LODO fold, candidate cutoffs are midpoints between distinct scores on the other ten datasets, plus constant graph and MLP rules. The selected cutoff minimizes equal-weight dataset regret. Ties within $10^{-12}$ accuracy units choose the first candidate in ascending order, beginning with always-graph; missing scores abstain with MLP fallback. Held-out scores and outcomes enter neither candidate generation nor fitting. Adjusted homophily and LI use the training-induced, undirected, deduplicated graph without self-loops; $h_1$ retains its frozen edge convention. The comparison matches fitting while preserving the stated statistic definitions.
+
+All 528 original folds across three statistics and 16 configurations are reconstructed. Adjusted homophily has lower descriptive full-portfolio regret than always-graph in all four input/budget configurations (Table~\ref{tab:source_group_main}). Under CS/24, its 0.491-point benefit and 0.108-point harm give a net gain of 0.383 points, entirely from Cornell and Wisconsin; the other nine datasets tie. The complete matched table and fallback analysis remain in Appendix~\ref{app:matched_detail}.
+
+\subsection{Holding related datasets out together}
+
+LODO can retain a closely related dataset in meta-training. To examine the WebKB concentration, we jointly withhold Cornell and Wisconsin from cutoff generation and loss minimization. Before this review-motivated calculation, we fixed six groups by data source. These are academic citation (Cora, CiteSeer, PubMed), WebKB (Cornell, Wisconsin), Wikipedia (Chameleon, Squirrel, Roman-empire), coauthorship (Coauthor-CS), actor co-occurrence (Actor), and Amazon products (Amazon-ratings). The Wikipedia group is broad: Roman-empire is a word-dependency graph, whereas Chameleon and Squirrel are page-link graphs~\citep{platonov2023heterophilous,pei2020geomgcn}. It tests a conservative source boundary across different graph constructions.
+
+Every member of the held-out group is excluded from fitting. The cutoff family, dataset weighting, missing-value behavior, tie rule, candidate records, and all 16 configurations remain unchanged. Three statistics and six groups produce 288 folds. Overall regret gives each of the eleven held-out datasets equal weight. This post-hoc sensitivity had its scope fixed before computation, after the earlier concentration was known.
+
+\input{sections_applied/15b_source_group_main_table}
+
+For adjusted homophily, withholding both WebKB datasets selects constant graph for all 20 held-out units in every full-portfolio configuration. Their earlier gains therefore do not transfer from the other nine datasets. Across all six source folds, adjusted homophily ties always-graph under N and has higher regret under CS (Table~\ref{tab:source_group_main}). The additional CS loss arises in the Wikipedia fold, whose cutoff changes to approximately 0.004508 and routes Squirrel and Roman-empire to MLP. Thus the original LODO advantage depends on which related tasks remain available for calibration.
+
+Restricted-portfolio results include both gains and losses (Appendix~\ref{app:source_sensitivity}). Neither $h_1$ nor LI improves on always-graph in the four full-portfolio group-holdout configurations. Adjusted homophily yields only two distinct full-portfolio action vectors across the four input/budget settings. The four settings thus reuse both records and some action vectors.

@@ -1,0 +1,21 @@
+\section{Discussion}
+\label{sec:discussion}
+
+\subsection{Decision targets and concentrated loss}
+\label{sec:mismatch}
+
+The CPM reversal links diagnostic value to the model-selection target. Comparing raw and one-hop-aggregated features can guide a GCN/MLP choice. The same probe gives costly switches when graph selection includes architectures with different structural and feature pathways~\citep{zhu2020beyond,lim2021linkx}. Architecture, training, and data composition vary together here, so the analysis does not isolate their causal effects. Roman-empire supplies most of the full-portfolio loss, and its omission reverses three comparisons. The aggregate loss is therefore driven mainly by this task.
+
+Each portfolio defines its own oracle, so lower absolute regret need not mean greater improvement over a reference policy. Benefit and harm distinguish useful switches from costly ones, while headroom bounds their possible net gain. This accounting locates where the reversal occurs and which changes to the decision problem preserve it.
+
+\subsection{Calibration across data sources}
+
+Adjusted homophily's LODO gains depend on the calibration sources. Jointly withholding WebKB removes its gain on those datasets. Across the six source-group folds, it ties always-graph under N and loses under CS. Dataset holdout alone can therefore leave related tasks available for calibration. The six groups test source sensitivity within this convenience sample of eleven graphs. Transfer to independent graph collections, including with kernel CPM, Tri-Hom, or learned selectors, remains an open empirical question.
+
+\subsection{Complete policies and reproducible evidence}
+
+Fallback determines the action after abstention and can dominate policy loss. Combined's MLP fallback accounts for 75.9\% of its frozen regret and makes its full-set actions identical to a homophily threshold. Input retraining and a larger MLP search change predictor outcomes while preserving several diagnostic action vectors. Matching trial counts leaves differences in architecture diversity, time, and FLOPs. The historical grids in the appendices report the resulting exceptions and unfavorable outcomes.
+
+The original nine-policy comparison was specified after exploratory legacy inspection but before generating its records. All extensions and review-motivated sensitivities are post-hoc. Primary dataset-level tests establish no superiority after Holm correction. Shared datasets, few nonzero differences, and related graph sources constrain inferential resolution and external validity.
+
+The executable reader reconstructs saved policies, repeats the source-group analysis, and reproduces the preselected Cora probe from public inputs. Public WebKB labels also reproduce the inner-partition audit. The bounded LINKX audit tests training repeatability in selected configurations; repeatability across the full neural benchmark remains unverified. The auxiliary graph intervention separately tests sensitivity to edge organization. Because this offline study fits both actions and measures accuracy loss, an efficient early selector would also need diagnostic-acquisition and avoided-training costs measured.

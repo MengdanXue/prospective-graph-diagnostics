@@ -1,0 +1,28 @@
+\subsection{Diagnostic utility at the action level}
+\label{sec:action_audit}
+
+To compare diagnostics, we first resolve abstentions into effective actions. Let $q_u\in\{\mathrm{G},\mathrm{M}\}$ be that action and let $\mathbb{E}_D$ average seeds within each dataset and then weight datasets equally. Write $g_u=a_u^{\mathrm{M}}-a_u^{\mathrm{G}}$ and $x_+=\max(x,0)$. The improvement over always-graph satisfies the accounting identity
+\begin{align}
+R_{\mathrm{G}}-R_q
+ &= \mathbb{E}_D[\mathbf{1}\{q_u=\mathrm{M}\}g_u] \\
+ &= \underbrace{\mathbb{E}_D[\mathbf{1}\{q_u=\mathrm{M}\}(g_u)_+]}_{B_q:\ \text{benefit}}
+ -\underbrace{\mathbb{E}_D[\mathbf{1}\{q_u=\mathrm{M}\}(-g_u)_+]}_{H_q:\ \text{harm}}.
+\label{eq:benefit_harm}
+\end{align}
+Subtracting the regrets in Eq.~\eqref{eq:oracle_regret} gives this identity. Only MLP choices contribute: correct switches supply benefit, and switches away from a more accurate graph model supply harm. The decomposition attributes recorded loss to the policy actions.
+
+The available improvement over always-graph is bounded by its own regret,
+\begin{equation}
+R_{\mathrm{G}}-R_q\leq R_{\mathrm{G}}=\mathbb{E}_D[(g_u)_+].
+\label{eq:headroom_bound}
+\end{equation}
+Headroom bounds the absolute gain available on the recorded candidate outcomes. Dividing by positive headroom expresses a gain as a fraction of that ceiling. Absolute benefit and statistical uncertainty are reported separately. The ceiling depends on the portfolio and training outcomes.
+
+Two rules with identical effective actions have identical full-set regret even if their scores, confidence rankings, or abstention coverage differ. Combined supplies a concrete example: under MLP fallback, changing its MLP-validation cutoff changes the explicit-action/abstention labels without changing its effective homophily-threshold action. Conversely, changing fallback is consequential only on abstaining units. These observations motivate reporting scores, explicit actions, fallback-resolved actions, and outcome losses as separate parts of the decision record.
+
+\subsection{Reconstruction from saved outcomes}
+\label{sec:replay_scope}
+
+The retained records allow alternative choices among already evaluated predictors. Restricting a portfolio reapplies validation selection to retained architecture winners; changing a threshold or fallback selects between their saved outcomes. Training, candidate availability, and within-architecture selection stay fixed. Changes to preprocessing, training, hyperparameter generation, or upstream selection require new records whenever they change the available predictors. The 24-trial MLP extension therefore adds 20 trials per unit and evaluates the selected checkpoint.
+
+For threshold calibration, selected-model test outcomes from the other ten datasets are meta-training targets. The held-out dataset contributes neither scores nor outcomes to cutoff selection. Reusing the collection across folds provides an internal cross-dataset evaluation; prospective transfer to an independent graph collection remains untested. The later matched-calibration analysis fixed its reporting scope in code before execution but is post-hoc relative to the inspected benchmark.

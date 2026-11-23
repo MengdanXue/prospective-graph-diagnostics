@@ -1,0 +1,93 @@
+% Applied Intelligence manuscript. Original TMLR sources remain unchanged.
+% Official Springer Nature December 2024 v3.1 class, numbered Basic style.
+\documentclass[pdflatex,sn-basic,Numbered]{sn-jnl}
+\usepackage{amsmath,amssymb,amsfonts,amsthm}
+\usepackage{array,booktabs,multirow,graphicx,textcomp,xcolor,url}
+\usepackage{placeins}
+\hypersetup{hidelinks}
+\makeatletter
+\g@addto@macro\UrlBreaks{\do\-}
+\makeatother
+\graphicspath{{code/figures/}{figures/}}
+\newtheorem{theorem}{Theorem}
+\newtheorem{proposition}{Proposition}
+\newtheorem{definition}{Definition}
+\newtheorem{remark}{Remark}
+\newtheorem{corollary}{Corollary}
+\newtheorem{lemma}{Lemma}
+\newtheorem{assumption}{Assumption}
+
+\begin{document}
+\title{From Graph Diagnostics to Model Decisions: Portfolio, Fallback, and Calibration}
+\author*[1]{\fnm{Mengdan} \sur{Xue}}\email{17326961775@163.com}
+\affil*[1]{\orgdiv{Faculty of Computational Mathematics and Cybernetics}, \orgname{Lomonosov Moscow State University}, \orgaddress{\city{Moscow}, \country{Russia}}}
+
+\abstract{A graph diagnostic's value for model selection depends on the candidate models and calibration tasks. We audit graph-versus-multilayer-perceptron (MLP) policies on 11 node-classification datasets and ten seeds, measuring test accuracy lost relative to the better validation-selected candidate. A frozen homophily rule with MLP fallback incurs 7.46 percentage points of regret, compared with 0.26 for always-graph. Primary dataset-level tests establish no superiority after multiplicity correction. Post-hoc analyses vary inputs, MLP search budgets, portfolios, and calibration access. A training-label-only Gaussian Naive Bayes adaptation of the Classifier-based Performance Metric improves over both constant choices in all 12 restricted configurations using graph convolutional and graph attention models. It loses to always-graph in the four six-architecture configurations, where Roman-empire contributes 78.7--86.5\% of its regret. Omitting that dataset reverses three comparisons. Adjusted homophily achieves lower full-portfolio regret under leave-one-dataset-out calibration, but source-group holdout removes or reverses those gains. Jointly withholding Cornell and Wisconsin gives constant-graph decisions on both in every full-portfolio configuration. Probe scores also saturate, and some classes are absent from inner holdouts. Dataset-level accounting locates these conditional gains and losses, and executable reconstruction supports their verification. Diagnostic evaluation therefore needs explicit candidate portfolios and calibration-source boundaries.}
+\keywords{Graph neural networks, Model selection, Graph diagnostics, Node classification, Benchmark evaluation, Decision regret}
+\maketitle
+\raggedbottom
+
+\input{sections_applied/01_introduction}
+\input{sections_applied/02_related_work}
+\input{sections_applied/03_decision_protocol}
+\input{sections_applied/04_prospective_results}
+\input{sections_applied/04a_extension_design}
+\input{sections_applied/04c_classifier_probe}
+\input{sections_applied/04b_matched_policy_audit}
+\input{sections_applied/07_discussion}
+\input{sections_applied/08_conclusion}
+
+\FloatBarrier
+\backmatter
+\section*{Statements and Declarations}
+\subsection*{Funding}
+The author received no funding for this research.
+\subsection*{Competing interests}
+The author declares no competing interests.
+\subsection*{Author contributions}
+Mengdan Xue is the sole author and is responsible for the study design, interpretation of the results, and manuscript. AI assistance is described in Section~\ref{sec:research_tools}.
+\subsection*{Data and code availability}
+Online Resource~1 (\path{ESM_1.zip}) contains a flat \path{reader/} tree with public-data bindings, executable reconstruction and training commands, the 220 CPM metric records, and all 1,540 input-retraining and 220 MLP-extension records. Its reconstruction output verifies the original 112 CPM policy cells and adds 16 always-MLP reference cells. A public-input Cora, seed~0 demonstration reproduces both probe conditions and their policy scores (Appendix~\ref{sec:reader_reproduction}). Verification receipts accompany the reader. The source-group and all-omission analyses include their fixed scope, all candidate cutoff losses, full results, and executable reconstruction. Partition-support records verify all 220 CPM partitions and the public-input WebKB audit. The unchanged preceding supplement is retained under \path{provenance/}, preserving the primary benchmark, matched-calibration and fallback audits, trial histories, checkpoint indexes, and execution amendments. Source and file manifests identify each version. Full historical checkpoints and author execution ledgers remain in author storage; the reader downloads public raw data and regenerates the bound arrays without them. Public sources and loaders are listed in Appendix~\ref{app:reproducibility} and the reader binding.
+\subsection*{Supplementary information}
+Online Resource~1: Executable reader code, public-data bindings, retained research records, and verification receipts for policy reconstruction and public-input probe reproduction (ZIP archive).
+\subsection*{Ethics approval and consent}
+This computational study uses existing public benchmark datasets and involves no recruitment of human participants or animal experiments. Consent for participation and publication is not applicable.
+
+\begin{appendices}
+% The class resets counters; appendix destinations must differ from main-text ones.
+\renewcommand{\theHtable}{appendix.\thetable}
+\renewcommand{\thefigure}{\arabic{figure}}
+\renewcommand{\theHfigure}{appendix.\thefigure}
+\renewcommand{\theHequation}{appendix.\theequation}
+\input{sections_applied/09_reproducibility_appendix}
+\FloatBarrier
+\input{sections_applied/09a_threshold_headroom}
+\FloatBarrier
+\input{sections_applied/10_training_diagnostics}
+\FloatBarrier
+\input{sections_applied/11_fixed_degree_analysis}
+\FloatBarrier
+\input{sections_applied/12_execution_details}
+\FloatBarrier
+\clearpage
+\input{sections_applied/13_input_mlp_budget_extension}
+\input{sections_applied/13a_retraining_sensitivity}
+\input{sections_applied/13b_calibration_readout}
+\FloatBarrier
+\input{sections_applied/13c_cpm_probe}
+\FloatBarrier
+\input{sections_applied/15_source_sensitivity}
+\FloatBarrier
+\input{sections_applied/14a_frozen_policy_details}
+\FloatBarrier
+\input{sections_applied/14b_historical_portfolio}
+\FloatBarrier
+\input{sections_applied/14c_matched_detail}
+\FloatBarrier
+\input{sections_applied/14_preprocessing_detail}
+\FloatBarrier
+\input{sections_applied/05_edge_intervention}
+\FloatBarrier
+\end{appendices}
+\bibliography{references}
+\end{document}

@@ -1,0 +1,17 @@
+{
+  "sha256": "eabd182a63fa0e5e1accf9b2f0e3d498fcf8e1adf9669980590eaadf2e1ab4d1",
+  "files": [
+    "manuscript.bbl",
+    "manuscript.pdf",
+    "manuscript.tex",
+    "prospective_regret_coverage.pdf",
+    "references.bib",
+    "sn-basic.bst",
+    "sn-jnl.cls",
+    "threshold_headroom.pdf",
+    "validation_figure.pdf"
+  ],
+  "bytes": 511528,
+  "publisher_files_unmodified": true,
+  "package_type": "manuscript_and_sources_not_research_record_supplement"
+}
